@@ -1,0 +1,160 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────
+   FORGE Design System — CSS Variables
+───────────────────────────────────────── */
+@layer base {
+  :root {
+    --background:          222 20% 8%;
+    --foreground:          220 15% 92%;
+    --card:                222 20% 11%;
+    --card-foreground:     220 15% 92%;
+    --border:              222 15% 18%;
+    --input:               222 15% 15%;
+    --primary:             250 90% 63%;
+    --primary-foreground:  0 0% 100%;
+    --secondary:           222 20% 16%;
+    --secondary-foreground: 220 15% 75%;
+    --muted:               222 20% 14%;
+    --muted-foreground:    220 10% 50%;
+    --accent:              262 80% 70%;
+    --accent-foreground:   0 0% 100%;
+    --radius:              0.75rem;
+
+    /* FORGE-specific tokens */
+    --forge-purple:        250 90% 63%;
+    --forge-violet:        262 80% 70%;
+    --forge-amber:         38 90% 55%;
+    --forge-green:         145 65% 50%;
+    --forge-red:           0 80% 60%;
+
+    --sidebar-width:       240px;
+    --topbar-height:       64px;
+  }
+}
+
+/* ─────────────────────────────────────────
+   Base Reset & Typography
+───────────────────────────────────────── */
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
+
+  /* Selection */
+  ::selection {
+    background: hsl(var(--primary) / 0.3);
+    color: hsl(var(--foreground));
+  }
+}
+
+/* ─────────────────────────────────────────
+   Component Utilities
+───────────────────────────────────────── */
+@layer components {
+  /* Glass card */
+  .glass-card {
+    @apply bg-white/[0.03] backdrop-blur-xl border border-white/[0.06] rounded-forge;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+
+  /* Forge glow border */
+  .glow-border {
+    @apply border border-forge-500/30;
+    box-shadow: 0 0 0 1px rgba(98,84,248,0.15), 0 4px 24px rgba(98,84,248,0.1);
+  }
+
+  /* Task card */
+  .task-card {
+    @apply glass-card p-4 flex items-center gap-4 cursor-pointer
+           transition-all duration-200 hover:bg-white/[0.05]
+           hover:border-forge-500/30;
+  }
+
+  .task-card.completed {
+    @apply border-forge-500/20 bg-forge-500/5;
+  }
+
+  /* Sidebar nav item */
+  .nav-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-forge
+           text-sm font-medium text-muted-foreground
+           transition-all duration-150 cursor-pointer
+           hover:text-foreground hover:bg-white/[0.04];
+  }
+
+  .nav-item.active {
+    @apply text-foreground bg-forge-500/15 text-forge-400;
+    box-shadow: inset 0 0 0 1px rgba(98,84,248,0.2);
+  }
+
+  /* Primary button */
+  .btn-forge {
+    @apply inline-flex items-center justify-center gap-2
+           bg-forge-500 text-white font-semibold px-5 py-2.5 rounded-forge
+           transition-all duration-150
+           hover:bg-forge-400 active:scale-[0.97]
+           disabled:opacity-50 disabled:cursor-not-allowed;
+    box-shadow: 0 0 0 1px rgba(98,84,248,0.4), 0 4px 16px rgba(98,84,248,0.3);
+  }
+
+  /* Ghost button */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2
+           bg-transparent text-muted-foreground font-medium px-4 py-2 rounded-forge
+           border border-transparent
+           transition-all duration-150
+           hover:bg-white/[0.04] hover:text-foreground hover:border-border
+           active:scale-[0.97];
+  }
+
+  /* XP Badge */
+  .xp-badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+           bg-forge-500/15 text-forge-400 text-xs font-semibold;
+  }
+
+  /* Streak badge */
+  .streak-badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full
+           bg-amber-500/15 text-amber-400 text-xs font-semibold;
+  }
+
+  /* Input field */
+  .forge-input {
+    @apply w-full bg-white/[0.04] border border-border rounded-forge
+           px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground
+           focus:outline-none focus:ring-2 focus:ring-forge-500/40 focus:border-forge-500/50
+           transition-all duration-150;
+  }
+
+  /* Section header */
+  .section-header {
+    @apply flex items-center gap-2 text-xs font-semibold uppercase tracking-widest
+           text-muted-foreground px-1 mb-3;
+  }
+}

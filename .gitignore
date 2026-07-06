@@ -1,0 +1,35 @@
+# General
+.DS_Store
+Thumbs.db
+*.log
+
+# Environment variables & Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python / Django (Backend)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+venv/
+.venv/
+env/
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# Node / Next.js / TypeScript (Frontend)
+node_modules/
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+.npm
+.eslintcache
