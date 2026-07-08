@@ -1,25 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard,
   ListTodo,
   BarChart3,
   Trophy,
-  Award,
   Settings,
   ChevronLeft,
   ChevronRight,
   Sparkles,
   Timer,
   Calendar,
-  History,
   FileText,
-  ShoppingBag,
   HelpCircle,
 } from "lucide-react";
+import { memo } from "react";
 import { useUiStore } from "@/lib/stores/uiStore";
 import { useCustomizationStore } from "@/lib/stores/customizationStore";
 import { cn } from "@/lib/utils/cn";
@@ -32,16 +30,14 @@ const navItems = [
   { href: "/calendar", label: "Planner", icon: Calendar },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/leagues", label: "Arena", icon: Trophy },
-  { href: "/achievements", label: "Trophies", icon: Award },
-  { href: "/timeline", label: "Timeline", icon: History },
   { href: "/reports", label: "Reports", icon: FileText },
   { href: "/about", label: "About YvY", icon: Sparkles },
-  { href: "/store", label: "Exchange", icon: ShoppingBag },
   { href: "/help", label: "Help & Bugs", icon: HelpCircle },
 ];
 
-export function Sidebar() {
+export const Sidebar = memo(function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { isSidebarCollapsed, toggleSidebar } = useUiStore();
   const { sidebarStyle } = useCustomizationStore();
 
@@ -89,7 +85,13 @@ export function Sidebar() {
           const isActive = pathname.startsWith(item.href);
           const Icon = item.icon;
           return (
-            <Link key={item.href} href={item.href} title={isSidebarCollapsed ? item.label : undefined}>
+            <Link 
+              key={item.href} 
+              href={item.href} 
+              prefetch={true} 
+              onMouseEnter={() => router.prefetch(item.href)}
+              title={isSidebarCollapsed ? item.label : undefined}
+            >
               <div
                 className={cn(
                   "group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all select-none",
@@ -123,7 +125,12 @@ export function Sidebar() {
 
       {/* Bottom Section */}
       <div className="p-3 border-t border-white/[0.08] flex flex-col gap-1.5">
-        <Link href="/settings" title={isSidebarCollapsed ? "Settings" : undefined}>
+        <Link 
+          href="/settings" 
+          prefetch={true} 
+          onMouseEnter={() => router.prefetch("/settings")}
+          title={isSidebarCollapsed ? "Settings" : undefined}
+        >
           <div
             className={cn(
               "group relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all select-none",
@@ -148,4 +155,4 @@ export function Sidebar() {
       </div>
     </motion.aside>
   );
-}
+});

@@ -48,7 +48,7 @@ export default function OnboardingPage() {
       toast.success("Welcome to YOU VS YOU.");
       router.push("/dashboard");
     } catch (error: any) {
-      toast.error(error.response?.data?.error?.message || "Failed to complete onboarding.");
+      toast.error(error.userMessage || error.response?.data?.error?.message || "Failed to complete onboarding. Please try again.");
       setIsLoading(false);
     }
   };
@@ -126,7 +126,9 @@ export default function OnboardingPage() {
             <div className="grid grid-cols-2 gap-4 mb-10">
               {[
                 { id: "morning", label: "Morning", icon: "🌅" },
-                { id: "evening", label: "Evening", icon: "🌙" },
+                { id: "afternoon", label: "Afternoon", icon: "☀️" },
+                { id: "evening", label: "Evening", icon: "🌆" },
+                { id: "night", label: "Night", icon: "🌙" },
               ].map((pref) => (
                 <button
                   key={pref.id}

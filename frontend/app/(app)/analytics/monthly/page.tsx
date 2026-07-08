@@ -4,8 +4,13 @@ import { useMonthlyAnalytics } from "@/lib/queries/useAnalytics";
 import { Skeleton } from "@/components/shared/Skeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { BarChart3 } from "lucide-react";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
+
+const MonthlyAnalyticsBarChart = dynamic(
+  () => import("@/components/analytics/MonthlyAnalyticsBarChart").then((m) => m.MonthlyAnalyticsBarChart),
+  { ssr: false, loading: () => <Skeleton className="h-[350px] w-full rounded-2xl bg-zinc-900/60" /> }
+);
 
 export default function MonthlyAnalyticsPage() {
   const { data: monthly, isLoading, isError } = useMonthlyAnalytics();
@@ -48,36 +53,7 @@ export default function MonthlyAnalyticsPage() {
         </div>
         
         <div className="h-[350px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-              <XAxis 
-                dataKey="name" 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                dy={10}
-              />
-              <YAxis 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-                tickFormatter={(val) => `${val}%`}
-              />
-              <Tooltip 
-                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '12px' }}
-                itemStyle={{ color: 'hsl(var(--forge-400))' }}
-                formatter={(value: number) => [`${value}%`, 'Completion Rate']}
-              />
-              <Bar 
-                dataKey="rate" 
-                fill="var(--forge-500, #6254f8)" 
-                radius={[4, 4, 0, 0]}
-                maxBarSize={40}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+          <MonthlyAnalyticsBarChart chartData={chartData} />
         </div>
       </motion.div>
     </div>

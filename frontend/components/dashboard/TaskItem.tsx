@@ -15,7 +15,6 @@ interface TaskItemProps {
 export function TaskItem({ task }: TaskItemProps) {
   const completeMutation = useCompleteTask();
   const undoMutation = useUndoCompletion();
-  const [isHovered, setIsHovered] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
 
   const toggleTask = () => {
@@ -34,14 +33,11 @@ export function TaskItem({ task }: TaskItemProps) {
 
   return (
     <motion.div
-      layout
       whileHover={{ scale: 1.005, x: 2 }}
       whileTap={{ scale: 0.995 }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
       onClick={toggleTask}
       className={cn(
-        "group relative flex items-center justify-between p-3.5 rounded-xl border transition-all duration-200 cursor-pointer select-none",
+        "group relative flex items-center justify-between p-3.5 rounded-xl border transition-colors duration-200 cursor-pointer select-none",
         task.is_completed
           ? "bg-emerald-500/[0.04] border-emerald-500/20 text-muted-foreground"
           : "bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.05] hover:border-forge-500/40 shadow-[0_2px_10px_rgba(0,0,0,0.2)] text-foreground"
@@ -67,21 +63,15 @@ export function TaskItem({ task }: TaskItemProps) {
         {/* Checkbox with Ripple & Neon Glow */}
         <div
           className={cn(
-            "flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border transition-all duration-300 relative overflow-hidden",
+            "flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border transition-colors duration-300 relative overflow-hidden",
             task.is_completed
               ? "border-emerald-500 bg-emerald-500 text-[#0a0a0c] shadow-[0_0_15px_rgba(16,185,129,0.6)] scale-105"
               : "border-white/20 group-hover:border-forge-400 group-hover:bg-forge-500/10"
           )}
         >
-          {/* Subtle Ripple effect on hover when not completed */}
-          {!task.is_completed && isHovered && (
-            <motion.div
-              layoutId={`ripple-${task.id}`}
-              className="absolute inset-0 bg-forge-500/20 rounded-lg"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1.5, opacity: [0.5, 0] }}
-              transition={{ duration: 0.4 }}
-            />
+          {/* Pure CSS Ripple effect on hover when not completed (0 JS/Framer Motion layout thrashing) */}
+          {!task.is_completed && (
+            <div className="absolute inset-0 bg-forge-500/20 rounded-lg scale-0 group-hover:scale-150 opacity-0 group-hover:opacity-30 transition-transform duration-300 pointer-events-none" />
           )}
 
           <motion.div

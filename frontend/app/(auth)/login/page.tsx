@@ -46,7 +46,7 @@ export default function LoginPage() {
         configUrl: err.config?.url,
         configBaseUrl: err.config?.baseURL,
       });
-      const errorMsg = err.response?.data?.error?.message || "Invalid credentials.";
+      const errorMsg = err.userMessage || err.response?.data?.error?.message || "Incorrect password.";
       toast.error(errorMsg);
     } finally {
       setIsLoading(false);

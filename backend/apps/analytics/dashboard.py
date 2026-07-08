@@ -79,11 +79,7 @@ def _build_dashboard(user, local_date) -> dict:
         .first()
     )
 
-    xp_today = (
-        XPTransaction.objects
-        .filter(user=user, created_at__date=local_date, amount__gt=0)
-        .aggregate(t=Sum("amount"))["t"] or 0
-    )
+    xp_today = XPService.get_xp_earned_for_date(user, local_date)
 
     # ── Query 4: Streak + week mini in one DB hit ──
     from datetime import timedelta
@@ -200,6 +196,13 @@ def _build_dashboard(user, local_date) -> dict:
 
     # ── GitHub Activity Grid (Real historical completion, no fake history before date_joined) ──
     joined_date = user.date_joined.date() if user.date_joined else local_date
+    comp_counts = dict(
+        Completion.objects.filter(
+            user=user,
+            local_date__range=[local_date - timedelta(days=13), local_date]
+        ).values("local_date").annotate(c=Count("id")).values_list("local_date", "c")
+    )
+
     github_history = []
     for i in range(13, -1, -1):
         from datetime import timedelta as td
@@ -213,8 +216,8 @@ def _build_dashboard(user, local_date) -> dict:
             })
         else:
             log = week_logs.get(d)
-            done = log.tasks_completed if log else 0
-            rate = float(log.completion_rate) if log else 0.0
+            done = max(log.tasks_completed if log else 0, comp_counts.get(d, 0))
+            rate = float(log.completion_rate) if log else (100.0 if done > 0 else 0.0)
             lvl = 0
             if done > 0 or rate > 0:
                 if rate >= 90 or done >= 5: lvl = 4
@@ -280,7 +283,7 @@ def _build_dashboard(user, local_date) -> dict:
                 "study_mins": os_metrics.study_mins,
                 "pomodoro_sessions": os_metrics.pomodoro_sessions,
                 "focus_mins": os_metrics.focus_mins,
-                "daily_xp": os_metrics.daily_xp,
+                "daily_xp": xp_today,
             },
             "github_history": github_history,
         },

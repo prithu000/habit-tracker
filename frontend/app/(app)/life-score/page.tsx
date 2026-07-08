@@ -26,21 +26,19 @@ import {
   BarChart3,
   Calendar,
 } from "lucide-react";
-import {
-  Radar,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-} from "recharts";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils/cn";
+
+const LifeScoreRadarChart = dynamic(
+  () => import("@/components/life-score/LifeScoreRadarChart").then((m) => m.LifeScoreRadarChart),
+  { ssr: false, loading: () => <Skeleton className="h-64 w-full rounded-2xl bg-zinc-900/60" /> }
+);
+
+const LifeScoreLineChart = dynamic(
+  () => import("@/components/life-score/LifeScoreLineChart").then((m) => m.LifeScoreLineChart),
+  { ssr: false, loading: () => <Skeleton className="h-64 w-full rounded-2xl bg-zinc-900/60" /> }
+);
 
 export default function LifeScorePage() {
   const { data, isLoading, isError } = useLifeScore();
@@ -289,28 +287,11 @@ export default function LifeScorePage() {
             </div>
 
             <div className="h-64 w-full flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarAxes}>
-                  <PolarGrid stroke="#27272a" />
-                  <PolarAngleAxis 
-                    dataKey="subject" 
-                    stroke="#a1a1aa" 
-                    tick={{ fill: "#a1a1aa", fontSize: 10, cursor: "pointer" }}
-                    onClick={(data) => {
-                      const found = radarAxes.find((a: any) => a.subject === data.value);
-                      if (found) setSelectedAxis(found);
-                    }}
-                  />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#3f3f46" tick={false} />
-                  <Radar
-                    name={radarTimeframe.toUpperCase()}
-                    dataKey={radarTimeframe}
-                    stroke="#c084fc"
-                    fill="#8b5cf6"
-                    fillOpacity={0.45}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
+              <LifeScoreRadarChart
+                radarAxes={radarAxes}
+                radarTimeframe={radarTimeframe}
+                setSelectedAxis={setSelectedAxis}
+              />
             </div>
 
             {/* Selected Axis explanation */}
@@ -468,16 +449,7 @@ export default function LifeScorePage() {
           </span>
         </div>
         <div className="h-64 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={history}>
-              <XAxis dataKey="date" stroke="#52525b" fontSize={11} tickLine={false} />
-              <YAxis domain={[50, 100]} stroke="#52525b" fontSize={11} tickLine={false} />
-              <Tooltip
-                contentStyle={{ backgroundColor: "#18181b", borderColor: "#27272a", borderRadius: "12px", color: "#fff" }}
-              />
-              <Line type="monotone" dataKey="score" stroke="#c084fc" strokeWidth={3} dot={{ r: 4, fill: "#c084fc" }} />
-            </LineChart>
-          </ResponsiveContainer>
+          <LifeScoreLineChart history={history} />
         </div>
       </div>
 

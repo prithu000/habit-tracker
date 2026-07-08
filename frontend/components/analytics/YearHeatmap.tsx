@@ -1,9 +1,8 @@
 "use client";
 
+import { useMemo, memo } from "react";
 import { motion } from "framer-motion";
 import { format, subDays, startOfYear, endOfYear, eachDayOfInterval, getDay, isSameDay } from "date-fns";
-// Fallback tooltip if radix isn't installed (though it should be per package.json)
-// I'll build a custom simple one for the heatmap to avoid missing deps issues.
 
 interface HeatmapData {
   [date: string]: {
@@ -14,11 +13,24 @@ interface HeatmapData {
 }
 
 interface YearHeatmapProps {
-  data: HeatmapData;
+  data: any;
   year?: number;
 }
 
-export function YearHeatmap({ data, year = new Date().getFullYear() }: YearHeatmapProps) {
+export const YearHeatmap = memo(function YearHeatmap({ data, year = new Date().getFullYear() }: YearHeatmapProps) {
+  const lookupData = useMemo(() => {
+    if (Array.isArray(data)) {
+      const map: Record<string, any> = {};
+      data.forEach((item) => {
+        if (item && item.date) {
+          map[item.date] = item;
+        }
+      });
+      return map;
+    }
+    return data || {};
+  }, [data]);
+
   const startDate = startOfYear(new Date(year, 0, 1));
   const endDate = endOfYear(new Date(year, 0, 1));
   const days = eachDayOfInterval({ start: startDate, end: endDate });
@@ -78,7 +90,7 @@ export function YearHeatmap({ data, year = new Date().getFullYear() }: YearHeatm
                   if (!day) return <div key={`empty-${dIndex}`} className="w-3 h-3" />;
                   
                   const dateStr = format(day, "yyyy-MM-dd");
-                  const dayData = data[dateStr] || { completion_rate: 0, tasks_completed: 0, tasks_scheduled: 0 };
+                  const dayData = lookupData[dateStr] || { completion_rate: 0, tasks_completed: 0, tasks_scheduled: 0 };
                   const isToday = isSameDay(day, new Date());
                   
                   return (
@@ -127,4 +139,4 @@ export function YearHeatmap({ data, year = new Date().getFullYear() }: YearHeatm
       </div>
     </div>
   );
-}
+});

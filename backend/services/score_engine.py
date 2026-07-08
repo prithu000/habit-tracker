@@ -29,6 +29,11 @@ class ScoreEngine:
         Returns the number of distinct days where the user had meaningful tracked activity
         (scheduled/completed tasks, logged hydration, workout, study, or pomodoros).
         """
+        cache_key = "tracked_days_count"
+        cached = CacheService.get(str(user.id), cache_key)
+        if cached is not None:
+            return cached
+
         from django.db.models import Q
         daylog_dates = set(DayLog.objects.filter(
             user=user
@@ -38,7 +43,9 @@ class ScoreEngine:
             user=user
         ).filter(Q(water_ml__gt=0) | Q(workout_exercises__gt=0) | Q(study_mins__gt=0) | Q(pomodoro_sessions__gt=0)).values_list("date", flat=True))
         
-        return len(daylog_dates.union(metrics_dates))
+        count = len(daylog_dates.union(metrics_dates))
+        CacheService.set(str(user.id), cache_key, count, ttl=300)
+        return count
 
     @classmethod
     def get_life_score_data(cls, user, target_date=None, force_refresh=False):

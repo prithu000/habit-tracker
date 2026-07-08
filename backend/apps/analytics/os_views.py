@@ -17,6 +17,7 @@ from apps.rewards.models import XPTransaction, UserBadge
 from services.xp_service import XPService
 from services.report_engine import ReportEngine
 from services.score_engine import ScoreEngine
+from services.cache_service import CacheService, TTL_ANALYTICS_W
 
 
 @api_view(["GET"])
@@ -77,6 +78,12 @@ def smart_reports_view(request):
     fmt = request.query_params.get("format", "json").lower()
     local_date = get_user_local_date(user)
 
+    variant = f"{timeframe}_{local_date.isoformat()}"
+    if fmt == "json":
+        cached = CacheService.get(str(user.id), "reports", variant)
+        if cached is not None:
+            return Response(cached)
+
     days = 7
     if timeframe == "daily":
         days = 1
@@ -86,7 +93,7 @@ def smart_reports_view(request):
         days = 365
 
     start_date = local_date - timedelta(days=days - 1)
-    logs = DayLog.objects.filter(user=user, log_date__range=[start_date, local_date]).order_by("log_date")
+    logs = list(DayLog.objects.filter(user=user, log_date__range=[start_date, local_date]).order_by("log_date"))
 
     if fmt in ["csv", "excel"]:
         response = HttpResponse(content_type="text/csv")
@@ -118,7 +125,7 @@ def smart_reports_view(request):
     avg_rate = round(sum(float(log.completion_rate) for log in logs) / max(1, len(logs)), 1) if logs else 0.0
     exec_efficiency = round((total_completed / max(1, total_scheduled)) * 100, 1)
 
-    os_metrics = DailyOSMetrics.objects.filter(user=user, date__range=[start_date, local_date])
+    os_metrics = list(DailyOSMetrics.objects.filter(user=user, date__range=[start_date, local_date]).order_by("date"))
     water_total = sum(m.water_ml for m in os_metrics)
     workout_total = sum(m.workout_exercises for m in os_metrics)
     study_total = sum(m.study_mins for m in os_metrics)
@@ -145,7 +152,7 @@ def smart_reports_view(request):
         {"label": "Deep Study Time", "val": f"{round(study_total/60, 1)}", "unit": "hours", "change": f"{study_total} mins", "trend": "up"},
         {"label": "Current Life Score 2.0", "val": f"{current_life_score}", "unit": "/ 100", "change": life_data.get("title", "Good"), "trend": "up"},
         {"label": "User Mastery Level", "val": f"LVL {user.current_level}", "unit": "rank", "change": XPService.get_level_title(user.current_level), "trend": "neutral"},
-        {"label": "Trophies & Badges", "val": f"{badges_count}", "unit": "unlocked", "change": "Elite Club", "trend": "up"},
+        {"label": "Milestones & Badges", "val": f"{badges_count}", "unit": "unlocked", "change": "Elite Club", "trend": "up"},
     ]
 
     cats = life_data.get("categories", {})
@@ -180,20 +187,18 @@ def smart_reports_view(request):
         "Ensure at least 1 routine completion on weekends to eliminate Monday friction and safeguard streaks."
     ]
 
-    full_report = ReportEngine.generate_full_report(user, timeframe, local_date, start_date, logs, os_metrics)
+    full_report = ReportEngine.generate_full_report(user, timeframe, local_date, start_date, logs, os_metrics, life_data=life_data, disc_data=disc_data)
     unlock_status = ReportEngine.get_report_unlock_status(user)
-    is_init = False
-    
-    if not logs and not os_metrics:
-        week_score = month_score = year_score = lifetime_score = 0
-    else:
-        week_logs = logs[-7:]
-        month_logs = logs[-30:]
-        year_logs = logs[-365:]
-        week_score = int(sum(float(l.completion_rate) for l in week_logs) / max(1, len(week_logs)))
-        month_score = int(sum(float(l.completion_rate) for l in month_logs) / max(1, len(month_logs)))
-        year_score = int(sum(float(l.completion_rate) for l in year_logs) / max(1, len(year_logs)))
-        lifetime_score = int(avg_rate)
+    chart_data = full_report["charts"]
+
+    week_logs = [l for l in logs if l.log_date >= (local_date - timedelta(days=6))]
+    month_logs = [l for l in logs if l.log_date >= (local_date - timedelta(days=29))]
+    year_logs = [l for l in logs if l.log_date >= (local_date - timedelta(days=364))]
+
+    week_score = int(sum(float(l.completion_rate) for l in week_logs) / max(1, len(week_logs))) if week_logs else 0
+    month_score = int(sum(float(l.completion_rate) for l in month_logs) / max(1, len(month_logs))) if month_logs else 0
+    year_score = int(sum(float(l.completion_rate) for l in year_logs) / max(1, len(year_logs))) if year_logs else 0
+    lifetime_score = int(avg_rate)
 
     data = {
         "timeframe": timeframe.title(),
@@ -202,7 +207,7 @@ def smart_reports_view(request):
         "is_initializing": False,
         "unlock_status": unlock_status,
         "executive_summary": full_report["executive_summary"],
-        "charts": full_report["charts"],
+        "charts": chart_data,
         "summary": {
             "total_tasks_completed": total_completed,
             "total_xp_earned": total_xp,
@@ -226,6 +231,8 @@ def smart_reports_view(request):
             "lifetime_score": lifetime_score
         }
     }
+    if fmt == "json":
+        CacheService.set(str(user.id), "reports", data, TTL_ANALYTICS_W, variant)
     return Response(data)
 
 

@@ -62,10 +62,9 @@ def sync_day_log(self, user_id: str, date_str: str):
             if tasks_scheduled else 0
         )
 
-        # XP earned that day
-        xp_earned = XPTransaction.objects.filter(
-            user=user, created_at__date=log_date, amount__gt=0
-        ).aggregate(total=Sum("amount"))["total"] or 0
+        # XP earned that day (single source of truth)
+        from services.xp_service import XPService
+        xp_earned = XPService.get_xp_earned_for_date(user, log_date)
 
         # Check if it's a streak day
         from apps.streaks.models import StreakRecord
@@ -102,6 +101,11 @@ def sync_day_log(self, user_id: str, date_str: str):
                 "is_streak_day": is_streak_day,
             },
         )
+        try:
+            from apps.analytics.models import DailyOSMetrics
+            DailyOSMetrics.objects.filter(user=user, date=log_date).update(daily_xp=xp_earned)
+        except Exception:
+            pass
 
         logger.info(
             "DayLog synced: user=%s date=%s rate=%.1f%%",

@@ -128,7 +128,7 @@ export function SidebarWidgets({ widgets }: SidebarWidgetsProps) {
               <div className="w-full relative h-full flex items-end justify-center group cursor-help">
                 <div 
                   className={cn(
-                    "w-full max-w-[24px] rounded-sm transition-all duration-300",
+                    "w-full max-w-[24px] rounded-sm transition-colors duration-200",
                     day.is_today ? "bg-forge-500" : "bg-white/10 group-hover:bg-forge-500/50"
                   )}
                   style={{ height: `${Math.max(5, day.completion_rate)}%` }}

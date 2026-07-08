@@ -20,8 +20,14 @@ import {
   Mail,
   Globe,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils/cn";
+
+const YearHeatmap = dynamic(
+  () => import("@/components/calendar/YearHeatmap").then((m) => m.YearHeatmap),
+  { ssr: false, loading: () => <Skeleton className="h-[220px] w-full rounded-3xl bg-zinc-900/40" /> }
+);
 
 export default function CalendarPage() {
   const { data: remindersData, isLoading: isRemindersLoading } = useEmailReminders();
@@ -132,38 +138,7 @@ export default function CalendarPage() {
       </div>
 
       {/* 365-Day Execution Heatmap */}
-      <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-3xl p-6 backdrop-blur-md shadow-xl overflow-x-auto">
-        <div className="flex items-center justify-between mb-6 min-w-[700px]">
-          <div>
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <Flame className="w-4 h-4 text-purple-400" />
-              Annual Consistency Matrix
-            </h3>
-            <p className="text-xs text-zinc-400">365-day visual density log of your completed routines and tasks.</p>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-zinc-400">
-            <span>Less</span>
-            {[0, 1, 2, 3, 4].map((lvl) => (
-              <div key={lvl} className={cn("w-3.5 h-3.5 rounded-sm", getLevelColor(lvl))} />
-            ))}
-            <span>More</span>
-          </div>
-        </div>
-
-        <div className="flex gap-1.5 min-w-[700px] pb-2">
-          {heatmapWeeks.map((week, wIdx) => (
-            <div key={wIdx} className="flex flex-col gap-1.5">
-              {week.map((day, dIdx) => (
-                <div
-                  key={dIdx}
-                  title={`${day.date}: ${day.count} tasks completed`}
-                  className={cn("w-3.5 h-3.5 rounded-sm transition-transform hover:scale-125 cursor-pointer", getLevelColor(day.level))}
-                />
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
+      <YearHeatmap heatmapWeeks={heatmapWeeks} getLevelColor={getLevelColor} />
 
       {/* Monthly Grid & Reminders Matrix */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

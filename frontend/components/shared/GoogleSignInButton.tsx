@@ -63,7 +63,7 @@ export function GoogleSignInButton({ label = "Continue with Google" }: { label?:
       }
     } catch (err: any) {
       console.error("GOOGLE OAUTH ERROR:", err);
-      toast.error(err.response?.data?.detail || "Google authentication failed.");
+      toast.error(err.userMessage || err.response?.data?.error?.message || err.response?.data?.detail || "Unable to sign in with Google. Please try again.");
     } finally {
       setIsLoading(false);
     }

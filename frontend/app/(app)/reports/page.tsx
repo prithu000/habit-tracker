@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import dynamic from "next/dynamic";
 import { useSmartReports, useLifeScore } from "@/lib/queries/useOS";
 import { useDashboard } from "@/lib/queries/useDashboard";
 import { useDisciplineScore, useWeeklyAnalytics, useMonthlyAnalytics } from "@/lib/queries/useAnalytics";
@@ -16,33 +17,49 @@ import {
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { cn } from "@/lib/utils/cn";
-import { ExecutivePaperReport } from "@/components/reports/ExecutivePaperReport";
-import html2canvas from "html2canvas";
 import { format, parseISO } from "date-fns";
+
+const ExecutivePaperReport = dynamic(
+  () => import("@/components/reports/ExecutivePaperReport").then((mod) => mod.ExecutivePaperReport),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full max-w-3xl space-y-8 bg-white/[0.02] border border-white/[0.05] p-12 rounded-[32px]">
+        <div className="space-y-4 text-center flex flex-col items-center">
+          <Skeleton className="h-4 w-32 rounded-full bg-zinc-800" />
+          <Skeleton className="h-10 w-64 rounded-xl bg-zinc-800" />
+        </div>
+        <div className="grid grid-cols-2 gap-8 py-6 border-y border-zinc-800">
+          <Skeleton className="h-24 w-full rounded-2xl bg-zinc-800" />
+          <Skeleton className="h-24 w-full rounded-2xl bg-zinc-800" />
+        </div>
+        <div className="space-y-4">
+          <Skeleton className="h-6 w-48 rounded-lg bg-zinc-800" />
+          <Skeleton className="h-32 w-full rounded-2xl bg-zinc-800" />
+        </div>
+      </div>
+    ),
+  }
+);
 
 export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState<"daily" | "weekly" | "monthly">("daily");
   const [isExporting, setIsExporting] = useState(false);
 
-  const dailyQuery = useSmartReports("daily");
-  const weeklyQuery = useSmartReports("weekly");
-  const monthlyQuery = useSmartReports("monthly");
+  const dailyQuery = useSmartReports("daily", activeTab === "daily");
+  const weeklyQuery = useSmartReports("weekly", activeTab === "weekly");
+  const monthlyQuery = useSmartReports("monthly", activeTab === "monthly");
 
-  const { data: dashboard, isLoading: isDashboardLoading } = useDashboard();
-  const { data: lifeScore, isLoading: isLifeScoreLoading } = useLifeScore();
-  const { data: disciplineScore, isLoading: isDisciplineLoading } = useDisciplineScore();
-  const { data: weeklyAnalytics, isLoading: isWeeklyLoading } = useWeeklyAnalytics();
-  const { data: monthlyAnalytics, isLoading: isMonthlyLoading } = useMonthlyAnalytics();
+  const { data: dashboard } = useDashboard();
+  const { data: lifeScore } = useLifeScore();
+  const { data: disciplineScore } = useDisciplineScore();
+  const { data: weeklyAnalytics } = useWeeklyAnalytics(activeTab === "weekly");
+  const { data: monthlyAnalytics } = useMonthlyAnalytics(activeTab === "monthly");
 
   const isLoading =
-    dailyQuery.isLoading ||
-    weeklyQuery.isLoading ||
-    monthlyQuery.isLoading ||
-    isDashboardLoading ||
-    isLifeScoreLoading ||
-    isDisciplineLoading ||
-    isWeeklyLoading ||
-    isMonthlyLoading;
+    (activeTab === "daily" && dailyQuery.isLoading) ||
+    (activeTab === "weekly" && weeklyQuery.isLoading) ||
+    (activeTab === "monthly" && monthlyQuery.isLoading);
 
   const activeData =
     activeTab === "daily"
@@ -62,6 +79,7 @@ export default function ReportsPage() {
       setIsExporting(true);
       toast.loading("Synthesizing A4 printable PDF...", { id: "pdf-export" });
 
+      const html2canvas = (await import("html2canvas")).default;
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,

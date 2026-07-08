@@ -8,6 +8,11 @@ export const DASHBOARD_QUERY_KEY = ["dashboard"];
 export function useDashboard() {
   return useQuery({
     queryKey: DASHBOARD_QUERY_KEY,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     queryFn: async () => {
       const { data } = await api.get<ApiResponse<DashboardData>>("/dashboard/");
       return data.data; // unwrapping the standard ApiResponse envelope
@@ -64,6 +69,14 @@ export function useCompleteTask() {
             if (newDashboard.today.stats.completed_tasks === newDashboard.today.stats.total_tasks) {
               newDashboard.today.stats.is_perfect_day = true;
             }
+            // Optimistic XP increment
+            if (newDashboard.widgets && newDashboard.widgets.xp) {
+              newDashboard.widgets.xp.xp_earned_today += 10;
+              newDashboard.widgets.xp.total_xp += 10;
+            }
+            if (newDashboard.today.stats) {
+              newDashboard.today.stats.xp_earned_today += 10;
+            }
           }
 
           return newDashboard;
@@ -73,6 +86,24 @@ export function useCompleteTask() {
       return { previousDashboard };
     },
     onSuccess: (data, variables, context) => {
+      // Instantly apply accurate server-computed XP and level stats
+      if (data) {
+        queryClient.setQueryData<DashboardData>(DASHBOARD_QUERY_KEY, (old) => {
+          if (!old) return old;
+          const updated = JSON.parse(JSON.stringify(old)) as DashboardData;
+          if (updated.widgets && updated.widgets.xp) {
+            if (typeof data.total_xp === "number") updated.widgets.xp.total_xp = data.total_xp;
+            if (typeof data.current_level === "number") updated.widgets.xp.current_level = data.current_level;
+            if (typeof data.level_progress === "number") updated.widgets.xp.level_progress = data.level_progress;
+            if (typeof data.xp_earned_today === "number") updated.widgets.xp.xp_earned_today = data.xp_earned_today;
+          }
+          if (updated.today && updated.today.stats && typeof data.xp_earned_today === "number") {
+            updated.today.stats.xp_earned_today = data.xp_earned_today;
+          }
+          return updated;
+        });
+      }
+
       const prevStats = context?.previousDashboard?.today?.stats;
       const prevStreak = context?.previousDashboard?.widgets?.streak?.current || 0;
       

@@ -1,12 +1,11 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useDashboard } from "@/lib/queries/useDashboard";
 import { GreetingHeader } from "@/components/dashboard/GreetingHeader";
 import { StatsBar } from "@/components/dashboard/StatsBar";
 import { RoutineCard } from "@/components/dashboard/RoutineCard";
-import { DashboardAnalytics } from "@/components/dashboard/DashboardAnalytics";
 import { AICoachWidget } from "@/components/dashboard/AICoachWidget";
-import { DynamicWidgetsGrid } from "@/components/dashboard/DynamicWidgetsGrid";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Skeleton } from "@/components/shared/Skeleton";
 import { CheckCircle2, AlertCircle, Plus, Sparkles, Sliders } from "lucide-react";
@@ -14,6 +13,16 @@ import Link from "next/link";
 import { PageTransition } from "@/components/layouts/PageTransition";
 import { useCustomizationStore } from "@/lib/stores/customizationStore";
 import { cn } from "@/lib/utils/cn";
+
+const DashboardAnalytics = dynamic(
+  () => import("@/components/dashboard/DashboardAnalytics").then((m) => m.DashboardAnalytics),
+  { ssr: false, loading: () => <Skeleton className="h-[400px] w-full rounded-3xl bg-zinc-900/60" /> }
+);
+
+const DynamicWidgetsGrid = dynamic(
+  () => import("@/components/dashboard/DynamicWidgetsGrid").then((m) => m.DynamicWidgetsGrid),
+  { ssr: false, loading: () => <Skeleton className="h-64 w-full rounded-3xl bg-zinc-900/60" /> }
+);
 
 export default function DashboardPage() {
   const { data: dashboard, isLoading, isError, error } = useDashboard();

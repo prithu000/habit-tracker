@@ -43,15 +43,26 @@ def forge_exception_handler(exc, context):
             else:
                 # Field-level validation errors — preserve structure exactly
                 code = "validation_error"
-                message = "Validation failed. Check the errors field for details."
                 errors = {
                     field: [str(e) for e in errs] if isinstance(errs, list) else [str(errs)]
                     for field, errs in raw.items()
                 }
+                first_field = next(iter(errors.keys()), None)
+                if first_field and errors[first_field]:
+                    first_msg = errors[first_field][0]
+                    # If field is email/password, make message direct and friendly
+                    if first_field == "email" and "exists" in first_msg:
+                        message = "An account with this email already exists."
+                    elif first_field == "password" or first_field == "password_confirm":
+                        message = first_msg
+                    else:
+                        message = first_msg
+                else:
+                    message = "Please check the input fields and try again."
         elif isinstance(raw, list):
             # Non-field errors: [{ "message": "...", "code": "..." }]
             code = "validation_error"
-            message = raw[0].get("message", str(raw[0])) if raw else "Validation failed."
+            message = raw[0].get("message", str(raw[0])) if isinstance(raw[0], dict) else str(raw[0]) if raw else "Please check your input and try again."
             errors = {"non_field_errors": [str(e) for e in raw]}
         else:
             message = str(raw)

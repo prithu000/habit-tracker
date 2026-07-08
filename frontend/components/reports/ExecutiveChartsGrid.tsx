@@ -466,7 +466,7 @@ export const ExecutiveChartsGrid: React.FC<ExecutiveChartsGridProps> = ({
           </div>
           <div>
             <h3 className="text-xl font-black tracking-tight">Milestones & Personal Records</h3>
-            <p className="text-xs text-zinc-400">Unbroken streak progression, unlocked trophies, and all-time highs.</p>
+            <p className="text-xs text-zinc-400">Unbroken streak progression, unlocked badges, and all-time highs.</p>
           </div>
         </div>
 
@@ -514,7 +514,7 @@ export const ExecutiveChartsGrid: React.FC<ExecutiveChartsGridProps> = ({
           <div className={titleClass}>
             <span className="flex items-center gap-2">
               <Award className="w-4 h-4 text-indigo-400" />
-              14. Achievements & Trophies Unlock History
+              14. Achievements & Badges Unlock History
             </span>
           </div>
           <div className="space-y-3 py-2 max-h-60 overflow-y-auto">

@@ -66,6 +66,48 @@ api.interceptors.response.use(
         useAuthStore.getState().logout();
       }
     }
+
+    if (!error.response || error.code === "ERR_NETWORK" || error.message === "Network Error") {
+      error.userMessage = "Unable to connect. Check your internet connection.";
+    } else if (error.response?.status === 401 && !error.config?.url?.includes("/auth/login")) {
+      error.userMessage = "Your session has expired. Please log in again.";
+    } else if (error.response?.status >= 500) {
+      error.userMessage = "Something went wrong. Please try again later.";
+    } else {
+      const errData = error.response?.data?.error;
+      let rawMsg = errData?.message || error.response?.data?.detail;
+
+      // Extract field-level errors if present
+      if (!rawMsg && errData?.errors && typeof errData.errors === "object") {
+        const firstKey = Object.keys(errData.errors)[0];
+        if (firstKey && Array.isArray(errData.errors[firstKey])) {
+          rawMsg = errData.errors[firstKey][0];
+        } else if (firstKey && typeof errData.errors[firstKey] === "string") {
+          rawMsg = errData.errors[firstKey];
+        }
+      }
+
+      if (typeof rawMsg !== "string") {
+        rawMsg = String(rawMsg || "");
+      }
+
+      // Map technical backend/DRF messages to user-friendly UI messages
+      if (rawMsg.includes("No active account found") || rawMsg.toLowerCase().includes("invalid credentials") || rawMsg.toLowerCase().includes("incorrect password")) {
+        error.userMessage = "Incorrect password.";
+      } else if (rawMsg.toLowerCase().includes("no account found") || rawMsg.toLowerCase().includes("does not exist")) {
+        error.userMessage = "No account found with this email.";
+      } else if (rawMsg.toLowerCase().includes("already exists") || (rawMsg.toLowerCase().includes("email") && rawMsg.toLowerCase().includes("exists"))) {
+        error.userMessage = "An account with this email already exists.";
+      } else if (rawMsg.toLowerCase().includes("linked with google") || rawMsg.toLowerCase().includes("social provider")) {
+        error.userMessage = "This email is already linked with Google Sign-In.";
+      } else if (rawMsg.includes("object Object") || rawMsg.includes("AxiosError") || rawMsg.includes("ValidationError") || rawMsg.includes("Unexpected token") || rawMsg.includes("Internal Server Error") || !rawMsg.trim()) {
+        error.userMessage = "Something went wrong. Please try again later.";
+      } else {
+        // Strip any technical prefixes or suffixes
+        error.userMessage = rawMsg.replace(/^(ValidationError:|Error:|AxiosError:)\s*/i, "").trim();
+      }
+    }
+
     return Promise.reject(error);
   }
 );

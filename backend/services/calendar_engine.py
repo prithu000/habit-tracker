@@ -43,24 +43,49 @@ class CalendarEngine:
 
         log_map = {l["log_date"]: l for l in logs}
 
+        # Also query raw Completion logs to guarantee zero data loss if Celery hasn't run
+        from apps.completions.models import Completion
+        from django.db.models import Count
+        completion_counts = dict(
+            Completion.objects.filter(
+                user=user,
+                local_date__range=[start, end]
+            ).values("local_date").annotate(c=Count("id")).values_list("local_date", "c")
+        )
+
         result = []
         for day in get_date_range(start, end):
+            done = 0
+            scheduled = 0
+            done_raw = completion_counts.get(day, 0)
             if day in log_map:
                 log = log_map[day]
+                done = max(log.get("tasks_completed", 0), done_raw)
+                scheduled = max(log.get("tasks_scheduled", 0), done)
                 rate = float(log["completion_rate"])
+                if done_raw > log.get("tasks_completed", 0) and scheduled > 0:
+                    rate = round((done / scheduled) * 100, 1)
+            elif done_raw > 0:
+                done = done_raw
+                scheduled = max(done, 4) # fallback scheduled estimate if DayLog missing
+                rate = round((done / scheduled) * 100, 1)
+                log = {"tasks_completed": done, "tasks_scheduled": scheduled}
             else:
-                # Future or no data
+                done = 0
+                scheduled = 0
                 rate = 0.0
                 log = {"tasks_completed": 0, "tasks_scheduled": 0}
 
             level = CalendarEngine._rate_to_level(rate)
+            if done > 0 and level == 0:
+                level = 1
             is_future = day > today
 
             result.append({
                 "date": day.isoformat(),
                 "completion_rate": rate,
-                "tasks_completed": log.get("tasks_completed", 0),
-                "tasks_scheduled": log.get("tasks_scheduled", 0),
+                "tasks_completed": done,
+                "tasks_scheduled": scheduled,
                 "level": level,
                 "is_today": day == today,
                 "is_future": is_future,

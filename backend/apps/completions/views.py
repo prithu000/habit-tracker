@@ -86,11 +86,7 @@ def today_view(request):
     completed_map = {str(c.task_id): c for c in completions}
 
     # ── Query 3: XP + streak (aggregate + single row lookup) ──
-    xp_today = (
-        XPTransaction.objects
-        .filter(user=user, created_at__date=local_date, amount__gt=0)
-        .aggregate(t=Sum("amount"))["t"] or 0
-    )
+    xp_today = XPService.get_xp_earned_for_date(user, local_date)
     streak = (
         StreakRecord.objects
         .filter(user=user, routine__isnull=True)
@@ -226,6 +222,7 @@ class CompleteTaskView(APIView):
             reason="task_complete",
             reference_id=completion.id,
             metadata={"task_id": str(task.id), "task_name": task.name},
+            local_date=local_date,
         )
         user.refresh_from_db(fields=["total_xp", "current_level"])
 
@@ -240,9 +237,15 @@ class CompleteTaskView(APIView):
         done_today = Completion.objects.filter(user=user, local_date=local_date).count()
         is_perfect = scheduled_count > 0 and done_today == scheduled_count
 
-        # ── Dispatch async DayLog sync ──
+        # ── Synchronously materialize DayLog for accurate heatmap ──
         from workers.tasks.reward_evaluator import sync_day_log
-        sync_day_log.delay(str(user.id), local_date.isoformat())
+        try:
+            sync_day_log(str(user.id), local_date.isoformat())
+        except Exception:
+            try:
+                sync_day_log.delay(str(user.id), local_date.isoformat())
+            except Exception:
+                pass
 
         # ── Invalidate caches ──
         CacheService.invalidate_all(str(user.id))
@@ -271,6 +274,7 @@ class CompleteTaskView(APIView):
             {
                 "completion_id": str(completion.id),
                 "xp_earned": xp_amount,
+                "xp_earned_today": XPService.get_xp_earned_for_date(user, local_date),
                 "total_xp": user.total_xp,
                 "current_level": user.current_level,
                 "leveled_up": leveled_up,
@@ -310,8 +314,15 @@ def undo_completion(request, completion_id):
         reason="task_complete",
         reference_id=completion.id,
         metadata={"undone": True, "task_id": str(completion.task_id)},
+        local_date=local_date,
     )
     completion.delete()
+
+    from workers.tasks.reward_evaluator import sync_day_log
+    try:
+        sync_day_log(str(user.id), local_date.isoformat())
+    except Exception:
+        pass
 
     # Invalidate caches
     CacheService.invalidate_all(str(user.id))

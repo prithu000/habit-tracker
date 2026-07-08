@@ -3,82 +3,50 @@ import api from "../api";
 import { ApiResponse } from "../../types/api";
 import { toast } from "react-hot-toast";
 
-export function useLifeScore() {
+export function useLifeScore(enabled = true) {
   return useQuery({
     queryKey: ["lifeScore"],
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    enabled,
     queryFn: async () => {
       const { data } = await api.get<ApiResponse<any>>("/life-score/");
-      return data.data;
+      return data.data || data;
     },
   });
 }
 
-export function useMotivation() {
+export function useMotivation(enabled = true) {
   return useQuery({
     queryKey: ["motivation"],
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    enabled,
     queryFn: async () => {
       const { data } = await api.get<ApiResponse<any>>("/analytics/motivation/");
-      return data.data;
+      return data.data || data;
     },
   });
 }
 
-export function useSmartReports(timeframe = "weekly") {
+export function useSmartReports(timeframe = "weekly", enabled = true) {
   return useQuery({
     queryKey: ["smartReports", timeframe],
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    enabled,
     queryFn: async () => {
       const { data } = await api.get<ApiResponse<any>>(`/analytics/reports/?timeframe=${timeframe}&format=json`);
-      return data.data;
-    },
-  });
-}
-
-export function useTimeline() {
-  return useQuery({
-    queryKey: ["timeline"],
-    queryFn: async () => {
-      const { data } = await api.get<ApiResponse<any>>("/analytics/timeline/");
-      return data.data;
-    },
-  });
-}
-
-export function useCoins() {
-  return useQuery({
-    queryKey: ["coins"],
-    queryFn: async () => {
-      const { data } = await api.get<ApiResponse<any>>("/rewards/coins/");
-      return data.data;
-    },
-  });
-}
-
-export function useStore() {
-  return useQuery({
-    queryKey: ["store"],
-    queryFn: async () => {
-      const { data } = await api.get<ApiResponse<any>>("/rewards/store/");
-      return data.data;
-    },
-  });
-}
-
-export function usePurchaseStoreItem() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (itemId: string) => {
-      const { data } = await api.post<ApiResponse<any>>("/rewards/store/", { item_id: itemId });
-      return data.data;
-    },
-    onSuccess: (data) => {
-      toast.success(data?.message || "Item purchased successfully!");
-      queryClient.invalidateQueries({ queryKey: ["store"] });
-      queryClient.invalidateQueries({ queryKey: ["coins"] });
-      queryClient.invalidateQueries({ queryKey: ["streakFreeze"] });
-    },
-    onError: (err: any) => {
-      const msg = err?.response?.data?.error?.message || "Failed to purchase item.";
-      toast.error(msg);
+      return data.data || data;
     },
   });
 }
@@ -86,6 +54,11 @@ export function usePurchaseStoreItem() {
 export function useLeagues(scope = "global") {
   return useQuery({
     queryKey: ["leagues", scope],
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     queryFn: async () => {
       const { data } = await api.get<ApiResponse<any>>(`/rewards/leagues/?scope=${scope}`);
       return data.data;
@@ -96,6 +69,11 @@ export function useLeagues(scope = "global") {
 export function useHardcoreAchievements() {
   return useQuery({
     queryKey: ["hardcoreAchievements"],
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     queryFn: async () => {
       const { data } = await api.get<ApiResponse<any>>("/rewards/achievements-list/");
       return data.data;
@@ -106,6 +84,11 @@ export function useHardcoreAchievements() {
 export function useStreakFreeze() {
   return useQuery({
     queryKey: ["streakFreeze"],
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     queryFn: async () => {
       const { data } = await api.get<ApiResponse<any>>("/streaks/freeze/");
       return data.data;
@@ -140,6 +123,11 @@ export function usePomodoroEmail() {
 export function useEmailReminders() {
   return useQuery({
     queryKey: ["emailReminders"],
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     queryFn: async () => {
       const { data } = await api.get<ApiResponse<any>>("/notifications/reminders/");
       return data.data;

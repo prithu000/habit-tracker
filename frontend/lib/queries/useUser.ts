@@ -16,18 +16,30 @@ export function useUserProfile() {
     queryFn: async () => {
       const { data } = await api.get<ApiResponse<User>>("/users/me/");
       if (data.data && tokens) {
-        setAuth(data.data, tokens);
+        const currentUser = useAuthStore.getState().user;
+        if (JSON.stringify(data.data) !== JSON.stringify(currentUser)) {
+          setAuth(data.data, tokens);
+        }
       }
       return data.data;
     },
     enabled: isAuthenticated,
     staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
 
 export function useUserStats() {
   return useQuery({
     queryKey: [...USER_QUERY_KEY, "stats"],
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     queryFn: async () => {
       const { data } = await api.get<ApiResponse<any>>("/users/me/stats/");
       return data.data;
@@ -65,7 +77,7 @@ export function useChangePassword() {
       toast.success("Password changed successfully.");
     },
     onError: (err: any) => {
-      const msg = err.response?.data?.error?.message || "Failed to change password.";
+      const msg = err.userMessage || err.response?.data?.error?.message || "Failed to change password. Please check your current password and try again.";
       toast.error(msg);
     }
   });

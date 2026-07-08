@@ -26,8 +26,8 @@ const FAQS = [
     a: "Your Life Score is a weighted composite index evaluating daily task execution velocity across 9 core dimensions (Fitness, Learning, Work, Mental Health, Health, Sleep, Finance, Personal, and Discipline). Maintaining unbroken streaks amplifies your daily point yield.",
   },
   {
-    q: "How does the Streak Freeze / Grace Period work?",
-    a: "If you miss completing a routine block by midnight, the Streak Engine checks if you have an active Streak Freeze crest in your inventory or grants a 12-hour morning grace period. You can acquire additional freezes in the YOU VS YOU Coin Exchange Store.",
+    q: "How does the Grace Period work?",
+    a: "If you miss completing a routine block by midnight, the Streak Engine automatically grants a 12-hour morning grace period so your execution momentum remains intact.",
   },
   {
     q: "What happens when I trigger the Neural Focus Mode?",

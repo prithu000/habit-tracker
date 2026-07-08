@@ -53,7 +53,7 @@ export function StatsBar({ stats }: StatsBarProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: i * 0.1 }}
           className={cn(
-            "glass-card p-5 flex items-center gap-4 relative overflow-hidden transition-all duration-300",
+            "glass-card p-5 flex items-center gap-4 relative overflow-hidden transition-colors duration-200",
             stat.highlight && `border-${stat.border.split('-')[1]} shadow-[0_0_15px_rgba(0,0,0,0.1)]`
           )}
         >

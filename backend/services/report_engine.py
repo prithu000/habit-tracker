@@ -69,7 +69,7 @@ class ReportEngine:
         }
 
     @staticmethod
-    def generate_full_report(user, timeframe: str, local_date: date, start_date: date, logs_qs, os_metrics_qs) -> dict:
+    def generate_full_report(user, timeframe: str, local_date: date, start_date: date, logs_qs, os_metrics_qs, life_data=None, disc_data=None) -> dict:
         logs = list(logs_qs)
         os_metrics = list(os_metrics_qs)
         os_goals, _ = UserOSGoals.objects.get_or_create(user=user)
@@ -91,8 +91,10 @@ class ReportEngine:
         pomo_total = sum(m.pomodoro_sessions for m in os_metrics)
         focus_total = sum(m.focus_mins for m in os_metrics)
 
-        life_data = ScoreEngine.get_life_score_data(user, local_date)
-        disc_data = ScoreEngine.get_discipline_score(user, local_date)
+        if life_data is None:
+            life_data = ScoreEngine.get_life_score_data(user, local_date)
+        if disc_data is None:
+            disc_data = ScoreEngine.get_discipline_score(user, local_date)
         current_life_score = life_data["overall_score"]
         discipline_index = disc_data["score"]
 
@@ -544,22 +546,26 @@ class ReportEngine:
 
     @staticmethod
     def _get_xp_series_weekly(user, local_date: date, weeks: int):
+        start_date = local_date - timedelta(days=weeks * 7)
+        logs = list(DayLog.objects.filter(user=user, log_date__range=[start_date, local_date]))
         series = []
         for w in range(weeks - 1, -1, -1):
             w_end = local_date - timedelta(days=w * 7)
             w_start = w_end - timedelta(days=6)
-            xp = DayLog.objects.filter(user=user, log_date__range=[w_start, w_end]).aggregate(s=Sum("xp_earned"))["s"] or 0
+            xp = sum(l.xp_earned for l in logs if w_start <= l.log_date <= w_end)
             series.append({"week": f"Wk {weeks - w}", "xp": xp})
         return series
 
     @staticmethod
     def _get_xp_series_monthly(user, local_date: date, months: int):
+        start_date = local_date - timedelta(days=months * 31)
+        logs = list(DayLog.objects.filter(user=user, log_date__gte=start_date))
         series = []
         for m in range(months - 1, -1, -1):
             total_months = local_date.year * 12 + (local_date.month - 1) - m
             target_y = total_months // 12
             target_m = total_months % 12 + 1
-            xp = DayLog.objects.filter(user=user, log_date__year=target_y, log_date__month=target_m).aggregate(s=Sum("xp_earned"))["s"] or 0
+            xp = sum(l.xp_earned for l in logs if l.log_date.year == target_y and l.log_date.month == target_m)
             month_name = date(target_y, target_m, 1).strftime("%b")
             series.append({"month": month_name, "xp": xp})
         return series
@@ -585,14 +591,17 @@ class ReportEngine:
 
     @staticmethod
     def _get_volume_weekly(user, local_date: date, weeks: int):
+        start_date = local_date - timedelta(days=weeks * 7)
+        logs = list(DayLog.objects.filter(user=user, log_date__range=[start_date, local_date]))
+        metrics = list(DailyOSMetrics.objects.filter(user=user, date__range=[start_date, local_date]))
         series = []
         for w in range(weeks - 1, -1, -1):
             w_end = local_date - timedelta(days=w * 7)
             w_start = w_end - timedelta(days=6)
-            tasks = DayLog.objects.filter(user=user, log_date__range=[w_start, w_end]).aggregate(s=Sum("tasks_completed"))["s"] or 0
-            workouts = DailyOSMetrics.objects.filter(user=user, date__range=[w_start, w_end]).aggregate(s=Sum("workout_exercises"))["s"] or 0
-            study_m = DailyOSMetrics.objects.filter(user=user, date__range=[w_start, w_end]).aggregate(s=Sum("study_mins"))["s"] or 0
-            pomo = DailyOSMetrics.objects.filter(user=user, date__range=[w_start, w_end]).aggregate(s=Sum("pomodoro_sessions"))["s"] or 0
+            tasks = sum(l.tasks_completed for l in logs if w_start <= l.log_date <= w_end)
+            workouts = sum(m.workout_exercises for m in metrics if w_start <= m.date <= w_end)
+            study_m = sum(m.study_mins for m in metrics if w_start <= m.date <= w_end)
+            pomo = sum(m.pomodoro_sessions for m in metrics if w_start <= m.date <= w_end)
             series.append({
                 "period": f"Wk {weeks - w}",
                 "tasks": tasks,
@@ -604,15 +613,18 @@ class ReportEngine:
 
     @staticmethod
     def _get_volume_monthly(user, local_date: date, months: int):
+        start_date = local_date - timedelta(days=months * 31)
+        logs = list(DayLog.objects.filter(user=user, log_date__gte=start_date))
+        metrics = list(DailyOSMetrics.objects.filter(user=user, date__gte=start_date))
         series = []
         for m in range(months - 1, -1, -1):
             total_months = local_date.year * 12 + (local_date.month - 1) - m
             target_y = total_months // 12
             target_m = total_months % 12 + 1
-            tasks = DayLog.objects.filter(user=user, log_date__year=target_y, log_date__month=target_m).aggregate(s=Sum("tasks_completed"))["s"] or 0
-            workouts = DailyOSMetrics.objects.filter(user=user, date__year=target_y, date__month=target_m).aggregate(s=Sum("workout_exercises"))["s"] or 0
-            study_m = DailyOSMetrics.objects.filter(user=user, date__year=target_y, date__month=target_m).aggregate(s=Sum("study_mins"))["s"] or 0
-            pomo = DailyOSMetrics.objects.filter(user=user, date__year=target_y, date__month=target_m).aggregate(s=Sum("pomodoro_sessions"))["s"] or 0
+            tasks = sum(l.tasks_completed for l in logs if l.log_date.year == target_y and l.log_date.month == target_m)
+            workouts = sum(m.workout_exercises for m in metrics if m.date.year == target_y and m.date.month == target_m)
+            study_m = sum(m.study_mins for m in metrics if m.date.year == target_y and m.date.month == target_m)
+            pomo = sum(m.pomodoro_sessions for m in metrics if m.date.year == target_y and m.date.month == target_m)
             month_name = date(target_y, target_m, 1).strftime("%b")
             series.append({
                 "period": month_name,
@@ -625,22 +637,9 @@ class ReportEngine:
 
     @staticmethod
     def _get_real_365_heatmap(user, local_date: date):
-        start_date = local_date - timedelta(days=364)
-        logs_map = {log.log_date: log for log in DayLog.objects.filter(user=user, log_date__range=[start_date, local_date])}
-        heatmap = []
-        for i in range(365):
-            d = start_date + timedelta(days=i)
-            log = logs_map.get(d)
-            if log and log.tasks_completed > 0:
-                rate = float(log.completion_rate)
-                if rate >= 90 or log.tasks_completed >= 5: lvl = 4
-                elif rate >= 70 or log.tasks_completed >= 3: lvl = 3
-                elif rate >= 40 or log.tasks_completed >= 2: lvl = 2
-                else: lvl = 1
-                heatmap.append({"date": d.isoformat(), "level": lvl, "tasks": log.tasks_completed, "rate": rate})
-            else:
-                heatmap.append({"date": d.isoformat(), "level": 0, "tasks": 0, "rate": 0})
-        return heatmap
+        from services.calendar_engine import CalendarEngine
+        items = CalendarEngine.get_heatmap(user)
+        return [{"date": x["date"], "level": x["level"], "tasks": x.get("tasks_completed", 0), "rate": x.get("completion_rate", 0)} for x in items]
 
     @staticmethod
     def _get_habit_distribution(user):
@@ -717,12 +716,15 @@ class ReportEngine:
 
     @staticmethod
     def _get_quarterly_growth(user, local_date: date):
+        start_date = local_date - timedelta(days=360)
+        logs = list(DayLog.objects.filter(user=user, log_date__range=[start_date, local_date]))
         series = []
         for q in range(3, -1, -1):
             q_end = local_date - timedelta(days=q * 90)
             q_start = q_end - timedelta(days=89)
-            xp = DayLog.objects.filter(user=user, log_date__range=[q_start, q_end]).aggregate(s=Sum("xp_earned"))["s"] or 0
-            rate = DayLog.objects.filter(user=user, log_date__range=[q_start, q_end]).aggregate(a=Avg("completion_rate"))["a"] or 0.0
+            q_logs = [l for l in logs if q_start <= l.log_date <= q_end]
+            xp = sum(l.xp_earned for l in q_logs)
+            rate = sum(float(l.completion_rate) for l in q_logs) / max(1, len(q_logs)) if q_logs else 0.0
             series.append({
                 "quarter": f"Q{4 - q}",
                 "xp_growth": xp,
@@ -733,21 +735,29 @@ class ReportEngine:
     @staticmethod
     def _get_yearly_growth(user, local_date: date):
         year = local_date.year
+        logs = list(DayLog.objects.filter(user=user, log_date__year=year))
         months_map = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
         series = []
         for m in range(1, 13):
-            xp = DayLog.objects.filter(user=user, log_date__year=year, log_date__month=m).aggregate(s=Sum("xp_earned"))["s"] or 0
-            tasks = DayLog.objects.filter(user=user, log_date__year=year, log_date__month=m).aggregate(s=Sum("tasks_completed"))["s"] or 0
+            m_logs = [l for l in logs if l.log_date.month == m]
+            xp = sum(l.xp_earned for l in m_logs)
+            tasks = sum(l.tasks_completed for l in m_logs)
             series.append({"month": months_map[m-1], "xp_generated": xp, "tasks_completed": tasks})
         return series
 
     @staticmethod
     def _get_performance_matrix(user, local_date: date):
-        routines = Routine.objects.filter(user=user, is_active=True)[:10]
+        routines = list(Routine.objects.filter(user=user, is_active=True).prefetch_related("tasks")[:10])
+        comp_counts = dict(
+            Completion.objects.filter(task__routine__user=user, task__routine__is_active=True)
+            .values("task__routine_id")
+            .annotate(c=Count("id"))
+            .values_list("task__routine_id", "c")
+        )
         matrix = []
         for i, r in enumerate(routines):
-            tasks_count = r.tasks.count() or 1
-            completed_logs = Completion.objects.filter(task__routine=r).count()
+            tasks_count = len(r.tasks.all()) or 1
+            completed_logs = comp_counts.get(r.id, 0)
             rate = min(100, int((completed_logs / max(1, tasks_count * 10)) * 100))
             matrix.append({
                 "name": r.name,

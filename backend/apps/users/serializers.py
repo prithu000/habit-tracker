@@ -36,6 +36,27 @@ class ForgeTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
     def validate(self, attrs):
+        from django.contrib.auth import authenticate
+        from rest_framework.exceptions import AuthenticationFailed
+
+        email = attrs.get("email") or attrs.get("username")
+        password = attrs.get("password")
+        if email:
+            email_clean = email.lower().strip()
+            user_exists = User.objects.filter(email=email_clean).first()
+            if not user_exists:
+                raise AuthenticationFailed("No account found with this email.")
+            if not user_exists.has_usable_password():
+                raise AuthenticationFailed("This email is already linked with Google Sign-In.")
+
+            user_auth = authenticate(request=self.context.get("request"), username=email_clean, password=password)
+            if not user_auth:
+                raise AuthenticationFailed("Incorrect password.")
+            if not user_auth.is_active:
+                raise AuthenticationFailed("No account found with this email.")
+        else:
+            raise AuthenticationFailed("Please provide both email and password.")
+
         data = super().validate(attrs)
         # Flatten to match register response: { access, refresh, user }
         return {
@@ -238,6 +259,13 @@ class OnboardingSerializer(serializers.ModelSerializer):
     def validate_timezone(self, value):
         validate_timezone(value)
         return value
+
+    def validate_time_preference(self, value):
+        val = value.strip().lower()
+        valid_choices = [c[0] for c in User.TimeOfDayPreference.choices]
+        if val not in valid_choices:
+            raise serializers.ValidationError(f"{value} is not a valid time preference.")
+        return val
 
     def update(self, instance, validated_data):
         for attr, value in validated_data.items():

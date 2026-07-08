@@ -64,15 +64,51 @@ XP_REWARDS = {
 class XPService:
 
     @staticmethod
+    def get_xp_earned_for_date(user, local_date) -> int:
+        """
+        Single source of truth for total XP earned by a user on a given local date.
+        Handles timezone ranges correctly so UTC timestamps match the user's local calendar day.
+        Also checks metadata__local_date when present.
+        """
+        from apps.rewards.models import XPTransaction
+        from apps.core.utils import get_user_timezone
+        from datetime import datetime, time
+        import pytz
+        from django.db.models import Sum, Q
+
+        date_str = str(local_date)
+        tz = get_user_timezone(user)
+        try:
+            start_local = tz.localize(datetime.combine(local_date, time.min))
+            end_local = tz.localize(datetime.combine(local_date, time.max))
+            start_utc = start_local.astimezone(pytz.UTC)
+            end_utc = end_local.astimezone(pytz.UTC)
+        except Exception:
+            start_utc = datetime.combine(local_date, time.min, tzinfo=pytz.UTC)
+            end_utc = datetime.combine(local_date, time.max, tzinfo=pytz.UTC)
+
+        total = (
+            XPTransaction.objects.filter(user=user, amount__gt=0)
+            .filter(
+                Q(metadata__local_date=date_str) |
+                Q(created_at__range=(start_utc, end_utc))
+            )
+            .distinct()
+            .aggregate(t=Sum("amount"))["t"] or 0
+        )
+        return total
+
+    @staticmethod
     def award_xp(
         user,
         amount: int,
         reason: str,
         reference_id=None,
         metadata: Optional[dict] = None,
+        local_date=None,
     ) -> Tuple[int, bool]:
         """
-        Awards XP to a user. Records the transaction.
+        Awards XP to a user. Records the transaction and synchronizes daily metrics.
         Returns (new_total_xp, leveled_up).
         """
         from apps.rewards.models import XPTransaction
@@ -80,12 +116,20 @@ class XPService:
         if amount == 0:
             return user.total_xp, False
 
+        if local_date is None:
+            from apps.core.utils import get_user_local_date
+            local_date = get_user_local_date(user)
+
+        meta = dict(metadata or {})
+        if "local_date" not in meta and local_date:
+            meta["local_date"] = str(local_date)
+
         XPTransaction.objects.create(
             user=user,
             amount=amount,
             reason=reason,
             reference_id=reference_id,
-            metadata=metadata or {},
+            metadata=meta,
         )
 
         old_level = user.current_level
@@ -93,6 +137,20 @@ class XPService:
         new_level = XPService.calculate_level(user.total_xp)
         user.current_level = new_level
         user.save(update_fields=["total_xp", "current_level", "updated_at"])
+
+        # Synchronize DayLog and DailyOSMetrics with single source of truth
+        if local_date:
+            today_xp = XPService.get_xp_earned_for_date(user, local_date)
+            try:
+                from apps.completions.models import DayLog
+                DayLog.objects.filter(user=user, log_date=local_date).update(xp_earned=today_xp)
+            except Exception:
+                pass
+            try:
+                from apps.analytics.models import DailyOSMetrics
+                DailyOSMetrics.objects.filter(user=user, date=local_date).update(daily_xp=today_xp)
+            except Exception:
+                pass
 
         leveled_up = new_level > old_level
         if leveled_up:

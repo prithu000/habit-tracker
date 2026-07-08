@@ -51,15 +51,18 @@ export default function RegisterPage() {
         configBaseUrl: err.config?.baseURL,
       });
       const errorData = err.response?.data?.error;
-      const errorMsg = errorData?.message || "Registration failed.";
+      let errorMsg = err.userMessage || errorData?.message || "Something went wrong. Please try again later.";
       
-      if (errorData?.errors) {
-        // Display first field error if available
+      if (errorData?.errors && Object.keys(errorData.errors).length > 0) {
         const firstField = Object.keys(errorData.errors)[0];
-        toast.error(`${firstField}: ${errorData.errors[firstField][0]}`);
-      } else {
-        toast.error(errorMsg);
+        const rawFieldMsg = String(errorData.errors[firstField][0] || "");
+        if (rawFieldMsg.toLowerCase().includes("exists") || rawFieldMsg.toLowerCase().includes("already")) {
+          errorMsg = "An account with this email already exists.";
+        } else {
+          errorMsg = rawFieldMsg;
+        }
       }
+      toast.error(errorMsg);
     } finally {
       setIsLoading(false);
     }

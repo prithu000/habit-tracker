@@ -31,6 +31,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     """
     class TimeOfDayPreference(models.TextChoices):
         MORNING = "morning", "Morning Person"
+        AFTERNOON = "afternoon", "Afternoon Person"
+        EVENING = "evening", "Evening Person"
         NIGHT = "night", "Night Owl"
         FLEXIBLE = "flexible", "Flexible"
 

@@ -2,23 +2,19 @@
 
 import { Bell, Search, LogOut, PanelRight, Sparkles, User as UserIcon } from "lucide-react";
 import { useAuthStore } from "@/lib/stores/authStore";
-import { useUserProfile } from "@/lib/queries/useUser";
 import { useCustomizationStore } from "@/lib/stores/customizationStore";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, memo } from "react";
 import api from "@/lib/api";
 import { toast } from "react-hot-toast";
 import { cn } from "@/lib/utils/cn";
 
-export function Topbar() {
+export const Topbar = memo(function Topbar() {
   const { user, logout } = useAuthStore();
   const { isRightSidebarOpen, toggleRightSidebar } = useCustomizationStore();
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-
-  // Ensure user profile is always loaded and synced with backend on page navigation
-  useUserProfile();
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -38,7 +34,7 @@ export function Topbar() {
   };
 
   return (
-    <header className="h-[64px] border-b border-white/[0.08] bg-[#0a0a0c]/80 backdrop-blur-xl sticky top-0 z-30 flex items-center justify-between px-6 shrink-0 transition-all">
+    <header className="h-[64px] min-h-[64px] border-b border-white/[0.08] bg-[#0a0a0c]/80 backdrop-blur-xl relative z-30 flex items-center justify-between px-6 shrink-0 w-full">
       {/* Quick Search / Command Palette Trigger (Linear/Raycast style) */}
       <div className="flex-1 max-w-md">
         <div 
@@ -142,4 +138,4 @@ export function Topbar() {
       </div>
     </header>
   );
-}
+});

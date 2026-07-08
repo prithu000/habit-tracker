@@ -24,10 +24,9 @@ export function RoutineCard({ routine }: RoutineCardProps) {
 
   return (
     <motion.div
-      layout
       whileHover={animationsEnabled ? { y: -2, transition: { duration: 0.2 } } : undefined}
       className={cn(
-        "bg-[#0a0a0c]/80 backdrop-blur-2xl border transition-all duration-300 overflow-hidden mb-5 shadow-[0_10px_35px_rgba(0,0,0,0.5)] group relative",
+        "bg-[#0a0a0c]/80 backdrop-blur-2xl border transition-colors duration-200 overflow-hidden mb-5 shadow-[0_10px_35px_rgba(0,0,0,0.5)] group relative",
         radiusClasses[cardRadius] || "rounded-[20px]",
         routine.is_complete
           ? "border-emerald-500/40 bg-gradient-to-r from-emerald-500/10 via-[#0a0a0c]/80 to-[#0a0a0c]/80 shadow-[0_0_30px_rgba(16,185,129,0.1)]"

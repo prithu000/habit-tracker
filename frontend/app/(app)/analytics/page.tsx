@@ -4,9 +4,14 @@ import { useWeeklyAnalytics, useDisciplineScore } from "@/lib/queries/useAnalyti
 import { Skeleton } from "@/components/shared/Skeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { BarChart3, TrendingUp, TrendingDown } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar, Cell } from "recharts";
+import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils/cn";
+
+const WeeklyAnalyticsAreaChart = dynamic(
+  () => import("@/components/analytics/WeeklyAnalyticsAreaChart").then((m) => m.WeeklyAnalyticsAreaChart),
+  { ssr: false, loading: () => <Skeleton className="h-[300px] w-full rounded-2xl bg-zinc-900/60" /> }
+);
 
 export default function WeeklyAnalyticsPage() {
   const { data: weekly, isLoading: isWeeklyLoading, isError: isWeeklyError } = useWeeklyAnalytics();
@@ -58,44 +63,7 @@ export default function WeeklyAnalyticsPage() {
           </div>
           
           <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorRate" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="var(--forge-500, #6254f8)" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="var(--forge-500, #6254f8)" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-                  dy={10}
-                />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-                  tickFormatter={(val) => `${val}%`}
-                />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '12px' }}
-                  itemStyle={{ color: 'hsl(var(--foreground))' }}
-                  formatter={(value: number) => [`${value}%`, 'Completion Rate']}
-                  labelStyle={{ color: 'hsl(var(--muted-foreground))', marginBottom: '4px' }}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="rate" 
-                  stroke="var(--forge-500, #6254f8)" 
-                  strokeWidth={3}
-                  fillOpacity={1} 
-                  fill="url(#colorRate)" 
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            <WeeklyAnalyticsAreaChart chartData={chartData} />
           </div>
         </motion.div>
 

@@ -27,6 +27,11 @@ export const ROUTINES_QUERY_KEY = ["routines"];
 export function useRoutines() {
   return useQuery({
     queryKey: ROUTINES_QUERY_KEY,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     queryFn: async () => {
       const { data } = await api.get<ApiResponse<Routine[]>>("/routines/");
       return data.data;
@@ -37,6 +42,11 @@ export function useRoutines() {
 export function useRoutine(id: string) {
   return useQuery({
     queryKey: [...ROUTINES_QUERY_KEY, id],
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     queryFn: async () => {
       const { data } = await api.get<ApiResponse<Routine>>(`/routines/${id}/`);
       return data.data;

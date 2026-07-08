@@ -67,12 +67,7 @@ def widget_bundle(request):
 
     today_log = week_logs.get(local_date)
 
-    # XP today from DayLog (already aggregated there via rollup), fall back to transaction sum
-    xp_today = today_log.xp_earned if today_log else (
-        XPTransaction.objects
-        .filter(user=user, created_at__date=local_date, amount__gt=0)
-        .aggregate(t=Sum("amount"))["t"] or 0
-    )
+    xp_today = XPService.get_xp_earned_for_date(user, local_date)
 
     # Counts (indexed queries — fast)
     notif_count = Notification.objects.filter(user=user, is_read=False).count()
