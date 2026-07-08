@@ -6,7 +6,6 @@ import { StatsBar } from "@/components/dashboard/StatsBar";
 import { RoutineCard } from "@/components/dashboard/RoutineCard";
 import { DashboardAnalytics } from "@/components/dashboard/DashboardAnalytics";
 import { AICoachWidget } from "@/components/dashboard/AICoachWidget";
-import { DontGiveUpBanner } from "@/components/dashboard/DontGiveUpBanner";
 import { DynamicWidgetsGrid } from "@/components/dashboard/DynamicWidgetsGrid";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Skeleton } from "@/components/shared/Skeleton";
@@ -79,13 +78,10 @@ export default function DashboardPage() {
           </div>
         </div>
         
-        {/* Don't Give Up AI Motivation Banner */}
-        <DontGiveUpBanner />
-        
         {/* Stats Bar */}
         <StatsBar stats={dashboard.today.stats} />
 
-        {/* 1. DeepMind Neural AI Coach Section */}
+        {/* 1. Neural Coach Section */}
         {enabledWidgets.includes("ai_coach") && (
           <section id="ai-coach-section" className="scroll-mt-20">
             <AICoachWidget dashboard={dashboard} />
@@ -115,9 +111,10 @@ export default function DashboardPage() {
               <div className="w-12 h-12 rounded-2xl bg-forge-500/10 border border-forge-500/20 flex items-center justify-center text-forge-400 mx-auto">
                 <Sparkles className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-display font-bold text-white">Your Day is a Blank Slate</h3>
-              <p className="text-xs text-muted-foreground max-w-md mx-auto">
-                You haven&apos;t set up any routines for today yet. Build an atomic routine to start stacking biological dopamine and XP wins.
+              <h3 className="text-base font-display font-bold text-white">Nothing here... yet.</h3>
+              <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
+                Every remarkable transformation begins with a single completed task.<br />
+                <span className="text-forge-400 font-semibold mt-1 block">Today is Day One.</span>
               </p>
               <div className="pt-2">
                 <Link href="/routines" className="btn-forge text-xs inline-flex items-center gap-1.5">

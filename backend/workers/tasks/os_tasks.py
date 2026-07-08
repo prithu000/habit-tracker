@@ -85,25 +85,71 @@ def daily_auto_reset_task(self, user_id: str = None):
 
 
 @app.task(bind=True, max_retries=2)
-def send_pomodoro_email_task(self, user_email: str, task_name: str, start_time: str, end_time: str, duration_mins: int, xp_earned: int, current_streak: int, event_type: str):
+def send_pomodoro_email_task(self, user_email: str, task_name: str, start_time: str, end_time: str, duration_mins: int, xp_earned: int, current_streak: int, event_type: str, session_type: str = "pomodoro"):
     """
-    Sends an email notification when a Pomodoro session starts or finishes.
+    Sends an executive email notification when focus sessions or breaks start, finish, or complete.
+    Supports 7 distinct templates: Pomodoro Start/Complete, Short Break Start/Complete, Long Break Start/Complete, Focus Session Finished.
     """
     try:
-        subject = f"⏳ YOU VS YOU Pomodoro {event_type.upper()}: {task_name}" if event_type == "start" else f"🏆 YOU VS YOU Pomodoro COMPLETED: {task_name}"
+        st = session_type.lower()
+        et = event_type.lower()
+
+        if et == "finished" or st == "finished":
+            subject = f"🎯 [FOCUS PROTOCOL FINISHED] Total Session Mastery Logged: {task_name}"
+            protocol_title = "Focus Protocol Completely Executed"
+            quote = "Deep work is the superpower of the 21st century. Your cognitive stamina separates you from the crowd."
+        elif "short" in st or "shortbreak" in st:
+            if et == "start":
+                subject = f"☕ [SHORT BREAK INITIATED] Cognitive Rest Protocol (5 Mins)"
+                protocol_title = "Short Break Initiated — Cognitive Recovery"
+                quote = "Step away from the screen. Hydrate, breathe, and let your neural circuits synthesize the data."
+            else:
+                subject = f"⚡ [BREAK COMPLETED] Return to Battle! Focus Session Resuming"
+                protocol_title = "Short Break Completed — Re-Engage Protocol"
+                quote = "The rest period has concluded. Re-enter the flow state immediately without hesitation."
+        elif "long" in st or "longbreak" in st:
+            if et == "start":
+                subject = f"🧘 [LONG BREAK INITIATED] Deep Neural Restoration (15 Mins)"
+                protocol_title = "Long Break Initiated — Deep Restoration"
+                quote = "High-performance systems require structured cool-downs. Stretch, walk outside, and restore your energy reserves."
+            else:
+                subject = f"🔥 [REST COMPLETE] Re-Engage Protocol! You Vs You"
+                protocol_title = "Long Break Completed — Mission Resuming"
+                quote = "Your energy is restored. Lock back into the objective with relentless focus and precision."
+        else:
+            # Standard Pomodoro session
+            if et == "start":
+                subject = f"⏳ [POMODORO INITIATED] Focus Sprint: {task_name}"
+                protocol_title = f"25-Minute Deep Focus Sprint Initiated"
+                quote = "Eliminate all distractions. Single-tasking at high intensity is the path to elite execution."
+            else:
+                subject = f"🏆 [POMODORO COMPLETED] Victory Logged: +{xp_earned} XP Generated!"
+                protocol_title = f"Pomodoro Sprint Successfully Executed"
+                quote = "Another block of deep work conquered. Consistency over time builds unbeatable momentum."
+
         body = f"""
-YOU VS YOU Personal Operating System — Pomodoro Telemetry
+YOU VS YOU Personal Operating System — Focus Telemetry
 =====================================================
 
-Event: Session {event_type.title()}
-Task: {task_name}
-Start Time: {start_time}
-End Time: {end_time}
-Duration: {duration_mins} Minutes
-XP Earned: +{xp_earned} XP
-Current Streak: {current_streak} Days
+{protocol_title.upper()}
+-----------------------------------------------------
+Target Objective : {task_name}
+Protocol Mode    : {session_type.upper()} ({duration_mins} Minutes)
+Start Timestamp  : {start_time}
+End Timestamp    : {end_time}
+XP Generated     : +{xp_earned} XP
+Active Streak    : {current_streak} Days
 
-Stay focused and execute your daily routines with relentless discipline.
+=====================================================
+AI EXECUTIVE COACHING:
+"{quote}"
+=====================================================
+
+-----------------------------------------------------
+YOU VS YOU
+The Personal Operating System
+Engineer Your Best Self.
+Every action compounds.
         """
         send_mail(
             subject=subject,
@@ -112,7 +158,7 @@ Stay focused and execute your daily routines with relentless discipline.
             recipient_list=[user_email],
             fail_silently=True
         )
-        logger.info(f"Pomodoro {event_type} email dispatched to {user_email}.")
+        logger.info(f"Focus telemetry email ({session_type}/{event_type}) dispatched to {user_email}.")
         return True
     except Exception as exc:
         logger.error(f"send_pomodoro_email_task failed: {exc}")
@@ -145,7 +191,11 @@ Frequency: {reminder.frequency}
 Click the link below to mark this task as complete immediately:
 {quick_complete_url}
 
-Execute with precision.
+-----------------------------------------------------
+YOU VS YOU
+The Personal Operating System
+Engineer Your Best Self.
+Every action compounds.
             """
             send_mail(
                 subject=subject,
@@ -200,6 +250,12 @@ Description:
 System Logs & Telemetry:
 ----------------------------------------------------
 {logs}
+
+-----------------------------------------------------
+YOU VS YOU
+The Personal Operating System
+Engineer Your Best Self.
+Every action compounds.
         """
         send_mail(
             subject=subject,

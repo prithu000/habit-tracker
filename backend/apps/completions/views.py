@@ -245,7 +245,9 @@ class CompleteTaskView(APIView):
         sync_day_log.delay(str(user.id), local_date.isoformat())
 
         # ── Invalidate caches ──
-        CacheService.invalidate_today(str(user.id))
+        CacheService.invalidate_all(str(user.id))
+        CacheService.delete(str(user.id), f"life_score_2:{local_date.isoformat()}")
+        CacheService.delete(str(user.id), f"discipline_score_2:{local_date.isoformat()}")
 
         # ── Read streak (already in DB) ──
         from apps.streaks.models import StreakRecord
@@ -312,7 +314,9 @@ def undo_completion(request, completion_id):
     completion.delete()
 
     # Invalidate caches
-    CacheService.invalidate_today(str(user.id))
+    CacheService.invalidate_all(str(user.id))
+    CacheService.delete(str(user.id), f"life_score_2:{local_date.isoformat()}")
+    CacheService.delete(str(user.id), f"discipline_score_2:{local_date.isoformat()}")
 
     return Response({"detail": "Completion undone successfully."}, status=status.HTTP_200_OK)
 

@@ -116,7 +116,7 @@ export default function WeeklyAnalyticsPage() {
               <span className="text-6xl font-display font-bold text-forge-400">
                 {score?.score || 0}
               </span>
-              <span className="text-muted-foreground mb-2">/ 1000</span>
+              <span className="text-muted-foreground mb-2">/ 100</span>
             </div>
             
             <div className="flex items-center gap-2 text-sm">
@@ -133,13 +133,13 @@ export default function WeeklyAnalyticsPage() {
           <div className="mt-8">
             <div className="flex justify-between text-xs text-muted-foreground mb-2 uppercase tracking-widest">
               <span>Current Status</span>
-              <span className="text-forge-400 font-medium">{score?.category || "Neutral"}</span>
+              <span className="text-forge-400 font-medium">{score?.grade ? `Grade ${score.grade}` : (score?.category || (score?.is_initializing ? "Initializing" : "Neutral"))}</span>
             </div>
             <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
               <motion.div 
                 className="h-full rounded-full bg-forge-500"
                 initial={{ width: 0 }}
-                animate={{ width: `${(score?.score || 0) / 10}%` }}
+                animate={{ width: `${score?.score || 0}%` }}
                 transition={{ duration: 1.5, ease: "easeOut" }}
               />
             </div>

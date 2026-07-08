@@ -72,6 +72,19 @@ export function useCompleteTask() {
 
       return { previousDashboard };
     },
+    onSuccess: (data, variables, context) => {
+      const prevStats = context?.previousDashboard?.today?.stats;
+      const prevStreak = context?.previousDashboard?.widgets?.streak?.current || 0;
+      
+      if (prevStats && prevStats.completed_tasks === 0) {
+        toast.success("🔥 First task completed!\nMomentum has begun. Keep moving.", { duration: 4000 });
+      }
+      if (prevStreak === 0 && (data?.streak_updated || data?.current_streak === 1 || prevStats?.completed_tasks === 0)) {
+        setTimeout(() => {
+          toast("⚡ 1-Day Streak!\nEvery legend starts with Day One. Protect it.", { duration: 5000, icon: "🔥" });
+        }, 1200);
+      }
+    },
     onError: (err, variables, context) => {
       // Rollback on error
       if (context?.previousDashboard) {

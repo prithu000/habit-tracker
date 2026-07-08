@@ -31,7 +31,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             </svg>
           </Link>
           <h1 className="text-2xl font-display font-bold tracking-tight">YOU VS YOU</h1>
-          <p className="text-sm text-muted-foreground mt-1">Become the person you promised yourself you&apos;d be.</p>
+          <p className="text-sm text-muted-foreground mt-1">Engineer Your Best Self.</p>
         </div>
 
         {children}

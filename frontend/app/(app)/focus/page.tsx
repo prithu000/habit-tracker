@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { useDashboard } from "@/lib/queries/useDashboard";
 import { usePomodoroEmail } from "@/lib/queries/useOS";
+import { useFocusStore, TimerMode } from "@/lib/stores/focusStore";
 import { PageTransition } from "@/components/layouts/PageTransition";
 import {
   Play,
@@ -25,8 +26,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { cn } from "@/lib/utils/cn";
 
-type TimerMode = "pomodoro" | "shortBreak" | "longBreak" | "deepWork";
-
 const MODES: Record<TimerMode, { label: string; duration: number; icon: any; color: string }> = {
   pomodoro: { label: "Pomodoro (25m)", duration: 25 * 60, icon: Flame, color: "text-purple-400 border-purple-500/50 bg-purple-500/10" },
   shortBreak: { label: "Short Break (5m)", duration: 5 * 60, icon: Coffee, color: "text-emerald-400 border-emerald-500/50 bg-emerald-500/10" },
@@ -38,126 +37,54 @@ export default function FocusPage() {
   const { data: dashboard } = useDashboard();
   const sendEmailMutation = usePomodoroEmail();
 
-  const [mode, setMode] = useState<TimerMode>("pomodoro");
-  const [timeLeft, setTimeLeft] = useState(MODES.pomodoro.duration);
-  const [isActive, setIsActive] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<string>("Core Strategic Routine");
-  const [ambientSound, setAmbientSound] = useState<string>("none");
-  const [isPlayingSound, setIsPlayingSound] = useState(false);
+  const {
+    mode,
+    status,
+    remainingTime,
+    duration,
+    selectedTask,
+    ambientSound,
+    isPlayingSound,
+    setMode,
+    setSelectedTask,
+    setAmbientSound,
+    setIsPlayingSound,
+    startSession,
+    pauseSession,
+    resumeSession,
+    resetSession,
+  } = useFocusStore();
+
   const [isFullScreen, setIsFullScreen] = useState(false);
 
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const oscRef = useRef<OscillatorNode | null>(null);
-  const gainRef = useRef<GainNode | null>(null);
-
-  // Synchronize timer duration when mode changes
-  useEffect(() => {
-    if (!isActive) {
-      setTimeLeft(MODES[mode].duration);
-    }
-  }, [mode, isActive]);
-
-  // Timer countdown loop
-  useEffect(() => {
-    let interval: any = null;
-    if (isActive && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft((time) => time - 1);
-      }, 1000);
-    } else if (timeLeft === 0 && isActive) {
-      setIsActive(false);
-      toast.success(`🎉 ${MODES[mode].label} completed! +50 XP Generated!`);
-      
-      // Send end email telemetry
-      sendEmailMutation.mutate({
-        task_name: selectedTask,
-        start_time: new Date(Date.now() - MODES[mode].duration * 1000).toLocaleTimeString(),
-        end_time: new Date().toLocaleTimeString(),
-        duration_mins: Math.round(MODES[mode].duration / 60),
-        xp_earned: 50,
-        current_streak: dashboard?.today?.stats?.current_streak || 1,
-        event_type: "end",
-      });
-    }
-    return () => clearInterval(interval);
-  }, [isActive, timeLeft, mode, selectedTask, dashboard, sendEmailMutation]);
-
-  // Web Audio API Ambient Sound Generator
-  useEffect(() => {
-    if (isPlayingSound && ambientSound !== "none") {
-      try {
-        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-        if (!audioCtxRef.current) {
-          audioCtxRef.current = new AudioContextClass();
-        }
-        const ctx = audioCtxRef.current;
-        if (ctx.state === "suspended") {
-          ctx.resume();
-        }
-
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        if (ambientSound === "pinkNoise" || ambientSound === "rain") {
-          // Simulate soothing low frequency drone for focus
-          osc.type = "sine";
-          osc.frequency.setValueAtTime(110, ctx.currentTime); // A2 note frequency
-          gain.gain.setValueAtTime(0.05, ctx.currentTime);
-        } else if (ambientSound === "cyberDrone") {
-          osc.type = "triangle";
-          osc.frequency.setValueAtTime(55, ctx.currentTime); // Deep cyber sub-bass
-          gain.gain.setValueAtTime(0.08, ctx.currentTime);
-        } else if (ambientSound === "deltaWaves") {
-          osc.type = "sine";
-          osc.frequency.setValueAtTime(220, ctx.currentTime);
-          gain.gain.setValueAtTime(0.04, ctx.currentTime);
-        }
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-
-        oscRef.current = osc;
-        gainRef.current = gain;
-      } catch (e) {
-        console.error("Audio Web API error:", e);
-      }
-    } else {
-      if (oscRef.current) {
-        oscRef.current.stop();
-        oscRef.current.disconnect();
-        oscRef.current = null;
-      }
-    }
-    return () => {
-      if (oscRef.current) {
-        try { oscRef.current.stop(); } catch (e) {}
-      }
-    };
-  }, [isPlayingSound, ambientSound]);
+  const isActive = status === "running";
+  const timeLeft = remainingTime;
 
   const toggleTimer = () => {
-    if (!isActive) {
-      setIsActive(true);
+    if (status === "idle" || status === "completed") {
+      startSession(mode, duration, selectedTask);
       toast.success("⏳ Focus protocol initiated. Telemetry email dispatched.");
       sendEmailMutation.mutate({
         task_name: selectedTask,
         start_time: new Date().toLocaleTimeString(),
-        end_time: new Date(Date.now() + timeLeft * 1000).toLocaleTimeString(),
-        duration_mins: Math.round(timeLeft / 60),
+        end_time: new Date(Date.now() + duration * 1000).toLocaleTimeString(),
+        duration_mins: Math.round(duration / 60),
         xp_earned: 50,
         current_streak: dashboard?.today?.stats?.current_streak || 1,
         event_type: "start",
+        session_type: mode,
       });
-    } else {
-      setIsActive(false);
+    } else if (status === "running") {
+      pauseSession();
       toast("⏸️ Focus protocol paused.");
+    } else if (status === "paused") {
+      resumeSession();
+      toast.success("▶️ Focus protocol resumed.");
     }
   };
 
   const resetTimer = () => {
-    setIsActive(false);
-    setTimeLeft(MODES[mode].duration);
+    resetSession();
     toast("🔄 Timer reset.");
   };
 
@@ -225,7 +152,6 @@ export default function FocusPage() {
               key={m}
               onClick={() => {
                 setMode(m);
-                setIsActive(false);
               }}
               className={cn(
                 "p-4 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all font-bold text-sm",

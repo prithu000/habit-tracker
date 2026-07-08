@@ -35,6 +35,7 @@ const navItems = [
   { href: "/achievements", label: "Trophies", icon: Award },
   { href: "/timeline", label: "Timeline", icon: History },
   { href: "/reports", label: "Reports", icon: FileText },
+  { href: "/about", label: "About YvY", icon: Sparkles },
   { href: "/store", label: "Exchange", icon: ShoppingBag },
   { href: "/help", label: "Help & Bugs", icon: HelpCircle },
 ];

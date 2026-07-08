@@ -1,0 +1,23 @@
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+!.env.local.example
+*.pem
+*.key
+*.cert
+service-account.json
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+.npm
+.eslintcache
+coverage/
+*.log
+scratch/

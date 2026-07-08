@@ -9,20 +9,19 @@ import {
   Droplets,
   Plus,
   Clock,
-  CloudSun,
-  Music,
   GitCommit,
   Calendar as CalendarIcon,
   Flame,
   Award,
-  Zap,
   BookOpen,
   Dumbbell,
   CheckCircle2,
 } from "lucide-react";
 import { useCustomizationStore, WidgetId } from "@/lib/stores/customizationStore";
+import { useFocusStore, TIMER_MODES } from "@/lib/stores/focusStore";
 import { DashboardData } from "@/types/api";
 import { cn } from "@/lib/utils/cn";
+import api from "@/lib/api";
 
 interface DynamicWidgetsGridProps {
   dashboard: DashboardData;
@@ -30,7 +29,18 @@ interface DynamicWidgetsGridProps {
 
 export function DynamicWidgetsGrid({ dashboard }: DynamicWidgetsGridProps) {
   const { enabledWidgets, cardRadius } = useCustomizationStore();
-  const { xp, streak, day_progress } = dashboard.widgets;
+  const { xp, streak } = dashboard.widgets;
+
+  const {
+    mode: focusMode,
+    status: focusStatus,
+    remainingTime: focusRemaining,
+    startSession,
+    pauseSession,
+    resumeSession,
+    resetSession,
+  } = useFocusStore();
+  const isPomoRunning = focusStatus === "running";
 
   // Clock State
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
@@ -40,45 +50,11 @@ export function DynamicWidgetsGrid({ dashboard }: DynamicWidgetsGridProps) {
     return () => clearInterval(timer);
   }, []);
 
-  // Focus Timer State
-  const [timerSeconds, setTimerSeconds] = useState(0);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
-  useEffect(() => {
-    let interval: any = null;
-    if (isTimerRunning) {
-      interval = setInterval(() => setTimerSeconds((s) => s + 1), 1000);
-    } else {
-      clearInterval(interval);
-    }
-    return () => clearInterval(interval);
-  }, [isTimerRunning]);
-
   const formatTimer = (totalSecs: number) => {
     const mins = Math.floor(totalSecs / 60);
     const secs = totalSecs % 60;
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
-
-  // Pomodoro State (25 mins = 1500 secs)
-  const [pomoSeconds, setPomoSeconds] = useState(1500);
-  const [isPomoRunning, setIsPomoRunning] = useState(false);
-  const [pomoMode, setPomoMode] = useState<"work" | "break">("work");
-  useEffect(() => {
-    let interval: any = null;
-    if (isPomoRunning && pomoSeconds > 0) {
-      interval = setInterval(() => setPomoSeconds((s) => s - 1), 1000);
-    } else if (pomoSeconds === 0) {
-      setIsPomoRunning(false);
-      if (pomoMode === "work") {
-        setPomoMode("break");
-        setPomoSeconds(300); // 5 min break
-      } else {
-        setPomoMode("work");
-        setPomoSeconds(1500);
-      }
-    }
-    return () => clearInterval(interval);
-  }, [isPomoRunning, pomoSeconds, pomoMode]);
 
   // Water Tracker State
   const [waterMl, setWaterMl] = useState(dashboard.widgets.os_metrics?.water_ml ?? 0);
@@ -93,21 +69,13 @@ export function DynamicWidgetsGrid({ dashboard }: DynamicWidgetsGridProps) {
 
   const updateMetric = async (key: string, val: number) => {
     try {
-      await fetch("/api/v1/analytics/metrics/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("access_token")}` },
-        body: JSON.stringify({ [key]: val }),
-      });
+      await api.post("/analytics/metrics/", { [key]: val });
     } catch (e) {}
   };
 
   const updateGoal = async (key: string, val: number) => {
     try {
-      await fetch("/api/v1/analytics/goals/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("access_token")}` },
-        body: JSON.stringify({ [key]: val }),
-      });
+      await api.post("/analytics/goals/", { [key]: val });
     } catch (e) {}
   };
 
@@ -195,80 +163,7 @@ export function DynamicWidgetsGrid({ dashboard }: DynamicWidgetsGridProps) {
           </motion.div>
         )}
 
-        {/* 3. Habit Score */}
-        {enabledWidgets.includes("habit_score") && (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                <Zap className="w-4 h-4 text-emerald-400" />
-                Consistency Score
-              </span>
-              <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                +4.2%
-              </span>
-            </div>
-            <div className="my-2 flex items-baseline gap-2">
-              <span className="text-4xl font-display font-black text-white">
-                {Math.min(100, Math.round((day_progress.completion_rate * 0.7) + 30))}
-              </span>
-              <span className="text-xs font-mono text-muted-foreground">/ 100</span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Based on 7-day completion consistency and streak retention.
-            </p>
-            <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden mt-3">
-              <motion.div
-                className="bg-emerald-500 h-full rounded-full shadow-[0_0_8px_#10b981]"
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min(100, Math.round((day_progress.completion_rate * 0.7) + 30))}%` }}
-              />
-            </div>
-          </motion.div>
-        )}
-
-        {/* 4. Focus Timer */}
-        {enabledWidgets.includes("focus_timer") && (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-cyan-400" />
-                Focus Stopwatch
-              </span>
-              <span className="text-[10px] font-mono text-cyan-400">DEEP WORK</span>
-            </div>
-            <div className="my-3 text-center">
-              <span className="text-4xl font-mono font-black text-white tracking-widest drop-shadow-[0_0_15px_rgba(6,182,212,0.4)]">
-                {formatTimer(timerSeconds)}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 pt-2 border-t border-white/[0.06]">
-              <button
-                onClick={() => setIsTimerRunning(!isTimerRunning)}
-                className={cn(
-                  "flex-1 py-1.5 rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-1.5",
-                  isTimerRunning
-                    ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
-                    : "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.2)]"
-                )}
-              >
-                {isTimerRunning ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                {isTimerRunning ? "Pause" : "Start"}
-              </button>
-              <button
-                onClick={() => {
-                  setIsTimerRunning(false);
-                  setTimerSeconds(0);
-                }}
-                className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-white transition-colors"
-                title="Reset Timer"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </button>
-            </div>
-          </motion.div>
-        )}
-
-        {/* 5. Pomodoro Clock */}
+        {/* 3. Pomodoro Clock */}
         {enabledWidgets.includes("pomodoro") && (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
             <div className="flex items-center justify-between mb-2">
@@ -278,19 +173,23 @@ export function DynamicWidgetsGrid({ dashboard }: DynamicWidgetsGridProps) {
               </span>
               <span className={cn(
                 "text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase",
-                pomoMode === "work" ? "bg-rose-500/10 text-rose-400 border-rose-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                focusMode === "pomodoro" || focusMode === "deepWork" ? "bg-rose-500/10 text-rose-400 border-rose-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
               )}>
-                {pomoMode === "work" ? "25m Work" : "5m Break"}
+                {TIMER_MODES[focusMode]?.label || "Pomodoro"}
               </span>
             </div>
             <div className="my-3 text-center">
               <span className="text-4xl font-mono font-black text-white tracking-widest drop-shadow-[0_0_15px_rgba(244,63,94,0.4)]">
-                {formatTimer(pomoSeconds)}
+                {formatTimer(focusRemaining)}
               </span>
             </div>
             <div className="flex items-center gap-2 pt-2 border-t border-white/[0.06]">
               <button
-                onClick={() => setIsPomoRunning(!isPomoRunning)}
+                onClick={() => {
+                  if (focusStatus === "idle" || focusStatus === "completed") startSession();
+                  else if (focusStatus === "running") pauseSession();
+                  else if (focusStatus === "paused") resumeSession();
+                }}
                 className={cn(
                   "flex-1 py-1.5 rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-1.5",
                   isPomoRunning
@@ -302,10 +201,7 @@ export function DynamicWidgetsGrid({ dashboard }: DynamicWidgetsGridProps) {
                 {isPomoRunning ? "Pause" : "Start"}
               </button>
               <button
-                onClick={() => {
-                  setIsPomoRunning(false);
-                  setPomoSeconds(pomoMode === "work" ? 1500 : 300);
-                }}
+                onClick={() => resetSession()}
                 className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-white transition-colors"
                 title="Reset Pomodoro"
               >
@@ -481,67 +377,7 @@ export function DynamicWidgetsGrid({ dashboard }: DynamicWidgetsGridProps) {
           </motion.div>
         )}
 
-        {/* 10. Cyber Weather */}
-        {enabledWidgets.includes("weather") && (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                <CloudSun className="w-4 h-4 text-amber-400" />
-                Cyber Weather
-              </span>
-              <span className="text-[10px] font-mono text-amber-300">NEO TOKYO</span>
-            </div>
-            <div className="my-2 flex items-center justify-between">
-              <div>
-                <span className="text-3xl font-display font-black text-white">22°C</span>
-                <p className="text-xs text-muted-foreground mt-0.5">Clear Sky • Hum: 45%</p>
-              </div>
-              <CloudSun className="w-10 h-10 text-amber-400 animate-pulse" />
-            </div>
-            <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between text-[11px] text-muted-foreground">
-              <span>High: 25°C</span>
-              <span>Low: 16°C</span>
-              <span>AQI: 28 Good</span>
-            </div>
-          </motion.div>
-        )}
-
-        {/* 11. Spotify Player */}
-        {enabledWidgets.includes("spotify") && (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                <Music className="w-4 h-4 text-emerald-400" />
-                Spotify Stream
-              </span>
-              <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                PLAYING
-              </span>
-            </div>
-            <div className="my-2 flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/30 to-purple-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-                <Music className="w-6 h-6 animate-bounce" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-white truncate">Deep Work Lo-Fi Beats</p>
-                <p className="text-[11px] text-muted-foreground truncate">ChilledCow • Synthwave Focus</p>
-              </div>
-            </div>
-            {/* Animated Equalizer Bars */}
-            <div className="flex items-end gap-1 h-3 pt-1">
-              {[40, 80, 50, 90, 60, 30, 70, 100, 50, 80, 40].map((h, i) => (
-                <motion.div
-                  key={i}
-                  className="flex-1 bg-emerald-400 rounded-full"
-                  animate={{ height: [`${Math.max(20, h - 30)}%`, `${h}%`, `${Math.max(20, h - 20)}%`] }}
-                  transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.05 }}
-                />
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* 12. GitHub Activity */}
+        {/* 8. GitHub Activity */}
         {enabledWidgets.includes("github") && (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
             <div className="flex items-center justify-between mb-2">

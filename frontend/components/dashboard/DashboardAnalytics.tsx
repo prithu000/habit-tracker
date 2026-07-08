@@ -48,32 +48,13 @@ export function DashboardAnalytics({ dashboard }: DashboardAnalyticsProps) {
   // Consistency Score calculation
   const consistencyScore = Math.min(
     100,
-    Math.round((day_progress.completion_rate * 0.6) + (Math.min(streak.current, 30) / 30 * 40) || 85)
+    Math.round((day_progress.completion_rate * 0.6) + (Math.min(streak.current, 30) / 30 * 40)) || 0
   );
 
-  // Generate GitHub style heatmap grid (14 weeks x 7 days = 98 days)
-  const heatmapDays = Array.from({ length: 98 }, (_, i) => {
-    // Simulate activity pattern seeded by index + today's rate
-    const seed = (i * 13 + 7) % 100;
-    let level = 0;
-    if (seed > 30) level = 1;
-    if (seed > 55) level = 2;
-    if (seed > 75) level = 3;
-    if (seed > 90) level = 4;
-    // Make recent days match actual week_mini
-    if (i >= 91) {
-      const dayIdx = i - 91;
-      const wm = week_mini[dayIdx];
-      if (wm) {
-        if (wm.completion_rate === 0) level = 0;
-        else if (wm.completion_rate < 50) level = 1;
-        else if (wm.completion_rate < 80) level = 2;
-        else if (wm.completion_rate < 100) level = 3;
-        else level = 4;
-      }
-    }
-    return { id: i, level };
-  });
+  // Real GitHub-style activity data from backend — never seeded or simulated
+  const githubHistory = dashboard.widgets.github_history || [];
+  const hasActivity = githubHistory.some((d) => d.tasks_completed > 0);
+  const totalDaysLogged = githubHistory.filter((d) => d.tasks_completed > 0).length;
 
   const heatmapColorClasses = [
     "bg-white/[0.03] border-white/[0.05]",
@@ -83,15 +64,12 @@ export function DashboardAnalytics({ dashboard }: DashboardAnalyticsProps) {
     "bg-forge-500 border-forge-400 shadow-[0_0_12px_rgba(139,92,246,0.8)]",
   ];
 
-  // SVG Line Chart coordinates (30 days simulated XP growth)
-  const points = [
-    20, 25, 22, 30, 35, 32, 40, 45, 42, 50, 55, 60, 58, 65, 70, 68, 75, 80, 85, 82, 88, 92, 90, 95, 98,
-    100,
-  ];
-  const maxPt = Math.max(...points);
+  // SVG Line Chart — derived from real week_mini completion rates
+  const points = week_mini.map((d) => d.completion_rate);
+  const maxPt = Math.max(...points, 1);
   const svgPoints = points
     .map((val, idx) => {
-      const x = (idx / (points.length - 1)) * 300;
+      const x = (idx / Math.max(1, points.length - 1)) * 300;
       const y = 100 - (val / maxPt) * 80 - 10;
       return `${x},${y}`;
     })
@@ -395,54 +373,93 @@ export function DashboardAnalytics({ dashboard }: DashboardAnalyticsProps) {
       {/* HEATMAP TAB */}
       {activeTab === "heatmap" && (
         <div className="p-6 rounded-[20px] bg-[#0a0a0c]/80 backdrop-blur-xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.4)] space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <h3 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-forge-400" />
-                GitHub-Style Habit Consistency Grid
-              </h3>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                98-day historical execution log. Darker squares indicate higher daily completion velocity.
-              </p>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span>Less</span>
-              <div className="flex gap-1">
-                {heatmapColorClasses.map((cls, i) => (
-                  <div key={i} className={cn("w-3.5 h-3.5 rounded border", cls)} />
-                ))}
+          {!hasActivity ? (
+            /* ── INITIALIZATION CARD: shown only when user has zero activity ── */
+            <div className="flex flex-col items-center text-center gap-6 py-8">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-forge-500/20 to-cyan-500/10 border border-forge-500/30 flex items-center justify-center text-forge-400 shadow-[0_0_20px_rgba(139,92,246,0.15)]">
+                <Calendar className="w-8 h-8" />
               </div>
-              <span>More</span>
+              <div className="space-y-2 max-w-sm">
+                <h3 className="text-base font-display font-bold text-foreground">Activity History Locked</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Complete your first task to begin building your execution history. Every completed day will permanently become part of your personal contribution graph.
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
+                <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-4 text-center">
+                  <div className="text-xl font-black text-foreground">0</div>
+                  <div className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mt-1">Current Streak</div>
+                </div>
+                <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-4 text-center">
+                  <div className="text-xl font-black text-foreground">0</div>
+                  <div className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mt-1">Longest Streak</div>
+                </div>
+                <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-4 text-center">
+                  <div className="text-xl font-black text-foreground">0</div>
+                  <div className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mt-1">Logged Days</div>
+                </div>
+                <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-4 text-center">
+                  <div className="text-xl font-black text-foreground">0%</div>
+                  <div className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mt-1">Today&apos;s Completion</div>
+                </div>
+              </div>
+              <div className="text-xs text-muted-foreground font-mono px-4 py-2 rounded-full bg-white/[0.03] border border-white/[0.06]">
+                Completion History: Not Available Yet
+              </div>
             </div>
-          </div>
-
-          {/* Grid */}
-          <div className="overflow-x-auto pt-2 pb-1 custom-scrollbar">
-            <div className="grid grid-flow-col grid-rows-7 gap-1.5 w-max">
-              {heatmapDays.map((cell) => (
-                <motion.div
-                  key={cell.id}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ duration: 0.2, delay: cell.id * 0.003 }}
-                  className={cn(
-                    "w-3.5 h-3.5 rounded-[3px] border transition-transform hover:scale-125 cursor-pointer relative group",
-                    heatmapColorClasses[cell.level]
-                  )}
-                >
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 bg-[#0a0a0c] border border-white/20 text-white px-2 py-0.5 rounded text-[9px] font-mono opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-30 shadow-xl">
-                    Day {cell.id + 1}: {cell.level * 25}% completed
+          ) : (
+            /* ── REAL GRID: only rendered when at least one historical DayLog exists ── */
+            <>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h3 className="text-sm font-display font-bold text-foreground flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-forge-400" />
+                    GitHub-Style Habit Consistency Grid
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Historical execution log. Darker squares indicate higher daily completion velocity.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>Less</span>
+                  <div className="flex gap-1">
+                    {heatmapColorClasses.map((cls, i) => (
+                      <div key={i} className={cn("w-3.5 h-3.5 rounded border", cls)} />
+                    ))}
                   </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
+                  <span>More</span>
+                </div>
+              </div>
 
-          <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs text-muted-foreground font-mono">
-            <span>🔥 Longest Streak: {streak.longest} days</span>
-            <span>⚡ Current Streak: {streak.current} days</span>
-            <span>🎯 Total Days Logged: 98</span>
-          </div>
+              {/* Grid */}
+              <div className="overflow-x-auto pt-2 pb-1 custom-scrollbar">
+                <div className="grid grid-flow-col grid-rows-7 gap-1.5 w-max">
+                  {githubHistory.map((cell, idx) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 0.2, delay: idx * 0.003 }}
+                      className={cn(
+                        "w-3.5 h-3.5 rounded-[3px] border transition-transform hover:scale-125 cursor-pointer relative group",
+                        heatmapColorClasses[cell.level]
+                      )}
+                    >
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 bg-[#0a0a0c] border border-white/20 text-white px-2 py-0.5 rounded text-[9px] font-mono opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-30 shadow-xl">
+                        {cell.date}: {cell.tasks_completed} tasks done
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs text-muted-foreground font-mono">
+                <span>🔥 Longest Streak: {streak.longest} days</span>
+                <span>⚡ Current Streak: {streak.current} days</span>
+                <span>🎯 Total Days Logged: {totalDaysLogged}</span>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

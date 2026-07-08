@@ -45,6 +45,7 @@ class LifeScoreSnapshot(BaseModel):
         AVERAGE = "Average", "Average"
         POOR = "Poor", "Poor"
         CRITICAL = "Critical", "Critical"
+        INITIALIZING = "Initializing", "Initializing"
         # Legacy choices preserved for backwards compatibility
         LOST = "Lost", "Lost"
         IMPROVING = "Improving", "Improving"
@@ -77,7 +78,9 @@ class LifeScoreSnapshot(BaseModel):
         return f"{self.user.email} — Life Score {self.overall_score} ({self.title}) on {self.date}"
 
     @classmethod
-    def calculate_title(cls, score: int) -> str:
+    def calculate_title(cls, score: int, is_initializing: bool = False) -> str:
+        if is_initializing:
+            return cls.Title.INITIALIZING
         if score >= 85:
             return cls.Title.EXCELLENT
         if score >= 70:

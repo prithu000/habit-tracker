@@ -237,7 +237,7 @@ export default function HelpPage() {
             <div className="text-xs">
               <div className="font-bold text-white">Need Live Coaching?</div>
               <p className="text-zinc-400 mt-0.5">
-                Our AI Neural Coach on your Dashboard is trained on your personal telemetry and ready to assist 24/7.
+                Our Neural Coach on your Dashboard is trained on your personal telemetry and ready to assist 24/7.
               </p>
             </div>
           </div>

@@ -103,33 +103,25 @@ export type WidgetId =
   | "level"
   | "calendar"
   | "clock"
-  | "weather"
   | "quote"
-  | "spotify"
   | "github"
-  | "focus_timer"
   | "pomodoro"
   | "ai_coach"
   | "water_tracker"
   | "workout_progress"
-  | "study_progress"
-  | "habit_score";
+  | "study_progress";
 
 export const ALL_WIDGETS: { id: WidgetId; label: string; category: "productivity" | "metrics" | "lifestyle" | "integrations"; description: string }[] = [
   { id: "ai_coach", label: "AI Coach & Insight", category: "productivity", description: "Daily AI suggestions and focus tips" },
-  { id: "focus_timer", label: "Focus Timer", category: "productivity", description: "Quick stopwatch for deep work sessions" },
   { id: "pomodoro", label: "Pomodoro Clock", category: "productivity", description: "25/5 interval productivity clock" },
   { id: "xp", label: "XP & Level Ring", category: "metrics", description: "Real-time experience points and progress" },
   { id: "level", label: "Level Status", category: "metrics", description: "Current rank title and mastery tier" },
-  { id: "habit_score", label: "Consistency Score", category: "metrics", description: "Algorithmic rating of routine discipline" },
   { id: "clock", label: "World Clock", category: "lifestyle", description: "Digital time display with date" },
-  { id: "weather", label: "Cyber Weather", category: "lifestyle", description: "Current conditions and temperature" },
   { id: "quote", label: "Daily Wisdom", category: "lifestyle", description: "Curated philosophical quotes" },
   { id: "water_tracker", label: "Water Tracker", category: "lifestyle", description: "Daily hydration log and goal" },
   { id: "workout_progress", label: "Hypertrophy Push", category: "lifestyle", description: "Physical fitness routine tracker" },
   { id: "study_progress", label: "Deep Study", category: "lifestyle", description: "Learning and deep study goals" },
   { id: "calendar", label: "Mini Calendar", category: "integrations", description: "Monthly date overview" },
-  { id: "spotify", label: "Spotify Player", category: "integrations", description: "Focus lo-fi beats stream" },
   { id: "github", label: "GitHub Activity", category: "integrations", description: "Commit graph & streak sync" },
 ];
 
@@ -167,12 +159,11 @@ interface CustomizationState {
 const DEFAULT_ENABLED_WIDGETS: WidgetId[] = [
   "ai_coach",
   "xp",
-  "habit_score",
-  "focus_timer",
+  "pomodoro",
   "quote",
   "water_tracker",
-  "weather",
-  "spotify",
+  "workout_progress",
+  "study_progress",
 ];
 
 export const useCustomizationStore = create<CustomizationState>()(

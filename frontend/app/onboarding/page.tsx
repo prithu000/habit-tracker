@@ -68,10 +68,13 @@ export default function OnboardingPage() {
               <div className="inline-block px-3 py-1 rounded-full bg-forge-500/10 text-forge-400 text-xs font-semibold mb-4 tracking-widest uppercase">
                 Step 1 of 2
               </div>
-              <h1 className="text-3xl font-display font-bold mb-4">Who are you becoming?</h1>
-              <p className="text-muted-foreground">
-                YOU VS YOU is not a habit tracker. It is an operating system for your identity.
-                Every task you complete is proof that you are this person.
+              <h1 className="text-3xl font-display font-bold mb-4">Welcome to YOU VS YOU.</h1>
+              <p className="text-muted-foreground leading-relaxed text-sm">
+                You don&apos;t compete against anyone.<br />
+                <span className="text-white font-semibold">You compete against the person you were yesterday.</span><br /><br />
+                Every completed habit... Every workout... Every study session... Every focused minute...<br />
+                <span className="text-forge-400 font-bold">becomes part of your identity.</span><br /><br />
+                Let&apos;s begin engineering your best self.
               </p>
             </div>
 
@@ -155,7 +158,7 @@ export default function OnboardingPage() {
                 {isLoading ? (
                   <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" />
                 ) : (
-                  "Enter YOU VS YOU"
+                  "Begin Journey"
                 )}
               </button>
             </div>

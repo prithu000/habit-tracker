@@ -2,13 +2,22 @@
 .DS_Store
 Thumbs.db
 *.log
+.gemini/
+.agents/
+scratch/
 
 # Environment variables & Secrets
 .env
 .env.*
 !.env.example
+!.env.local.example
 *.pem
 *.key
+*.cert
+service-account.json
+*client_secret*.json
+*credentials*.json
+jwt-secret*
 
 # Python / Django (Backend)
 __pycache__/
@@ -18,10 +27,18 @@ __pycache__/
 venv/
 .venv/
 env/
+*.sqlite3
+*.db
 db.sqlite3
 db.sqlite3-journal
 media/
 staticfiles/
+coverage/
+.pytest_cache/
+htmlcov/
+*.egg-info/
+.coverage
+*.log
 
 # Node / Next.js / TypeScript (Frontend)
 node_modules/
@@ -33,3 +50,5 @@ dist/
 next-env.d.ts
 .npm
 .eslintcache
+coverage/
+*.tgz

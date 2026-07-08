@@ -15,8 +15,8 @@ from apps.completions.models import DayLog
 from apps.streaks.models import StreakRecord
 from apps.rewards.models import XPTransaction, UserBadge
 from services.xp_service import XPService
-from services.cache_service import CacheService
 from services.report_engine import ReportEngine
+from services.score_engine import ScoreEngine
 
 
 @api_view(["GET"])
@@ -24,95 +24,13 @@ from services.report_engine import ReportEngine
 def life_score_view(request):
     """
     GET /api/v1/life-score/
-    Returns current 9-dimensional Life Score, radar chart categories, history, and AI coaching.
+    Returns current Life Score 2.0, Discipline 2.0, 9-Axis radar chart, trend, confidence, and dimensional breakdowns.
     """
     user = request.user
-    local_date = get_user_local_date(user)
-
-    # Get or compute today's LifeScoreSnapshot
-    snapshot = LifeScoreSnapshot.objects.filter(user=user, date=local_date).first()
-
-    # ── Life Score 2.0 Weighted Calculation ──
-    # 25% Task completion rate, 20% Consistency/streak, 15% Discipline, 40% Habit execution
-    today_log = DayLog.objects.filter(user=user, log_date=local_date).first()
-    task_rate = float(today_log.completion_rate) if today_log else 75.0
-    c_task = min(100.0, task_rate) * 0.25
-
-    streak_rec = StreakRecord.objects.filter(user=user, routine__isnull=True).first()
-    streak_val = streak_rec.current_streak if streak_rec else 0
-    c_streak = min(100.0, 20.0 + (streak_val * 6.0)) * 0.20
-
-    missed = (today_log.tasks_scheduled - today_log.tasks_completed) if today_log and today_log.tasks_scheduled > today_log.tasks_completed else 0
-    discipline_val = max(20.0, 100.0 - (missed * 15.0))
-    c_discipline = discipline_val * 0.15
-
-    os_goals, _ = UserOSGoals.objects.get_or_create(user=user)
-    os_metrics, _ = DailyOSMetrics.objects.get_or_create(user=user, date=local_date)
-    water_pct = min(100.0, (os_metrics.water_ml / max(1, os_goals.water_goal_ml)) * 100.0)
-    workout_pct = min(100.0, (os_metrics.workout_exercises / max(1, os_goals.workout_goal_exercises)) * 100.0)
-    study_pct = min(100.0, (os_metrics.study_mins / max(1, os_goals.study_goal_mins)) * 100.0)
-    pomo_pct = min(100.0, os_metrics.pomodoro_sessions * 25.0)
-    sleep_pct = 80.0
-    habit_exec = (water_pct + workout_pct + study_pct + pomo_pct + sleep_pct) / 5.0
-    c_habit = habit_exec * 0.40
-
-    overall = int(round(c_task + c_streak + c_discipline + c_habit))
-    title = LifeScoreSnapshot.calculate_title(overall)
-    ai_analysis = f"Your Life Score of {overall} ({title}) is calculated from Task Completion ({round(task_rate)}%), Consistency Streak ({streak_val}d), Discipline ({round(discipline_val)}%), and OS Execution ({round(habit_exec)}%). Maintain this momentum to reach the next tier."
-
-    if not snapshot:
-        base_bonus = min(20, streak_val * 2)
-        snapshot = LifeScoreSnapshot.objects.create(
-            user=user,
-            date=local_date,
-            fitness_score=int(workout_pct) if workout_pct > 0 else min(100, 70 + base_bonus),
-            learning_score=int(study_pct) if study_pct > 0 else min(100, 68 + base_bonus),
-            work_score=min(100, 75 + base_bonus),
-            mental_health_score=min(100, 72 + base_bonus),
-            health_score=int(water_pct) if water_pct > 0 else min(100, 74 + base_bonus),
-            sleep_score=int(sleep_pct),
-            finance_score=min(100, 65 + base_bonus),
-            personal_score=min(100, 78 + base_bonus),
-            discipline_score=int(discipline_val),
-            overall_score=overall,
-            title=title,
-            ai_analysis=ai_analysis,
-            improvement_suggestions=[
-                "Ensure 8 hours of restorative sleep to push your Health index into the 90s.",
-                "Execute a 30-minute deep reading block before noon to elevate Learning velocity."
-            ]
-        )
-    else:
-        if snapshot.overall_score != overall or snapshot.title != title or snapshot.ai_analysis != ai_analysis:
-            snapshot.overall_score = overall
-            snapshot.title = title
-            snapshot.ai_analysis = ai_analysis
-            snapshot.save(update_fields=["overall_score", "title", "ai_analysis"])
-
-    # Historical trend (last 14 days)
-    history_qs = LifeScoreSnapshot.objects.filter(user=user).order_by("date")[:14]
-    history = [{"date": s.date.isoformat(), "score": s.overall_score} for s in history_qs]
-    if not history:
-        history = [{"date": local_date.isoformat(), "score": snapshot.overall_score}]
-
-    data = {
-        "overall_score": snapshot.overall_score,
-        "title": snapshot.title,
-        "categories": {
-            "fitness": snapshot.fitness_score,
-            "learning": snapshot.learning_score,
-            "work": snapshot.work_score,
-            "mental_health": snapshot.mental_health_score,
-            "health": snapshot.health_score,
-            "sleep": snapshot.sleep_score,
-            "finance": snapshot.finance_score,
-            "personal": snapshot.personal_score,
-            "discipline": snapshot.discipline_score,
-        },
-        "history": history,
-        "ai_analysis": snapshot.ai_analysis,
-        "suggestions": snapshot.improvement_suggestions,
-    }
+    data = ScoreEngine.get_life_score_data(user)
+    data["radar"] = ScoreEngine.get_radar_diagnostic(user)
+    data["dimensions"] = ScoreEngine.get_dimensional_breakdown(user)
+    data["discipline_data"] = ScoreEngine.get_discipline_score(user)
     return Response(data)
 
 
@@ -208,9 +126,10 @@ def smart_reports_view(request):
     focus_total = sum(m.focus_mins for m in os_metrics)
 
     badges_count = UserBadge.objects.filter(user=user).count()
-    life_snapshot = LifeScoreSnapshot.objects.filter(user=user, date=local_date).first()
-    current_life_score = life_snapshot.overall_score if life_snapshot else 85
-    discipline_index = life_snapshot.discipline_score if life_snapshot else 80
+    life_data = ScoreEngine.get_life_score_data(user, local_date)
+    disc_data = ScoreEngine.get_discipline_score(user, local_date)
+    current_life_score = life_data["overall_score"]
+    discipline_index = disc_data["score"]
 
     kpis = [
         {"label": "Total Tasks Completed", "val": str(total_completed), "unit": "tasks", "change": "+12%", "trend": "up"},
@@ -224,23 +143,22 @@ def smart_reports_view(request):
         {"label": "Total Hydration Logged", "val": f"{water_total}", "unit": "ml", "change": f"~{int(water_total/max(1,len(logs)))} ml/d", "trend": "neutral"},
         {"label": "Hypertrophy Workouts", "val": f"{workout_total}", "unit": "exercises", "change": "+3 sets", "trend": "up"},
         {"label": "Deep Study Time", "val": f"{round(study_total/60, 1)}", "unit": "hours", "change": f"{study_total} mins", "trend": "up"},
-        {"label": "Pomodoro Sessions", "val": f"{pomo_total}", "unit": "blocks", "change": f"{pomo_total*25}m focus", "trend": "up"},
-        {"label": "Deep Focus Minutes", "val": f"{focus_total}", "unit": "mins", "change": "+45m", "trend": "up"},
-        {"label": "Current Life Score 2.0", "val": f"{current_life_score}", "unit": "/ 100", "change": life_snapshot.title if life_snapshot else "Good", "trend": "up"},
+        {"label": "Current Life Score 2.0", "val": f"{current_life_score}", "unit": "/ 100", "change": life_data.get("title", "Good"), "trend": "up"},
         {"label": "User Mastery Level", "val": f"LVL {user.current_level}", "unit": "rank", "change": XPService.get_level_title(user.current_level), "trend": "neutral"},
         {"label": "Trophies & Badges", "val": f"{badges_count}", "unit": "unlocked", "change": "Elite Club", "trend": "up"},
     ]
 
+    cats = life_data.get("categories", {})
     radar_data = [
-        {"subject": "Fitness", "val": life_snapshot.fitness_score if life_snapshot else 80},
-        {"subject": "Learning", "val": life_snapshot.learning_score if life_snapshot else 75},
-        {"subject": "Work", "val": life_snapshot.work_score if life_snapshot else 85},
-        {"subject": "Mental", "val": life_snapshot.mental_health_score if life_snapshot else 80},
-        {"subject": "Health", "val": life_snapshot.health_score if life_snapshot else 82},
-        {"subject": "Sleep", "val": life_snapshot.sleep_score if life_snapshot else 78},
-        {"subject": "Finance", "val": life_snapshot.finance_score if life_snapshot else 70},
-        {"subject": "Personal", "val": life_snapshot.personal_score if life_snapshot else 85},
-        {"subject": "Discipline", "val": life_snapshot.discipline_score if life_snapshot else 80},
+        {"subject": "Fitness", "val": cats.get("fitness", 0)},
+        {"subject": "Learning", "val": cats.get("learning", 0)},
+        {"subject": "Work", "val": cats.get("work", 0)},
+        {"subject": "Mental", "val": cats.get("mental_health", 0)},
+        {"subject": "Health", "val": cats.get("health", 0)},
+        {"subject": "Sleep", "val": cats.get("sleep", 0)},
+        {"subject": "Finance", "val": cats.get("finance", 0)},
+        {"subject": "Personal", "val": cats.get("personal", 0)},
+        {"subject": "Discipline", "val": cats.get("discipline", 0)},
     ]
 
     heatmap_data = []
@@ -263,10 +181,26 @@ def smart_reports_view(request):
     ]
 
     full_report = ReportEngine.generate_full_report(user, timeframe, local_date, start_date, logs, os_metrics)
+    unlock_status = ReportEngine.get_report_unlock_status(user)
+    is_init = False
+    
+    if not logs and not os_metrics:
+        week_score = month_score = year_score = lifetime_score = 0
+    else:
+        week_logs = logs[-7:]
+        month_logs = logs[-30:]
+        year_logs = logs[-365:]
+        week_score = int(sum(float(l.completion_rate) for l in week_logs) / max(1, len(week_logs)))
+        month_score = int(sum(float(l.completion_rate) for l in month_logs) / max(1, len(month_logs)))
+        year_score = int(sum(float(l.completion_rate) for l in year_logs) / max(1, len(year_logs)))
+        lifetime_score = int(avg_rate)
+
     data = {
         "timeframe": timeframe.title(),
         "start_date": start_date.isoformat(),
         "end_date": local_date.isoformat(),
+        "is_initializing": False,
+        "unlock_status": unlock_status,
         "executive_summary": full_report["executive_summary"],
         "charts": full_report["charts"],
         "summary": {
@@ -274,7 +208,10 @@ def smart_reports_view(request):
             "total_xp_earned": total_xp,
             "avg_completion_rate": avg_rate,
             "life_score": current_life_score,
-            "ai_summary": f"During this {timeframe} cycle, you maintained an average completion rate of {avg_rate}% and generated {total_xp} XP. Your execution efficiency is tracking at {exec_efficiency}% across 9 core life dimensions."
+            "ai_summary": (
+                "No activity has been recorded for this period yet. Your journey starts with today's actions." if not logs and not os_metrics else
+                f"During this {timeframe} cycle, you maintained an average completion rate of {avg_rate}% and generated {total_xp} XP. Your execution efficiency is tracking at {exec_efficiency}% across 9 core life dimensions."
+            )
         },
         "chart_data": chart_data,
         "kpis": kpis,
@@ -283,10 +220,10 @@ def smart_reports_view(request):
         "recommendations": recommendations,
         "smart_statistics": {
             "today_score": current_life_score,
-            "week_score": 85,
-            "month_score": 84,
-            "year_score": 82,
-            "lifetime_score": 86
+            "week_score": week_score,
+            "month_score": month_score,
+            "year_score": year_score,
+            "lifetime_score": lifetime_score
         }
     }
     return Response(data)
@@ -383,7 +320,9 @@ def metrics_view(request):
         if "focus_mins" in data:
             metrics.focus_mins = int(data["focus_mins"])
         metrics.save()
-        CacheService.invalidate_dashboard(str(user.id))
+        CacheService.invalidate_all(str(user.id))
+        CacheService.delete(str(user.id), f"life_score_2:{local_date.isoformat()}")
+        CacheService.delete(str(user.id), f"discipline_score_2:{local_date.isoformat()}")
 
     return Response({
         "date": metrics.date.isoformat(),

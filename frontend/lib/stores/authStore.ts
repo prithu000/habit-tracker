@@ -39,7 +39,7 @@ export const useAuthStore = create<AuthState>()(
 
       updateUser: (updatedUser) =>
         set((state) => ({
-          user: state.user ? { ...state.user, ...updatedUser } : null,
+          user: state.user ? { ...state.user, ...updatedUser } : (updatedUser as User),
         })),
 
       logout: () => set({ user: null, tokens: null, isAuthenticated: false }),

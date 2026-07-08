@@ -8,6 +8,7 @@ import { useAuthStore } from "@/lib/stores/authStore";
 import api from "@/lib/api";
 import { AuthResponse, ApiResponse } from "@/types/api";
 import { toast } from "react-hot-toast";
+import { GoogleSignInButton } from "@/components/shared/GoogleSignInButton";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -59,9 +60,12 @@ export default function LoginPage() {
       transition={{ duration: 0.4 }}
       className="glass-card p-8"
     >
-      <div className="mb-6 text-center">
-        <h2 className="text-xl font-semibold">Sign in</h2>
-        <p className="text-sm text-muted-foreground mt-1">Enter your details to continue.</p>
+      <div className="mb-8 text-center">
+        <h2 className="text-2xl font-display font-bold tracking-tight">Welcome Back.</h2>
+        <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+          Continue engineering your best self.<br />
+          <span className="text-zinc-600 text-xs">Every decision today shapes who you&apos;ll become tomorrow.</span>
+        </p>
       </div>
 
       <form onSubmit={handleLogin} className="space-y-4">
@@ -99,10 +103,21 @@ export default function LoginPage() {
           {isLoading ? (
             <div className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           ) : (
-            "Sign In"
+            "Continue"
           )}
         </button>
       </form>
+
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-zinc-800" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-zinc-950 px-2 text-muted-foreground font-semibold">Or continue with</span>
+        </div>
+      </div>
+
+      <GoogleSignInButton label="Sign in with Google" />
 
       <div className="mt-6 text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{" "}

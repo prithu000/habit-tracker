@@ -822,14 +822,14 @@ export const ExecutiveChartsGrid: React.FC<ExecutiveChartsGridProps> = ({
           </div>
         </div>
 
-        {/* Chart 27: AI Coach Executive Report */}
+        {/* Chart 27: Neural Coach Executive Report */}
         <div className={cn("p-8 rounded-3xl border shadow-2xl relative overflow-hidden", isDark ? "bg-gradient-to-r from-purple-950/50 via-zinc-900/90 to-zinc-950 border-purple-500/30" : "bg-purple-50 border-purple-200")}>
           <div className="flex items-center gap-3 mb-6">
             <div className="p-3 rounded-2xl bg-purple-500/20 border border-purple-500/30 text-purple-400">
               <BrainCircuit className="w-7 h-7 animate-pulse" />
             </div>
             <div>
-              <h4 className="text-2xl font-black tracking-tight text-white print:text-black">27. AI COACH EXECUTIVE SYNTHESIS</h4>
+              <h4 className="text-2xl font-black tracking-tight text-white print:text-black">27. NEURAL COACH EXECUTIVE SYNTHESIS</h4>
               <p className="text-xs text-purple-300">Automated diagnostic recommendations for next month&apos;s execution target.</p>
             </div>
           </div>

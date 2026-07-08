@@ -20,6 +20,10 @@ export function GreetingHeader({ displayName, identityStatement }: GreetingHeade
       transition={{ duration: 0.4 }}
       className="mb-8"
     >
+      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-forge-500/10 border border-forge-500/20 text-forge-300 text-xs font-semibold mb-3 shadow-[0_0_15px_rgba(139,92,246,0.15)]">
+        <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+        <span>Daily Reset • A new day has begun. Yesterday is now data. Today is another opportunity.</span>
+      </div>
       <h1 className="text-3xl sm:text-4xl font-display font-bold mb-2">
         {greeting}, {displayName.split(" ")[0]}
       </h1>

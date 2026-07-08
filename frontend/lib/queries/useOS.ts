@@ -150,7 +150,7 @@ export function useEmailReminders() {
 export function useCreateEmailReminder() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: { task_name: string; deadline: string; priority: string; frequency: string }) => {
+    mutationFn: async (payload: { task_name: string; deadline: string; priority: string; frequency: string; timezone?: string }) => {
       const { data } = await api.post<ApiResponse<any>>("/notifications/reminders/", payload);
       return data.data;
     },

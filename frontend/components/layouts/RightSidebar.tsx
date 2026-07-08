@@ -408,7 +408,7 @@ export function RightSidebar() {
         {/* Footer */}
         <div className="p-3 border-t border-white/[0.08] bg-black/60 text-center">
           <p className="text-[10px] text-muted-foreground">
-            YOU VS YOU Edition • Powered by Personal OS Engine
+            © 2026 YOU VS YOU • Engineer Your Best Self.
           </p>
         </div>
       </motion.aside>

@@ -117,6 +117,11 @@ class CacheService:
                 CacheService._key(user_id, "today", d),
                 CacheService._key(user_id, "widget_bundle", d),
                 CacheService._key(user_id, "streak", d),
+                CacheService._key(user_id, "life_score", d),
+                CacheService._key(user_id, "discipline_score", d),
+                CacheService._key(user_id, "radar_diagnostic", d),
+                CacheService._key(user_id, "dimensional_breakdown", d),
+                CacheService._key(user_id, "smart_reports", d),
             ])
         cache.delete_many(keys)
 
@@ -151,6 +156,10 @@ class CacheService:
             CacheService._key(user_id, "life_tree"),
             CacheService._key(user_id, "discipline_score"),
             CacheService._key(user_id, "dna"),
+            CacheService._key(user_id, "life_score"),
+            CacheService._key(user_id, "radar_diagnostic"),
+            CacheService._key(user_id, "dimensional_breakdown"),
+            CacheService._key(user_id, "smart_reports"),
         ])
         cache.delete_many(keys_to_delete)
 

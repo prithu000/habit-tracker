@@ -563,7 +563,7 @@ export default function SettingsPage() {
                   </div>
                   <div>
                     <h2 className="text-base font-display font-bold text-white">Notifications & Telemetry</h2>
-                    <p className="text-xs text-muted-foreground">Configure daily reminders and AI Coach insights.</p>
+                    <p className="text-xs text-muted-foreground">Configure daily reminders and Neural Coach insights.</p>
                   </div>
                 </div>
 
@@ -571,7 +571,7 @@ export default function SettingsPage() {
                   {[
                     { key: "dailyBriefing", label: "Daily Morning Briefing", desc: "Receive a summary of today's scheduled routines at 08:00 AM." },
                     { key: "streakReminders", label: "Streak Preservation Alert", desc: "Notify when an active streak is within 4 hours of expiration." },
-                    { key: "aiInsights", label: "Neural AI Coach Recommendations", desc: "Real-time motivational synthesis on your dashboard." },
+                    { key: "aiInsights", label: "Neural Coach Recommendations", desc: "Real-time motivational synthesis on your dashboard." },
                     { key: "weeklyReport", label: "Weekly Performance Digest", desc: "Receive an exhaustive analytics summary every Sunday evening." },
                   ].map((item) => {
                     const isChecked = (notifState as any)[item.key];

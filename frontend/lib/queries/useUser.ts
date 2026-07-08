@@ -6,6 +6,25 @@ import { toast } from "react-hot-toast";
 
 export const USER_QUERY_KEY = ["user"];
 
+export function useUserProfile() {
+  const setAuth = useAuthStore((s) => s.setAuth);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const tokens = useAuthStore((s) => s.tokens);
+
+  return useQuery({
+    queryKey: USER_QUERY_KEY,
+    queryFn: async () => {
+      const { data } = await api.get<ApiResponse<User>>("/users/me/");
+      if (data.data && tokens) {
+        setAuth(data.data, tokens);
+      }
+      return data.data;
+    },
+    enabled: isAuthenticated,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
 export function useUserStats() {
   return useQuery({
     queryKey: [...USER_QUERY_KEY, "stats"],

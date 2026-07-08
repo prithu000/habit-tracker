@@ -17,6 +17,7 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.views.decorators.cache import never_cache
 from django.utils.decorators import method_decorator
 from drf_spectacular.utils import extend_schema
@@ -102,3 +103,102 @@ def logout_view(request):
         # Token already invalid — still return 200 (idempotent logout)
         pass
     return Response({"detail": "Logged out successfully."}, status=status.HTTP_200_OK)
+
+
+@extend_schema(request=None, responses=None)
+@api_view(["POST"])
+@permission_classes([AllowAny])
+@throttle_classes([AuthRateThrottle])
+def google_auth_view(request):
+    """
+    POST /api/v1/auth/google/
+    Accepts Google OAuth payload/token ({ email, name, picture, token }).
+    Verifies token, auto-creates account if needed, sets email verified, imports profile picture/name,
+    and returns standard Forge JWT session payload.
+    """
+    import uuid
+    import os
+    email = request.data.get("email")
+    name = request.data.get("name")
+    picture = request.data.get("picture")
+    token = request.data.get("token")
+    credential = request.data.get("credential")
+
+    raw_token = credential or token
+    if not raw_token:
+        return Response(
+            {"detail": "Google OAuth ID token (credential) is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    client_id = getattr(settings, "GOOGLE_CLIENT_ID", "") or os.environ.get("GOOGLE_CLIENT_ID", "")
+    verified_payload = None
+
+    # Method 1: Google oauth2 library (if installed)
+    try:
+        from google.oauth2 import id_token as google_id_token
+        from google.auth.transport import requests as google_requests
+        verified_payload = google_id_token.verify_oauth2_token(raw_token, google_requests.Request(), client_id)
+    except Exception as e_lib:
+        # Method 2: Official Google Tokeninfo Endpoint (standard fallback without extra dependencies)
+        try:
+            import urllib.request
+            import json as pyjson
+            url = f"https://oauth2.googleapis.com/tokeninfo?id_token={raw_token}"
+            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                if resp.status == 200:
+                    verified_payload = pyjson.loads(resp.read().decode('utf-8'))
+                    # Verify audience matches our Client ID
+                    if verified_payload.get("aud") != client_id and verified_payload.get("azp") != client_id:
+                        return Response({"detail": "Google OAuth token audience mismatch."}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e_net:
+            return Response({"detail": "Invalid Google OAuth token or verification failed."}, status=status.HTTP_401_UNAUTHORIZED)
+
+    if not verified_payload or not verified_payload.get("email"):
+        return Response({"detail": "Invalid Google OAuth ID token or missing email."}, status=status.HTTP_401_UNAUTHORIZED)
+
+    email = verified_payload.get("email")
+    name = name or verified_payload.get("name") or email.split("@")[0]
+    picture = picture or verified_payload.get("picture")
+
+    user = User.objects.filter(email=email).first()
+    if not user:
+        username = email.split("@")[0] + "_" + str(uuid.uuid4())[:4]
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            display_name=name,
+            password=uuid.uuid4().hex
+        )
+        if hasattr(user, "is_verified"):
+            user.is_verified = True
+        if picture and hasattr(user, "avatar_url"):
+            user.avatar_url = picture
+        user.save()
+    else:
+        # Link existing account: update avatar and verification status if not set
+        if hasattr(user, "is_verified") and not user.is_verified:
+            user.is_verified = True
+        if picture and hasattr(user, "avatar_url") and not user.avatar_url:
+            user.avatar_url = picture
+        user.save()
+
+    refresh = RefreshToken.for_user(user)
+    return Response(
+        {
+            "access": str(refresh.access_token),
+            "refresh": str(refresh),
+            "user": {
+                "id": str(user.id),
+                "email": user.email,
+                "display_name": getattr(user, "display_name", user.username),
+                "username": user.username,
+                "onboarding_completed": getattr(user, "onboarding_completed", False),
+                "current_level": getattr(user, "current_level", 1),
+                "total_xp": getattr(user, "total_xp", 0),
+                "avatar_url": getattr(user, "avatar_url", ""),
+            },
+        },
+        status=status.HTTP_200_OK,
+    )

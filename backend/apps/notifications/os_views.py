@@ -62,8 +62,9 @@ def pomodoro_email_view(request):
     end_time = data.get("end_time", "In 25 minutes")
     duration_mins = int(data.get("duration_mins", 25))
     xp_earned = int(data.get("xp_earned", 50))
-    current_streak = int(data.get("current_streak", 1))
-    event_type = data.get("event_type", "start")  # start or end
+    current_streak = int(data.get("current_streak", 0))
+    event_type = data.get("event_type", "start")  # start, end, or finished
+    session_type = data.get("session_type", "pomodoro")  # pomodoro, shortBreak, longBreak
 
     send_pomodoro_email_task.delay(
         user_email=user.email,
@@ -73,10 +74,24 @@ def pomodoro_email_view(request):
         duration_mins=duration_mins,
         xp_earned=xp_earned,
         current_streak=current_streak,
-        event_type=event_type
+        event_type=event_type,
+        session_type=session_type
     )
 
-    return Response({"message": f"Pomodoro {event_type} email alert dispatched."})
+    if event_type in ["end", "finished"] and session_type not in ["shortBreak", "longBreak"]:
+        from apps.analytics.models import DailyOSMetrics
+        from apps.completions.utils import get_user_local_date
+        from services.cache_service import CacheService
+        local_date = get_user_local_date(user)
+        metrics, _ = DailyOSMetrics.objects.get_or_create(user=user, date=local_date)
+        metrics.pomodoro_sessions += 1
+        metrics.focus_mins += duration_mins
+        metrics.save()
+        CacheService.invalidate_all(str(user.id))
+        CacheService.delete(str(user.id), f"life_score_2:{local_date.isoformat()}")
+        CacheService.delete(str(user.id), f"discipline_score_2:{local_date.isoformat()}")
+
+    return Response({"message": f"Focus telemetry ({session_type}/{event_type}) email alert dispatched."})
 
 
 @api_view(["GET", "POST", "DELETE"])

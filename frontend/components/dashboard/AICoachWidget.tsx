@@ -27,23 +27,36 @@ export function AICoachWidget({ dashboard }: AICoachWidgetProps) {
   const avgDailyXp = Math.max(50, xp.xp_earned_today || 80);
   const daysToNextLevel = Math.max(1, Math.ceil(xpNeeded / avgDailyXp));
 
-  // Determine dynamic motivational message and focus
-  let motivation = "Your neural momentum is building. Stay disciplined and execute your primary routines.";
-  let focusSuggestion = "Complete your high-priority morning routines before noon to lock in dopamine velocity.";
-  let tip = "Stacking small wins reduces cognitive friction by 40% over a 7-day period.";
+  // Rotating daily quotes — deterministic based on day of year
+  const dailyQuotes = [
+    "Small victories repeated consistently become extraordinary lives.",
+    "The goal isn't perfection. The goal is becoming better than yesterday.",
+    "Every completed habit is proof of who you are becoming.",
+    "Discipline is the bridge between who you are and who you want to be.",
+    "You don't compete against anyone. You compete against yesterday's version of you.",
+    "Momentum is built one decision at a time. Start now.",
+    "Identity is built through daily evidence. Show up.",
+  ];
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+  const dailyQuote = dailyQuotes[dayOfYear % dailyQuotes.length];
+
+  // Determine dynamic motivational message and focus based on real completion data
+  let motivation = dailyQuote;
+  let focusSuggestion = "Complete your high-priority morning routines before noon to lock in execution momentum.";
+  let tip = "Small victories repeated consistently become extraordinary lives.";
 
   if (day_progress.completion_rate === 100 && day_progress.tasks_scheduled > 0) {
-    motivation = "Exceptional performance! You have achieved total execution mastery for today.";
+    motivation = "Total execution achieved. You have proven your identity today.";
     focusSuggestion = "Review your upcoming weekly goals and prepare your environment for tomorrow.";
-    tip = "Recovery is part of elite discipline. Ensure you get 8 hours of restorative sleep tonight.";
+    tip = "Recovery is part of elite discipline. Protect your sleep and reset for tomorrow.";
   } else if (streak.current >= 7) {
-    motivation = `Incredible ${streak.current}-day streak! Your habit loops are transitioning into permanent identity traits.`;
-    focusSuggestion = "Maintain strict consistency on your anchor habits, even if you reduce intensity today.";
-    tip = "When motivation dips, rely on your established routine systems rather than willpower.";
+    motivation = `${streak.current}-day streak. Your habits are becoming permanent identity traits. Protect this.`;
+    focusSuggestion = "Maintain strict consistency on your anchor habits. Intensity is optional. Consistency is not.";
+    tip = "When motivation fades, your systems carry you forward. Trust the process.";
   } else if (day_progress.tasks_completed === 0) {
-    motivation = "Every champion starts with a single step. Break the inertia right now.";
-    focusSuggestion = "Pick the easiest 2-minute task on your checklist and complete it immediately.";
-    tip = "The 2-minute rule: If a habit takes less than 2 minutes, do it right away to trigger momentum.";
+    motivation = "Every remarkable transformation begins with a single completed task. Today is Day One.";
+    focusSuggestion = "Pick the smallest task on your list and complete it immediately. Momentum begins now.";
+    tip = "The first action breaks inertia. Everything compounds from here.";
   }
 
   return (
@@ -70,14 +83,14 @@ export function AICoachWidget({ dashboard }: AICoachWidgetProps) {
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-display font-black text-base tracking-wide text-white">
-                DEEPMIND NEURAL COACH
+                NEURAL COACH
               </h3>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-gradient-to-r from-forge-500/20 to-cyan-500/20 text-forge-300 border border-forge-500/30 uppercase tracking-widest font-bold">
-                AI V2.4
+                LIVE
               </span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Personalized cognitive synthesis for <span className="text-foreground font-medium">{user.display_name}</span>
+              Personalized insights for <span className="text-foreground font-medium">{user.display_name}</span>
             </p>
           </div>
         </div>
@@ -109,7 +122,7 @@ export function AICoachWidget({ dashboard }: AICoachWidgetProps) {
           </p>
           <div className="pt-2 flex items-center gap-1.5 text-[11px] text-muted-foreground font-mono">
             <Flame className="w-3.5 h-3.5 text-amber-400" />
-            <span>Velocity Index: 98.4%</span>
+            <span>Execution Engine Active</span>
           </div>
         </div>
 
@@ -138,8 +151,8 @@ export function AICoachWidget({ dashboard }: AICoachWidgetProps) {
             {tip}
           </p>
           <div className="pt-2 flex items-center justify-between text-[11px] text-muted-foreground font-mono">
-            <span>Protocol: Atomic V3</span>
-            <span className="text-amber-400 font-bold">VERIFIED</span>
+            <span>Protocol: Consistency First</span>
+            <span className="text-amber-400 font-bold">ACTIVE</span>
           </div>
         </div>
       </div>

@@ -1,0 +1,32 @@
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+service-account.json
+*client_secret*.json
+
+# Python / Django & Temporary Scripts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+venv/
+.venv/
+env/
+*.sqlite3
+*.db
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+coverage/
+.pytest_cache/
+htmlcov/
+*.egg-info/
+.coverage
+*.log
+debug_create.py
+scratch/

@@ -150,16 +150,54 @@ export interface ExecutiveSummary {
   workout_hours: number;
   study_hours: number;
   water_consistency: number;
+  study_consistency?: number;
+  workout_consistency?: number;
+  pomodoro_consistency?: number;
   sleep_consistency: number;
   productivity_rating: string;
   ai_summary: string;
+  is_initializing?: boolean;
 }
 
 export interface SmartReportsData {
   timeframe: string;
   start_date: string;
   end_date: string;
+  is_initializing?: boolean;
+  unlock_status?: {
+    report_unlocked: boolean;
+    is_initializing: boolean;
+    progress: number;
+    total: number;
+    completed: {
+      first_task: boolean;
+      pomodoro: boolean;
+      water: boolean;
+      workout: boolean;
+    };
+  };
   executive_summary: ExecutiveSummary;
+  extra_analytics: {
+    execution_velocity: number;
+    consistency_trajectory: number;
+    growth_index: number;
+    recovery_index: number;
+    focus_index: number;
+    health_index: number;
+    learning_index: number;
+    discipline_index: number;
+    habit_completion_index: number;
+    identity_score: number;
+    momentum_score: number;
+    failure_recovery_rate: number;
+    weekend_consistency: number;
+    morning_discipline: number;
+    night_discipline: number;
+    deep_work_hours: number;
+    average_completion_time: string;
+    average_delay: string;
+    task_difficulty_index: number;
+  };
   charts: {
     life_score_timeline: {
       days_30: { date: string; score: number }[];
@@ -200,11 +238,22 @@ export interface SmartReportsData {
     performance_matrix: { name: string; difficulty: number; completion_rate: number; xp_earned: number }[];
     personal_records: Record<string, { val: string; sub: string }>;
     ai_coach_report: {
-      strengths: string[];
-      weaknesses: string[];
-      suggestions: string[];
-      top_improvement_areas: { area: string; current: string; target: string }[];
-      next_month_target: string;
+      greatest_strength: string;
+      weakest_habit: string;
+      biggest_bottleneck: string;
+      consistency_analysis: string;
+      recovery_analysis: string;
+      execution_analysis: string;
+      identity_analysis: string;
+      behavior_pattern: string;
+      momentum_prediction: string;
+      probability_of_goals: string;
+      top_5_improvements: string[];
+      top_5_achievements: string[];
+      strengths?: string[];
+      weaknesses?: string[];
+      suggestions?: string[];
+      next_month_target?: string;
     };
   };
   summary: any;

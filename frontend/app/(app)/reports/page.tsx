@@ -1,301 +1,213 @@
 "use client";
 
 import React, { useState } from "react";
-import { useSmartReports } from "@/lib/queries/useOS";
+import { useSmartReports, useLifeScore } from "@/lib/queries/useOS";
+import { useDashboard } from "@/lib/queries/useDashboard";
+import { useDisciplineScore, useWeeklyAnalytics, useMonthlyAnalytics } from "@/lib/queries/useAnalytics";
 import { Skeleton } from "@/components/shared/Skeleton";
 import { PageTransition } from "@/components/layouts/PageTransition";
 import {
-  FileText,
   Download,
-  BarChart2,
-  FileSpreadsheet,
-  Printer,
-  Image as ImageIcon,
-  Layout,
-  Sun,
-  Moon,
-  Sparkles,
   ShieldCheck,
-  CheckCircle2,
+  Calendar,
+  Sun,
+  TrendingUp,
+  Loader2,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { cn } from "@/lib/utils/cn";
-import { ExecutiveSummaryCard } from "@/components/reports/ExecutiveSummaryCard";
-import { ExecutiveChartsGrid } from "@/components/reports/ExecutiveChartsGrid";
+import { ExecutivePaperReport } from "@/components/reports/ExecutivePaperReport";
+import html2canvas from "html2canvas";
+import { format, parseISO } from "date-fns";
 
 export default function ReportsPage() {
-  const [timeframe, setTimeframe] = useState<"daily" | "weekly" | "monthly" | "yearly">("weekly");
-  const [layoutMode, setLayoutMode] = useState<"portrait" | "landscape" | "poster">("portrait");
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [activeTab, setActiveTab] = useState<"daily" | "weekly" | "monthly">("daily");
   const [isExporting, setIsExporting] = useState(false);
 
-  const { data, isLoading, error } = useSmartReports(timeframe);
+  const dailyQuery = useSmartReports("daily");
+  const weeklyQuery = useSmartReports("weekly");
+  const monthlyQuery = useSmartReports("monthly");
 
-  const handleExport = async (format: "pdf" | "png" | "jpeg" | "csv") => {
-    if (format === "csv") {
-      const url = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/analytics/reports/?timeframe=${timeframe}&format=csv`;
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `youvsyou_${timeframe}_report.csv`;
-      a.click();
-      toast.success(`📥 CSV Telemetry report downloaded!`);
-      return;
-    }
+  const { data: dashboard, isLoading: isDashboardLoading } = useDashboard();
+  const { data: lifeScore, isLoading: isLifeScoreLoading } = useLifeScore();
+  const { data: disciplineScore, isLoading: isDisciplineLoading } = useDisciplineScore();
+  const { data: weeklyAnalytics, isLoading: isWeeklyLoading } = useWeeklyAnalytics();
+  const { data: monthlyAnalytics, isLoading: isMonthlyLoading } = useMonthlyAnalytics();
 
-    const element = document.getElementById("executive-report-container");
+  const isLoading =
+    dailyQuery.isLoading ||
+    weeklyQuery.isLoading ||
+    monthlyQuery.isLoading ||
+    isDashboardLoading ||
+    isLifeScoreLoading ||
+    isDisciplineLoading ||
+    isWeeklyLoading ||
+    isMonthlyLoading;
+
+  const activeData =
+    activeTab === "daily"
+      ? dailyQuery.data
+      : activeTab === "weekly"
+      ? weeklyQuery.data
+      : monthlyQuery.data;
+
+  const handleDownloadPDF = async () => {
+    const element = document.getElementById("printable-a4-paper");
     if (!element) {
-      toast.error("Report container not found.");
+      toast.error("Report element not found");
       return;
     }
-
-    setIsExporting(true);
-    toast.loading(`⚡ Generating high-res ${format.toUpperCase()} export...`, { id: "export-toast" });
 
     try {
-      const html2canvas = (await import("html2canvas")).default;
-      const jsPDF = (await import("jspdf")).default;
+      setIsExporting(true);
+      toast.loading("Synthesizing A4 printable PDF...", { id: "pdf-export" });
 
       const canvas = await html2canvas(element, {
-        scale: layoutMode === "poster" ? 3 : 2,
+        scale: 2,
         useCORS: true,
+        backgroundColor: "#fcfbf9",
         logging: false,
-        backgroundColor: theme === "dark" ? "#0a0a0c" : "#ffffff",
       } as any);
 
-      if (format === "png" || format === "jpeg") {
-        const imgData = canvas.toDataURL(`image/${format === "jpeg" ? "jpeg" : "png"}`, 0.95);
-        const a = document.createElement("a");
-        a.href = imgData;
-        a.download = `youvsyou_${timeframe}_executive_report.${format === "jpeg" ? "jpg" : "png"}`;
-        a.click();
-        toast.success(`📥 High-Res ${format.toUpperCase()} report downloaded!`, { id: "export-toast" });
-      } else if (format === "pdf") {
-        const imgData = canvas.toDataURL("image/png");
-        const orientation = layoutMode === "landscape" ? "l" : "p";
-        const formatSize = layoutMode === "poster" ? "a3" : "a4";
-        const pdf = new jsPDF(orientation, "mm", formatSize);
-        
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-        
-        let heightLeft = pdfHeight;
-        let position = 0;
+      const imgData = canvas.toDataURL("image/png");
+      const jsPDF = (await import("jspdf")).default;
+      const pdf = new jsPDF("p", "mm", "a4");
 
-        pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
-        heightLeft -= pageHeight;
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 297; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-        while (heightLeft > 0) {
-          position = heightLeft - pdfHeight;
-          pdf.addPage();
-          pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
-          heightLeft -= pageHeight;
-        }
+      pdf.addImage(imgData, "PNG", 0, 0, imgWidth, Math.min(imgHeight, pageHeight));
 
-        pdf.save(`youvsyou_${timeframe}_executive_report.pdf`);
-        toast.success(`📥 High-Res Executive PDF downloaded!`, { id: "export-toast" });
-      }
+      // Calculate filename: Daily_Report.pdf, Weekly_Report.pdf, or Monthly_Report.pdf
+      const tfCapitalized = activeTab.charAt(0).toUpperCase() + activeTab.slice(1);
+      const filename = `${tfCapitalized}_Report.pdf`;
+
+      pdf.save(filename);
+      toast.success(`Downloaded ${filename}!`, { id: "pdf-export", duration: 4000 });
     } catch (err) {
-      console.error("Export failed:", err);
-      toast.error("❌ Failed to generate report export.", { id: "export-toast" });
+      console.error("PDF generation error:", err);
+      toast.error("Failed to generate PDF. Please try again.", { id: "pdf-export" });
     } finally {
       setIsExporting(false);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6 max-w-7xl mx-auto pb-16">
-        <Skeleton className="h-32 w-full rounded-3xl" />
-        <Skeleton className="h-64 w-full rounded-3xl" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Skeleton className="h-80 w-full rounded-3xl" />
-          <Skeleton className="h-80 w-full rounded-3xl" />
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !data) {
-    return (
-      <div className="p-12 text-center bg-zinc-900/40 rounded-3xl border border-zinc-800 max-w-2xl mx-auto my-12">
-        <ShieldCheck className="w-12 h-12 text-rose-500 mx-auto mb-4" />
-        <h3 className="text-xl font-bold text-white">Failed to load Executive Telemetry</h3>
-        <p className="text-zinc-400 text-sm mt-2">
-          Could not aggregate performance telemetry from the YOU VS YOU engine. Please verify backend connection.
-        </p>
-      </div>
-    );
-  }
-
-  const isDark = theme === "dark";
+  const tabs = [
+    { id: "daily" as const, label: "Daily Report", icon: Sun },
+    { id: "weekly" as const, label: "Weekly Report", icon: TrendingUp },
+    { id: "monthly" as const, label: "Monthly Report", icon: Calendar },
+  ];
 
   return (
-    <PageTransition className="space-y-8 max-w-7xl mx-auto pb-20">
-      {/* Top Executive Control Bar */}
-      <div
-        className={cn(
-          "flex flex-col lg:flex-row lg:items-center justify-between gap-6 p-6 sm:p-8 rounded-3xl border backdrop-blur-xl shadow-2xl print:hidden transition-colors",
-          isDark
-            ? "bg-gradient-to-r from-purple-950/40 via-zinc-900/80 to-zinc-900/60 border-purple-500/30 text-white"
-            : "bg-white border-zinc-200 text-zinc-900 shadow-xl"
-        )}
-      >
+    <PageTransition className="space-y-12 max-w-6xl mx-auto pb-28 p-4 sm:p-8">
+      {/* ── TOP HEADING & BADGE ── */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-4 border-b border-white/[0.08]">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-400 text-xs font-bold uppercase tracking-wider">
-            <BarChart2 className="w-3.5 h-3.5 animate-pulse" />
-            Fortune 500 Executive Telemetry
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
-            EXECUTIVE <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-indigo-400 to-purple-400">REPORTS</span>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white uppercase">
+            PERFORMANCE{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-indigo-400 to-purple-400">
+              REPORTS
+            </span>
           </h1>
-          <p className={cn("text-xs sm:text-sm max-w-2xl", isDark ? "text-zinc-400" : "text-zinc-600")}>
-            Consulting-grade execution synthesis across 27 neurological and behavioral performance dimensions.
+          <p className="text-sm sm:text-base text-zinc-400 leading-relaxed max-w-xl font-medium">
+            Real data. Real progress. No estimates.
+            <br />
+            Track your journey and download your executive performance reports.
           </p>
         </div>
 
-        {/* Toolbar Controls */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-wrap">
-          {/* Timeframe Switcher */}
-          <div className={cn("flex items-center gap-1 p-1 rounded-2xl border", isDark ? "bg-zinc-950/80 border-zinc-800" : "bg-zinc-100 border-zinc-300")}>
-            {(["daily", "weekly", "monthly", "yearly"] as const).map((tf) => (
-              <button
-                key={tf}
-                onClick={() => setTimeframe(tf)}
-                className={cn(
-                  "px-3 py-1.5 rounded-xl text-xs font-bold transition-all capitalize",
-                  timeframe === tf
-                    ? "bg-purple-600 text-white shadow-md shadow-purple-500/30"
-                    : isDark ? "text-zinc-400 hover:text-white" : "text-zinc-600 hover:text-zinc-900"
-                )}
-              >
-                {tf}
-              </button>
-            ))}
+        {/* 100% REAL DATA BADGE */}
+        <div className="flex items-center gap-3.5 px-5 py-3 rounded-2xl bg-zinc-900/80 border border-purple-500/30 shadow-lg backdrop-blur-md self-start md:self-auto">
+          <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400 shrink-0">
+            <ShieldCheck className="w-5 h-5" />
           </div>
-
-          {/* Layout Mode Switcher */}
-          <div className={cn("flex items-center gap-1 p-1 rounded-2xl border", isDark ? "bg-zinc-950/80 border-zinc-800" : "bg-zinc-100 border-zinc-300")}>
-            <button
-              onClick={() => setLayoutMode("portrait")}
-              className={cn("px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1", layoutMode === "portrait" ? "bg-zinc-800 text-white" : "text-zinc-400")}
-              title="Portrait A4"
-            >
-              <Layout className="w-3.5 h-3.5" />
-              <span>Portrait</span>
-            </button>
-            <button
-              onClick={() => setLayoutMode("landscape")}
-              className={cn("px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1", layoutMode === "landscape" ? "bg-zinc-800 text-white" : "text-zinc-400")}
-              title="Landscape A4"
-            >
-              <Layout className="w-3.5 h-3.5 rotate-90" />
-              <span>Landscape</span>
-            </button>
-            <button
-              onClick={() => setLayoutMode("poster")}
-              className={cn("px-2.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1", layoutMode === "poster" ? "bg-purple-600 text-white" : "text-zinc-400")}
-              title="Poster A3 Mode"
-            >
-              <ImageIcon className="w-3.5 h-3.5" />
-              <span>Poster (A3)</span>
-            </button>
-          </div>
-
-          {/* Theme Toggle */}
-          <button
-            onClick={() => setTheme(isDark ? "light" : "dark")}
-            className={cn(
-              "p-2.5 rounded-2xl border flex items-center justify-center transition-all",
-              isDark ? "bg-zinc-900 border-zinc-800 text-yellow-400 hover:bg-zinc-800" : "bg-zinc-100 border-zinc-300 text-zinc-900 hover:bg-zinc-200"
-            )}
-            title="Toggle Dark/Light Report Theme"
-          >
-            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-
-          {/* Export Buttons */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <button
-              onClick={() => handleExport("csv")}
-              disabled={isExporting}
-              className="px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white transition-all border border-zinc-700 flex items-center gap-1.5 text-xs font-bold disabled:opacity-50"
-              title="Download CSV Data"
-            >
-              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
-              <span>CSV</span>
-            </button>
-
-            <button
-              onClick={() => handleExport("png")}
-              disabled={isExporting}
-              className="px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white transition-all border border-zinc-700 flex items-center gap-1.5 text-xs font-bold disabled:opacity-50"
-              title="Download High-Res PNG"
-            >
-              <ImageIcon className="w-3.5 h-3.5 text-cyan-400" />
-              <span>PNG</span>
-            </button>
-
-            <button
-              onClick={() => handleExport("jpeg")}
-              disabled={isExporting}
-              className="px-3 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white transition-all border border-zinc-700 flex items-center gap-1.5 text-xs font-bold disabled:opacity-50"
-              title="Download High-Res JPG"
-            >
-              <ImageIcon className="w-3.5 h-3.5 text-amber-400" />
-              <span>JPG</span>
-            </button>
-
-            <button
-              onClick={() => handleExport("pdf")}
-              disabled={isExporting}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black transition-all shadow-lg shadow-purple-500/20 flex items-center gap-1.5 text-xs uppercase tracking-wider disabled:opacity-50"
-              title="Download High-Res PDF Report"
-            >
-              <Download className="w-3.5 h-3.5 animate-bounce" />
-              <span>{isExporting ? "Exporting..." : "PDF Report"}</span>
-            </button>
-
-            <button
-              onClick={() => window.print()}
-              className="p-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-all border border-zinc-700"
-              title="Browser Print / Save as PDF"
-            >
-              <Printer className="w-4 h-4" />
-            </button>
+          <div>
+            <div className="text-xs sm:text-sm font-mono font-black text-purple-400 tracking-wider">
+              100% REAL DATA
+            </div>
+            <div className="text-[11px] text-zinc-400 font-medium">
+              No fake numbers. Only you.
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ── REPORT PRINT/EXPORT CONTAINER ── */}
-      <div
-        id="executive-report-container"
-        className={cn(
-          "transition-all duration-300 rounded-3xl",
-          layoutMode === "landscape" ? "max-w-[1400px] mx-auto" : layoutMode === "poster" ? "max-w-[1600px] mx-auto p-4 sm:p-8 border-4 border-purple-500/40 shadow-2xl bg-zinc-950/90 rounded-[40px]" : "max-w-none",
-          theme === "light" ? "bg-zinc-50 p-6 sm:p-8 border border-zinc-200 text-zinc-900" : ""
-        )}
-      >
-        {/* Executive Summary Card */}
-        {data.executive_summary && (
-          <ExecutiveSummaryCard summary={data.executive_summary} theme={theme} />
-        )}
-
-        {/* Executive 27-Chart Grid */}
-        {data.charts && (
-          <ExecutiveChartsGrid charts={data.charts} theme={theme} />
-        )}
-
-        {/* Footer Audit Stamp */}
-        <div className={cn("mt-12 pt-6 border-t flex flex-col sm:flex-row items-center justify-between text-xs gap-4", isDark ? "border-zinc-800 text-zinc-500" : "border-zinc-300 text-zinc-600")}>
-          <div className="flex items-center gap-2 font-bold tracking-wider uppercase">
-            <Sparkles className="w-4 h-4 text-purple-500" />
-            <span>YOU VS YOU // PERSONAL OPERATING SYSTEM • GENERATED BY TELEMETRY ENGINE 2.0</span>
-          </div>
-          <div className="font-mono">
-            Report Cycle: {data.start_date?.split("T")[0]} to {data.end_date?.split("T")[0]} • Timeframe: {data.timeframe}
-          </div>
+      {/* ── SEGMENT CONTROL (Only one report visible at a time) ── */}
+      <div className="flex justify-center">
+        <div className="inline-flex items-center p-1.5 rounded-2xl bg-zinc-900/90 border border-zinc-800 shadow-xl backdrop-blur-lg">
+          {tabs.map((tab) => {
+            const IconComp = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all duration-300",
+                  isActive
+                    ? "bg-purple-600 text-white shadow-lg shadow-purple-500/25 scale-[1.02]"
+                    : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
+                )}
+              >
+                <IconComp className={cn("w-4 h-4", isActive ? "text-white" : "text-zinc-400")} />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
+      </div>
+
+      {/* ── ACTIVE REPORT DISPLAY (Large A4 White Paper Card) ── */}
+      <div className="min-h-[600px] flex items-center justify-center pt-2">
+        {isLoading ? (
+          <div className="w-full max-w-3xl space-y-8 bg-white/[0.02] border border-white/[0.05] p-12 rounded-[32px]">
+            <div className="space-y-4 text-center flex flex-col items-center">
+              <Skeleton className="h-4 w-32 rounded-full bg-zinc-800" />
+              <Skeleton className="h-10 w-64 rounded-xl bg-zinc-800" />
+            </div>
+            <div className="grid grid-cols-2 gap-8 py-6 border-y border-zinc-800">
+              <Skeleton className="h-24 w-full rounded-2xl bg-zinc-800" />
+              <Skeleton className="h-24 w-full rounded-2xl bg-zinc-800" />
+            </div>
+            <div className="space-y-4">
+              <Skeleton className="h-6 w-48 rounded-lg bg-zinc-800" />
+              <Skeleton className="h-32 w-full rounded-2xl bg-zinc-800" />
+            </div>
+          </div>
+        ) : (
+          <ExecutivePaperReport
+            data={activeData}
+            dashboard={dashboard}
+            lifeScore={lifeScore}
+            disciplineScore={disciplineScore}
+            weeklyAnalytics={weeklyAnalytics}
+            monthlyAnalytics={monthlyAnalytics}
+            timeframe={activeTab}
+            id="printable-a4-paper"
+          />
+        )}
+      </div>
+
+      {/* ── LARGE BOTTOM DOWNLOAD BUTTON ── */}
+      <div className="flex flex-col items-center justify-center pt-6">
+        <button
+          onClick={handleDownloadPDF}
+          disabled={isLoading || isExporting}
+          className="group relative inline-flex items-center justify-center gap-3 px-10 py-5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:via-indigo-500 hover:to-purple-500 text-white font-black text-base sm:text-lg tracking-wider uppercase transition-all duration-300 shadow-2xl shadow-purple-500/25 hover:shadow-purple-500/40 hover:-translate-y-1 disabled:opacity-50 disabled:pointer-events-none active:translate-y-0"
+        >
+          {isExporting ? (
+            <Loader2 className="w-6 h-6 animate-spin text-white" />
+          ) : (
+            <Download className="w-6 h-6 text-white transition-transform group-hover:-translate-y-0.5" />
+          )}
+          <div className="text-left leading-tight">
+            <div>⬇ Download Report</div>
+            <div className="text-[10px] font-mono font-bold tracking-widest text-purple-200/80 uppercase">
+              PDF • A4 • Printable
+            </div>
+          </div>
+        </button>
       </div>
     </PageTransition>
   );

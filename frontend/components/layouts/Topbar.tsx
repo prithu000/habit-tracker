@@ -2,6 +2,7 @@
 
 import { Bell, Search, LogOut, PanelRight, Sparkles, User as UserIcon } from "lucide-react";
 import { useAuthStore } from "@/lib/stores/authStore";
+import { useUserProfile } from "@/lib/queries/useUser";
 import { useCustomizationStore } from "@/lib/stores/customizationStore";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -15,6 +16,9 @@ export function Topbar() {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+
+  // Ensure user profile is always loaded and synced with backend on page navigation
+  useUserProfile();
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -91,18 +95,18 @@ export function Topbar() {
           >
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-forge-500 to-purple-600 p-[1px] shadow-[0_0_15px_rgba(139,92,246,0.3)]">
               <div className="w-full h-full bg-[#0a0a0c] rounded-[7px] flex items-center justify-center text-forge-300 font-bold text-xs group-hover:bg-transparent group-hover:text-white transition-all">
-                {user?.display_name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "?"}
+                {user?.display_name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "U"}
               </div>
             </div>
-            <span className="hidden lg:inline text-xs font-semibold text-foreground max-w-[100px] truncate">
-              {user?.display_name || "Account"}
+            <span className="inline-block text-xs font-semibold text-foreground max-w-[120px] truncate">
+              {user?.display_name || user?.email?.split("@")[0] || "Operator"}
             </span>
           </button>
 
           {showProfileMenu && (
             <div className="absolute right-0 mt-2 w-60 rounded-2xl border border-white/[0.1] bg-[#0a0a0c]/95 backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] py-1.5 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
               <div className="px-4 py-3 border-b border-white/[0.08] bg-white/[0.02]">
-                <p className="text-xs font-bold text-foreground truncate">{user?.display_name}</p>
+                <p className="text-xs font-bold text-foreground truncate">{user?.display_name || "Operator"}</p>
                 <p className="text-[10px] text-muted-foreground truncate font-mono mt-0.5">{user?.email}</p>
                 <div className="mt-2 flex items-center gap-1.5">
                   <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-forge-500/20 text-forge-300 border border-forge-500/30 uppercase tracking-widest">
