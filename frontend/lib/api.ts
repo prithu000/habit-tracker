@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useAuthStore } from "./stores/authStore";
+import { usePaywallStore } from "./stores/paywallStore";
 
 const getBaseUrl = () => {
   // If running on server (SSR), we need an absolute URL
@@ -28,43 +29,81 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+let refreshPromise: Promise<string> | null = null;
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // If error is 401 and we haven't retried yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // If error is 401 and we haven't retried yet and not attempting login/refresh
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest?.url?.includes("/auth/login") &&
+      !originalRequest?.url?.includes("/auth/token/refresh")
+    ) {
       originalRequest._retry = true;
-      try {
-        const refreshToken = useAuthStore.getState().tokens?.refresh;
-        if (refreshToken) {
-          // Attempt to refresh
-          const response = await axios.post(
-            `${api.defaults.baseURL}/auth/token/refresh/`,
-            { refresh: refreshToken }
-          );
-          
-          const responseData = response.data.data || response.data;
-          const newAccess = responseData.access;
-          const newRefresh = responseData.refresh || refreshToken;
+      const refreshToken = useAuthStore.getState().tokens?.refresh;
 
-          if (!newAccess) {
-            throw new Error("No access token returned from refresh endpoint");
-          }
-
-          useAuthStore.getState().setTokens({
-            access: newAccess,
-            refresh: newRefresh,
-          });
-
-          originalRequest.headers.Authorization = `Bearer ${newAccess}`;
-          return api(originalRequest);
-        }
-      } catch (refreshError) {
-        // Refresh failed, logout user
+      if (!refreshToken) {
         useAuthStore.getState().logout();
+        return Promise.reject(error);
       }
+
+      if (!refreshPromise) {
+        refreshPromise = (async () => {
+          try {
+            const response = await axios.post(
+              `${api.defaults.baseURL}/auth/token/refresh/`,
+              { refresh: refreshToken }
+            );
+
+            const responseData = response.data.data || response.data;
+            const newAccess = responseData.access;
+            const newRefresh = responseData.refresh || refreshToken;
+
+            if (!newAccess) {
+              throw new Error("No access token returned from refresh endpoint");
+            }
+
+            useAuthStore.getState().setTokens({
+              access: newAccess,
+              refresh: newRefresh,
+            });
+
+            return newAccess;
+          } catch (refreshError) {
+            useAuthStore.getState().logout();
+            throw refreshError;
+          } finally {
+            refreshPromise = null;
+          }
+        })();
+      }
+
+      try {
+        const newAccess = await refreshPromise;
+        originalRequest.headers.Authorization = `Bearer ${newAccess}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        return Promise.reject(error);
+      }
+    }
+
+    if (
+      error.response?.status === 403 &&
+      (error.response?.data?.code === "SUBSCRIPTION_REQUIRED" ||
+       error.response?.data?.error?.code === "SUBSCRIPTION_REQUIRED" ||
+       (typeof error.response?.data?.message === "string" && error.response?.data?.message.includes("Premium Trial has ended")) ||
+       (typeof error.response?.data?.error?.message === "string" && error.response?.data?.error?.message.includes("Premium Trial has ended")))
+    ) {
+      if (typeof window !== "undefined") {
+        usePaywallStore.getState().openPaywall();
+      }
+      error.isHandledSubscriptionError = true;
+      error.userMessage = "";
+      return Promise.reject(error);
     }
 
     if (!error.response || error.code === "ERR_NETWORK" || error.message === "Network Error") {

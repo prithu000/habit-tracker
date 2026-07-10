@@ -76,7 +76,7 @@ export const ExecutiveChartsGrid: React.FC<ExecutiveChartsGridProps> = ({
   const textColor = isDark ? "#a1a1aa" : "#52525b";
 
   return (
-    <div className="space-y-12 py-6">
+    <div className="space-y-6 md:space-y-12 py-4 md:py-6">
       {/* ── SECTION 1: MACRO VELOCITY & TRAJECTORY ── */}
       <div className="space-y-6">
         <div className="flex items-center gap-3 border-b border-zinc-800/60 pb-3">

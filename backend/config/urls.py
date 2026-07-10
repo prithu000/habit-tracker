@@ -33,6 +33,12 @@ urlpatterns = [
     path("api/v1/rewards/",       include("apps.rewards.urls")),
     path("api/v1/notifications/", include("apps.notifications.urls")),
     path("api/v1/widgets/",       include("apps.integrations.urls")),
+    path("api/v1/subscriptions/", include("apps.subscriptions.urls")),
+    path("api/v1/subscription/",  include("apps.subscriptions.urls")),
+    path("api/v1/payments/",      include("apps.subscriptions.urls")),
+    path("api/subscriptions/",    include("apps.subscriptions.urls")),
+    path("api/subscription/",     include("apps.subscriptions.urls")),
+    path("api/payments/",         include("apps.subscriptions.urls")),
     # Dashboard aggregation (primary frontend endpoint)
     path("api/v1/dashboard/",     include("apps.analytics.dashboard_urls")),
     # Additive OS features

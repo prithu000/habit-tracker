@@ -38,7 +38,7 @@ export default function RoutinesPage() {
 
   return (
     <PageTransition>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-5 md:mb-8">
         <div>
           <h1 className="text-3xl font-display font-bold">Routines</h1>
           <p className="text-muted-foreground mt-1">Design the systems that build your identity.</p>

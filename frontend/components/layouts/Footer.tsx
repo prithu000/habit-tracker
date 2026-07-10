@@ -6,9 +6,9 @@ import { Cpu, Shield } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="mt-20 pt-12 pb-12 border-t border-white/[0.08] bg-gradient-to-b from-transparent to-[#0a0a0c]/80 text-muted-foreground print:hidden">
+    <footer className="mt-10 md:mt-20 pt-8 md:pt-12 pb-8 md:pb-12 border-t border-white/[0.08] bg-gradient-to-b from-transparent to-[#0a0a0c]/80 text-muted-foreground print:hidden">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8 mb-6 md:mb-12">
           <div className="md:col-span-2 space-y-3">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-forge-500 to-purple-600 p-[1px] flex items-center justify-center font-black text-white text-xs shadow-[0_0_15px_rgba(139,92,246,0.5)]">

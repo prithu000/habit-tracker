@@ -62,7 +62,7 @@ export default function OnboardingPage() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="glass-card p-10"
+            className="glass-card p-6 sm:p-8 md:p-10"
           >
             <div className="text-center mb-10">
               <div className="inline-block px-3 py-1 rounded-full bg-forge-500/10 text-forge-400 text-xs font-semibold mb-4 tracking-widest uppercase">
@@ -111,7 +111,7 @@ export default function OnboardingPage() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="glass-card p-10"
+            className="glass-card p-6 sm:p-8 md:p-10"
           >
             <div className="text-center mb-10">
               <div className="inline-block px-3 py-1 rounded-full bg-forge-500/10 text-forge-400 text-xs font-semibold mb-4 tracking-widest uppercase">
@@ -123,7 +123,7 @@ export default function OnboardingPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-8 sm:mb-10">
               {[
                 { id: "morning", label: "Morning", icon: "🌅" },
                 { id: "afternoon", label: "Afternoon", icon: "☀️" },
@@ -145,7 +145,7 @@ export default function OnboardingPage() {
               ))}
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <button
                 onClick={() => setStep(1)}
                 className="btn-ghost flex-1 py-3"

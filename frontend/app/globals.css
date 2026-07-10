@@ -32,6 +32,20 @@
 
     --sidebar-width:       240px;
     --topbar-height:       64px;
+    --bottom-nav-height:   68px;
+  }
+}
+
+/* ─────────────────────────────────────────
+   Safe Area Utilities (iOS notch / Android gesture bar)
+───────────────────────────────────────── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+  .pb-bottom-nav {
+    /* Content clearance = bottom nav bar + device safe area */
+    padding-bottom: calc(var(--bottom-nav-height) + max(0px, env(safe-area-inset-bottom)));
   }
 }
 

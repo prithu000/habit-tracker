@@ -11,6 +11,30 @@ export interface User {
   level_title?: string;
   time_preference?: string;
   timezone?: string;
+  trial_start?: string | null;
+  trial_end?: string | null;
+  plan_type?: 'trial' | 'monthly' | '6_month' | '12_month';
+  subscription_status?: 'trial' | 'active' | 'expired' | 'cancelled';
+  subscription_start?: string | null;
+  subscription_end?: string | null;
+  renewal_date?: string | null;
+  trial_days_remaining?: number;
+  trial_hours_remaining?: number;
+  is_premium_active?: boolean;
+}
+
+export interface PaymentHistoryItem {
+  id: string;
+  invoice_number: string;
+  order_id: string;
+  payment_id: string;
+  plan_type: string;
+  amount: string | number;
+  status: 'success' | 'failed' | 'refunded';
+  billing_period_start: string;
+  billing_period_end: string;
+  paid_at: string;
+  metadata?: Record<string, any>;
 }
 
 export interface AuthResponse {

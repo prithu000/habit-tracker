@@ -25,9 +25,9 @@ export default function AboutPage() {
   const ctaHref = isAuthenticated ? "/dashboard" : "/register";
 
   return (
-    <PageTransition className="space-y-16 max-w-5xl mx-auto pb-24 text-white">
+    <PageTransition className="space-y-8 md:space-y-16 max-w-5xl mx-auto pb-12 md:pb-24 text-white">
       {/* 1. Hero Section */}
-      <section className="relative text-center space-y-6 pt-12 pb-8">
+      <section className="relative text-center space-y-5 pt-6 md:pt-12 pb-6 md:pb-8">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-to-tr from-purple-600/20 via-indigo-600/10 to-transparent rounded-full blur-[140px] pointer-events-none animate-pulse" />
         
         <motion.div
@@ -76,7 +76,7 @@ export default function AboutPage() {
         >
           <Link
             href={ctaHref}
-            className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-gradient-to-r from-forge-500 to-purple-600 hover:from-forge-400 hover:to-purple-500 text-white font-black text-sm tracking-wide shadow-[0_0_35px_rgba(139,92,246,0.5)] hover:scale-105 active:scale-95 transition-all"
+            className="inline-flex items-center justify-center w-full sm:w-auto gap-2.5 px-8 py-4 rounded-2xl bg-gradient-to-r from-forge-500 to-purple-600 hover:from-forge-400 hover:to-purple-500 text-white font-black text-sm tracking-wide shadow-[0_0_35px_rgba(139,92,246,0.5)] hover:scale-105 active:scale-95 transition-all"
           >
             <span>Start Your Journey</span>
             <ArrowRight className="w-4 h-4 stroke-[3]" />
@@ -85,7 +85,7 @@ export default function AboutPage() {
       </section>
 
       {/* 2. Why We Built This */}
-      <section className="p-8 sm:p-12 rounded-[32px] bg-gradient-to-br from-[#0f0a1c]/90 via-[#0a0a0c]/90 to-[#0a0a0c]/90 border border-white/[0.08] shadow-2xl relative overflow-hidden group">
+      <section className="p-5 sm:p-8 md:p-12 rounded-[32px] bg-gradient-to-br from-[#0f0a1c]/90 via-[#0a0a0c]/90 to-[#0a0a0c]/90 border border-white/[0.08] shadow-2xl relative overflow-hidden group">
         <div className="absolute top-0 right-0 w-80 h-80 bg-purple-600/10 rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform duration-1000" />
         
         <div className="max-w-3xl space-y-4 relative z-10">
@@ -140,7 +140,7 @@ export default function AboutPage() {
           ].map((item, idx) => (
             <div
               key={idx}
-              className={`p-8 rounded-3xl bg-gradient-to-br ${item.color} border backdrop-blur-xl shadow-xl space-y-4 flex flex-col justify-between`}
+              className={`p-5 sm:p-8 rounded-3xl bg-gradient-to-br ${item.color} border backdrop-blur-xl shadow-xl space-y-4 flex flex-col justify-between`}
             >
               <div className="space-y-3">
                 <div className="w-12 h-12 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center">
@@ -158,7 +158,7 @@ export default function AboutPage() {
       </section>
 
       {/* 4. What YOU VS YOU Measures */}
-      <section className="p-8 sm:p-12 rounded-[32px] bg-[#0f0a1c]/60 backdrop-blur-xl border border-white/[0.08] shadow-2xl space-y-8">
+      <section className="p-5 sm:p-8 md:p-12 rounded-[32px] bg-[#0f0a1c]/60 backdrop-blur-xl border border-white/[0.08] shadow-2xl space-y-6 md:space-y-8">
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-widest text-forge-400">
             <Cpu className="w-4 h-4" />
@@ -194,8 +194,8 @@ export default function AboutPage() {
       </section>
 
       {/* 5. Our Mission & Built For */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <section className="p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-purple-950/40 via-[#0a0a0c] to-[#0a0a0c] border border-purple-500/30 space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-8">
+        <section className="p-5 sm:p-8 md:p-10 rounded-3xl bg-gradient-to-br from-purple-950/40 via-[#0a0a0c] to-[#0a0a0c] border border-purple-500/30 space-y-4">
           <div className="inline-flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-widest text-purple-400">
             <BrainCircuit className="w-4 h-4" />
             <span>04 • Our Mission</span>
@@ -208,7 +208,7 @@ export default function AboutPage() {
           </p>
         </section>
 
-        <section className="p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-cyan-950/40 via-[#0a0a0c] to-[#0a0a0c] border border-cyan-500/30 space-y-4">
+        <section className="p-5 sm:p-8 md:p-10 rounded-3xl bg-gradient-to-br from-cyan-950/40 via-[#0a0a0c] to-[#0a0a0c] border border-cyan-500/30 space-y-4">
           <div className="inline-flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-widest text-cyan-400">
             <Users className="w-4 h-4" />
             <span>05 • Who This Is Built For</span>
@@ -223,7 +223,7 @@ export default function AboutPage() {
       </div>
 
       {/* 6. Privacy & Data Integrity */}
-      <section className="p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-zinc-900/80 via-zinc-900/40 to-zinc-900/80 border border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-6">
+      <section className="p-5 sm:p-8 md:p-10 rounded-3xl bg-gradient-to-r from-zinc-900/80 via-zinc-900/40 to-zinc-900/80 border border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-5 md:gap-6">
         <div className="space-y-2 max-w-2xl">
           <div className="inline-flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-widest text-emerald-400">
             <Lock className="w-4 h-4" />
@@ -244,7 +244,7 @@ export default function AboutPage() {
       </section>
 
       {/* 7. Closing Section */}
-      <section className="text-center py-16 px-6 rounded-[36px] bg-gradient-to-b from-purple-950/60 via-[#0f0a1c] to-[#0a0a0c] border border-forge-500/40 shadow-[0_20px_80px_rgba(139,92,246,0.25)] space-y-6 relative overflow-hidden">
+      <section className="text-center py-8 md:py-16 px-6 rounded-[36px] bg-gradient-to-b from-purple-950/60 via-[#0f0a1c] to-[#0a0a0c] border border-forge-500/40 shadow-[0_20px_80px_rgba(139,92,246,0.25)] space-y-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(139,92,246,0.15)_0,transparent_70%)] pointer-events-none" />
         
         <div className="space-y-3 relative z-10">
@@ -262,7 +262,7 @@ export default function AboutPage() {
         <div className="pt-4 relative z-10">
           <Link
             href={ctaHref}
-            className="inline-flex items-center gap-3 px-10 py-5 rounded-2xl bg-gradient-to-r from-forge-500 via-purple-600 to-cyan-500 hover:from-forge-400 hover:to-cyan-400 text-white font-black text-base tracking-wide shadow-[0_0_50px_rgba(139,92,246,0.6)] hover:scale-105 active:scale-95 transition-all"
+            className="inline-flex items-center justify-center w-full sm:w-auto gap-3 px-10 py-5 rounded-2xl bg-gradient-to-r from-forge-500 via-purple-600 to-cyan-500 hover:from-forge-400 hover:to-cyan-400 text-white font-black text-base tracking-wide shadow-[0_0_50px_rgba(139,92,246,0.6)] hover:scale-105 active:scale-95 transition-all"
           >
             <span>Start Your Journey</span>
             <ArrowRight className="w-5 h-5 stroke-[3]" />

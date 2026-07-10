@@ -64,3 +64,28 @@ class IsSelf(BasePermission):
     """
     def has_object_permission(self, request, view, obj):
         return obj == request.user
+
+
+class HasPremiumAccessPermission(BasePermission):
+    """
+    FORGE — Authoritative DRF Permission enforcing subscription & trial gating.
+    If the user's trial has ended and they have no active paid subscription,
+    access is denied (HTTP 403 Forbidden).
+    """
+    message = "Your 7-day Premium Trial has ended. Upgrade to continue."
+    code = "SUBSCRIPTION_REQUIRED"
+
+    def has_permission(self, request, view):
+        from services.subscription_service import SubscriptionService
+        from rest_framework.exceptions import PermissionDenied
+
+        if not request.user or not request.user.is_authenticated:
+            return False
+
+        if SubscriptionService.has_premium_access(request.user):
+            return True
+
+        raise PermissionDenied(
+            detail="Your 7-day Premium Trial has ended. Upgrade to continue.",
+            code="SUBSCRIPTION_REQUIRED"
+        )

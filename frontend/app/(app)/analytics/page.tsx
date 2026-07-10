@@ -78,7 +78,7 @@ export default function WeeklyAnalyticsPage() {
           
           <div>
             <h3 className="text-lg font-semibold mb-1">Discipline Score</h3>
-            <p className="text-sm text-muted-foreground mb-8">Overall consistency metric</p>
+            <p className="text-sm text-muted-foreground mb-4 md:mb-8">Overall consistency metric</p>
             
             <div className="flex items-end gap-2 mb-2">
               <span className="text-6xl font-display font-bold text-forge-400">

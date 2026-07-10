@@ -5,6 +5,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useState, ReactNode } from "react";
 import { Toaster } from "react-hot-toast";
 import { AuthGuard } from "./AuthGuard";
+import { PaywallModal } from "@/components/shared/PaywallModal";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -28,6 +29,7 @@ export function Providers({ children }: { children: ReactNode }) {
       <AuthGuard>
         {children}
       </AuthGuard>
+      <PaywallModal />
       <Toaster 
         position="top-right" 
         toastOptions={{
@@ -38,7 +40,9 @@ export function Providers({ children }: { children: ReactNode }) {
           }
         }} 
       />
-      <ReactQueryDevtools initialIsOpen={false} />
+      <div className="hidden lg:block">
+        <ReactQueryDevtools initialIsOpen={false} />
+      </div>
     </QueryClientProvider>
   );
 }

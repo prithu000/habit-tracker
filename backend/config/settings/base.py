@@ -43,6 +43,7 @@ LOCAL_APPS = [
     "apps.rewards",
     "apps.notifications",
     "apps.integrations",
+    "apps.subscriptions",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -100,7 +101,7 @@ DATABASES = {
         "CONN_HEALTH_CHECKS": True,
         "OPTIONS": {
             "connect_timeout": 10,
-            "options": "-c default_transaction_isolation=read\ committed",
+            "options": r"-c default_transaction_isolation=read\ committed",
         },
         "TEST": {
             "NAME": "test_forge_db",
@@ -374,3 +375,11 @@ DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@youvsyou.com"
 
 # Google OAuth
 GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID", default="")
+
+# ─────────────────────────────────────────────
+# Razorpay Payment Gateway (Environment Variables Only)
+# ─────────────────────────────────────────────
+RAZORPAY_KEY_ID = config("RAZORPAY_KEY_ID", default="")
+RAZORPAY_KEY_SECRET = config("RAZORPAY_KEY_SECRET", default="")
+RAZORPAY_WEBHOOK_SECRET = config("RAZORPAY_WEBHOOK_SECRET", default="")
+

@@ -7,6 +7,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from apps.core.permissions import HasPremiumAccessPermission
 from apps.rewards.models import (
     ForgeCoinTransaction,
     StreakFreeze,
@@ -134,7 +135,7 @@ def store_view(request):
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumAccessPermission])
 def leagues_view(request):
     """
     GET /api/v1/rewards/leagues/?scope=global|friends|city|country|university

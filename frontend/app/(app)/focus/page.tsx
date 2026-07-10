@@ -120,9 +120,9 @@ export default function FocusPage() {
   }
 
   return (
-    <PageTransition className={cn("space-y-8 max-w-5xl mx-auto pb-16 transition-all", isFullScreen && "fixed inset-0 z-50 bg-zinc-950 p-12 max-w-none flex flex-col justify-center items-center")}>
+    <PageTransition className={cn("space-y-6 md:space-y-8 max-w-5xl mx-auto pb-8 md:pb-16 transition-all", isFullScreen && "fixed inset-0 z-50 bg-zinc-950 p-12 max-w-none flex flex-col justify-center items-center")}>
       {/* Top Bar */}
-      <div className="flex items-center justify-between gap-4 bg-zinc-900/40 p-6 rounded-3xl border border-zinc-800/80 backdrop-blur-xl shadow-xl w-full">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-900/40 p-4 sm:p-6 rounded-3xl border border-zinc-800/80 backdrop-blur-xl shadow-xl w-full">
         <div>
           <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-300 text-xs font-semibold uppercase tracking-wider mb-1">
             <Timer className="w-3.5 h-3.5" />
@@ -168,7 +168,7 @@ export default function FocusPage() {
       </div>
 
       {/* Main Timer Ring */}
-      <div className="relative bg-gradient-to-b from-zinc-900/60 to-zinc-950/80 border border-zinc-800/80 rounded-3xl p-12 flex flex-col items-center justify-center shadow-2xl w-full">
+      <div className="relative bg-gradient-to-b from-zinc-900/60 to-zinc-950/80 border border-zinc-800/80 rounded-3xl p-5 sm:p-8 flex flex-col items-center justify-center shadow-2xl w-full">
         <div className="relative flex items-center justify-center my-6">
           <svg className="w-72 h-72 sm:w-80 sm:h-80 transform -rotate-90">
             <circle
@@ -213,11 +213,11 @@ export default function FocusPage() {
         </div>
 
         {/* Controls */}
-        <div className="flex items-center gap-4 mt-6">
+        <div className="flex flex-col sm:flex-row items-center gap-4 mt-6 w-full sm:w-auto">
           <button
             onClick={toggleTimer}
             className={cn(
-              "px-8 py-4 rounded-2xl font-black text-base flex items-center gap-3 transition-all shadow-lg transform active:scale-95",
+              "px-8 py-4 rounded-2xl font-black text-base flex justify-center items-center gap-3 transition-all shadow-lg transform active:scale-95 w-full sm:w-auto",
               isActive
                 ? "bg-amber-500 hover:bg-amber-600 text-zinc-950 shadow-amber-500/20"
                 : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-500/30"
@@ -228,7 +228,7 @@ export default function FocusPage() {
           </button>
           <button
             onClick={resetTimer}
-            className="p-4 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-all border border-zinc-700/50"
+            className="p-4 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-all border border-zinc-700/50 w-full sm:w-auto flex justify-center items-center"
             title="Reset Timer"
           >
             <RotateCcw className="w-6 h-6" />
@@ -237,7 +237,7 @@ export default function FocusPage() {
       </div>
 
       {/* Task Selector & Ambient Sounds */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full">
         {/* Task Selector */}
         <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-3xl p-6 backdrop-blur-md shadow-xl">
           <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-4 flex items-center gap-2">

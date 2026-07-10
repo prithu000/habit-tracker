@@ -16,6 +16,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from apps.core.permissions import HasPremiumAccessPermission
 from datetime import date
 import logging
 from drf_spectacular.utils import extend_schema
@@ -37,7 +38,7 @@ logger = logging.getLogger(__name__)
 
 @extend_schema(responses=None)
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumAccessPermission])
 def weekly_analytics(request):
     """GET /api/v1/analytics/weekly/?date=YYYY-MM-DD — Cached 300s"""
     from apps.completions.models import DayLog
@@ -90,11 +91,8 @@ def weekly_analytics(request):
             "is_streak_day": log.is_streak_day if log else False,
         })
 
-    # Aggregates in Python (data already fetched)
-    avg_rate = (
-        sum(float(l.completion_rate) for l in logs) / len(logs)
-        if logs else 0.0
-    )
+    # Aggregates across the full 7-day calendar period
+    avg_rate = round(sum(float(l.completion_rate) for l in logs) / 7.0, 1) if logs else 0.0
     total_xp = sum(l.xp_earned for l in logs)
     total_done = sum(l.tasks_completed for l in logs)
     active_days = sum(1 for l in logs if l.tasks_completed > 0)
@@ -146,7 +144,7 @@ def weekly_analytics(request):
 
 @extend_schema(responses=None)
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumAccessPermission])
 def monthly_analytics(request):
     """GET /api/v1/analytics/monthly/?year=2026&month=7 — Cached 600s"""
     from apps.completions.models import DayLog, Completion
@@ -177,8 +175,9 @@ def monthly_analytics(request):
         .only("log_date", "completion_rate", "tasks_completed", "xp_earned", "is_streak_day")
     )
 
-    # Aggregates in Python (single DB fetch)
-    avg_rate = sum(float(l.completion_rate) for l in logs) / len(logs) if logs else 0.0
+    # Aggregates across exact calendar days of the month
+    month_days = (last_day - first_day).days + 1
+    avg_rate = round(sum(float(l.completion_rate) for l in logs) / max(1, month_days), 1) if logs else 0.0
     total_xp = sum(l.xp_earned for l in logs)
     total_tasks = sum(l.tasks_completed for l in logs)
     active_days = sum(1 for l in logs if l.tasks_completed > 0)
@@ -245,7 +244,7 @@ def monthly_analytics(request):
 
 @extend_schema(responses=None)
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumAccessPermission])
 def year_analytics(request):
     """GET /api/v1/analytics/year/?year=2026 — Cached 1800s"""
     from apps.completions.models import DayLog
@@ -277,8 +276,9 @@ def year_analytics(request):
     monthly = []
     for m in range(1, 13):
         m_logs = monthly_buckets.get(m, [])
+        days_in_m = cal_module.monthrange(year, m)[1]
         avg = (
-            sum(float(l.completion_rate) for l in m_logs) / len(m_logs)
+            sum(float(l.completion_rate) for l in m_logs) / days_in_m
             if m_logs else 0.0
         )
         xp = sum(l.xp_earned for l in m_logs)
@@ -294,9 +294,8 @@ def year_analytics(request):
     total_xp = sum(l.xp_earned for l in logs)
     active_days = sum(1 for l in logs if l.tasks_completed > 0)
     perfect_days = sum(1 for l in logs if float(l.completion_rate) == 100)
-    avg_year = (
-        sum(float(l.completion_rate) for l in logs) / len(logs) if logs else 0.0
-    )
+    days_in_y = 366 if cal_module.isleap(year) else 365
+    avg_year = round(sum(float(l.completion_rate) for l in logs) / days_in_y, 1) if logs else 0.0
 
     streak = (
         StreakRecord.objects
@@ -329,7 +328,7 @@ def year_analytics(request):
 
 @extend_schema(responses=None)
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumAccessPermission])
 def heatmap_view(request):
     """GET /api/v1/analytics/heatmap/?year=2026 — Cached 1h"""
     from services.calendar_engine import CalendarEngine
@@ -351,7 +350,7 @@ def heatmap_view(request):
 
 @extend_schema(operation_id="analytics_heatmap_day_detail", responses=None)
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumAccessPermission])
 def heatmap_day_detail(request, date_str):
     """GET /api/v1/analytics/heatmap/{date}/"""
     from services.calendar_engine import CalendarEngine
@@ -369,7 +368,7 @@ def heatmap_day_detail(request, date_str):
 
 @extend_schema(responses=None)
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumAccessPermission])
 def discipline_score(request):
     """GET /api/v1/analytics/discipline-score/ — Cached 600s"""
     from services.discipline_engine import DisciplineEngine
@@ -388,7 +387,7 @@ def discipline_score(request):
 
 @extend_schema(responses=None)
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumAccessPermission])
 def discipline_dna(request):
     """GET /api/v1/analytics/discipline-dna/ — Cached 600s"""
     from services.discipline_engine import DisciplineEngine
@@ -411,7 +410,7 @@ def discipline_dna(request):
 
 @extend_schema(responses=None)
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumAccessPermission])
 def monthly_replay(request):
     """GET /api/v1/analytics/replay/?year=2026&month=6 — Cached 24h"""
     from services.monthly_replay_engine import MonthlyReplayEngine
@@ -443,7 +442,7 @@ def monthly_replay(request):
 
 @extend_schema(responses=None)
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumAccessPermission])
 def life_tree(request):
     """GET /api/v1/analytics/life-tree/ — Cached 300s"""
     from services.life_tree_engine import LifeTreeEngine

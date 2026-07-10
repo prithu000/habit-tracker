@@ -17,6 +17,38 @@ from apps.core.validators import (
 User = get_user_model()
 
 
+def get_enriched_user_dict(user):
+    user.expire_trial_if_needed()
+    return {
+        "id": str(user.id),
+        "email": user.email,
+        "display_name": user.display_name,
+        "username": user.username,
+        "onboarding_completed": user.onboarding_completed,
+        "current_level": user.current_level,
+        "total_xp": user.total_xp,
+        "avatar_url": user.avatar_url,
+        "timezone": user.timezone,
+        "identity_statement": user.identity_statement,
+        "time_preference": user.time_preference,
+        "trial_start": user.trial_start.isoformat() if user.trial_start else None,
+        "trial_started_at": user.trial_start.isoformat() if user.trial_start else None,
+        "trial_end": user.trial_end.isoformat() if user.trial_end else None,
+        "trial_ends_at": user.trial_end.isoformat() if user.trial_end else None,
+        "plan_type": user.plan_type,
+        "subscription_plan": user.plan_type,
+        "subscription_status": user.subscription_status,
+        "subscription_start": user.subscription_start.isoformat() if user.subscription_start else None,
+        "subscription_started_at": user.subscription_start.isoformat() if user.subscription_start else None,
+        "subscription_end": user.subscription_end.isoformat() if user.subscription_end else None,
+        "subscription_ends_at": user.subscription_end.isoformat() if user.subscription_end else None,
+        "renewal_date": user.renewal_date.isoformat() if user.renewal_date else (user.trial_end.isoformat() if user.trial_end else None),
+        "trial_days_remaining": user.get_trial_days_remaining(),
+        "trial_hours_remaining": user.get_trial_hours_remaining(),
+        "is_premium_active": user.is_premium_active(),
+    }
+
+
 # ─────────────────────────────────────────────────────────
 # JWT Token
 # ─────────────────────────────────────────────────────────
@@ -58,20 +90,10 @@ class ForgeTokenObtainPairSerializer(TokenObtainPairSerializer):
             raise AuthenticationFailed("Please provide both email and password.")
 
         data = super().validate(attrs)
-        # Flatten to match register response: { access, refresh, user }
         return {
             "access": data["access"],
             "refresh": data["refresh"],
-            "user": {
-                "id": str(self.user.id),
-                "email": self.user.email,
-                "display_name": self.user.display_name,
-                "username": self.user.username,
-                "onboarding_completed": self.user.onboarding_completed,
-                "current_level": self.user.current_level,
-                "total_xp": self.user.total_xp,
-                "avatar_url": self.user.avatar_url,
-            },
+            "user": get_enriched_user_dict(self.user),
         }
 
 
@@ -150,6 +172,14 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     level_progress = serializers.SerializerMethodField()
     xp_to_next_level = serializers.SerializerMethodField()
+    trial_days_remaining = serializers.SerializerMethodField()
+    trial_hours_remaining = serializers.SerializerMethodField()
+    is_premium_active = serializers.SerializerMethodField()
+    trial_started_at = serializers.ReadOnlyField()
+    trial_ends_at = serializers.ReadOnlyField()
+    subscription_started_at = serializers.ReadOnlyField()
+    subscription_ends_at = serializers.ReadOnlyField()
+    subscription_plan = serializers.ReadOnlyField()
 
     class Meta:
         model = User
@@ -158,10 +188,20 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "timezone", "onboarding_completed", "identity_statement",
             "time_preference", "current_level", "total_xp",
             "level_progress", "xp_to_next_level", "date_joined",
+            "trial_start", "trial_end", "plan_type", "subscription_status",
+            "subscription_start", "subscription_end", "renewal_date",
+            "trial_days_remaining", "trial_hours_remaining", "is_premium_active",
+            "trial_started_at", "trial_ends_at", "subscription_started_at",
+            "subscription_ends_at", "subscription_plan",
         ]
         read_only_fields = [
             "id", "email", "current_level", "total_xp",
             "onboarding_completed", "date_joined",
+            "trial_start", "trial_end", "plan_type", "subscription_status",
+            "subscription_start", "subscription_end", "renewal_date",
+            "trial_days_remaining", "trial_hours_remaining", "is_premium_active",
+            "trial_started_at", "trial_ends_at", "subscription_started_at",
+            "subscription_ends_at", "subscription_plan",
         ]
 
     def validate_display_name(self, value):
@@ -202,6 +242,18 @@ class UserProfileSerializer(serializers.ModelSerializer):
         from services.xp_service import XPService, LEVEL_THRESHOLDS
         next_idx = min(obj.current_level, len(LEVEL_THRESHOLDS) - 1)
         return max(0, LEVEL_THRESHOLDS[next_idx] - obj.total_xp)
+
+    @extend_schema_field(int)
+    def get_trial_days_remaining(self, obj):
+        return obj.get_trial_days_remaining()
+
+    @extend_schema_field(int)
+    def get_trial_hours_remaining(self, obj):
+        return obj.get_trial_hours_remaining()
+
+    @extend_schema_field(bool)
+    def get_is_premium_active(self, obj):
+        return obj.is_premium_active()
 
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):

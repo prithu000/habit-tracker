@@ -6,6 +6,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from apps.core.permissions import HasPremiumAccessPermission
 from django.db.models import Sum, Count, Q
 from datetime import date
 from drf_spectacular.utils import extend_schema
@@ -145,7 +146,7 @@ def mark_badges_seen(request):
 
 @extend_schema(responses=None)
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumAccessPermission])
 def discipline_league(request):
     """
     GET /api/v1/rewards/league/

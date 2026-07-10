@@ -54,13 +54,11 @@ export function GoogleSignInButton({ label = "Continue with Google" }: { label?:
         console.log("✅ [GIS Diagnostics] JWT Access Token Issued:", authData.access ? "YES (Valid)" : "NO");
       }
       setAuth(authData.user, { access: authData.access, refresh: authData.refresh });
+      useAuthStore.getState().setHasHydrated(true);
       toast.success(`🌐 Google OAuth Verified! Welcome, ${authData.user.display_name || "User"}.`);
 
-      if (!authData.user.onboarding_completed) {
-        router.push("/onboarding");
-      } else {
-        router.push("/dashboard");
-      }
+      const targetPath = authData.user.onboarding_completed ? "/dashboard" : "/onboarding";
+      router.replace(targetPath);
     } catch (err: any) {
       console.error("GOOGLE OAUTH ERROR:", err);
       toast.error(err.userMessage || err.response?.data?.error?.message || err.response?.data?.detail || "Unable to sign in with Google. Please try again.");

@@ -64,7 +64,7 @@ export function RightSidebar() {
         animate={{ x: 0, opacity: 1 }}
         exit={{ x: 380, opacity: 0 }}
         transition={{ type: "spring", damping: 28, stiffness: 300 }}
-        className="fixed right-0 top-[64px] bottom-0 w-full sm:w-[380px] bg-[#0a0a0c]/95 backdrop-blur-2xl border-l border-white/[0.08] shadow-[0_0_50px_rgba(0,0,0,0.8)] z-50 flex flex-col overflow-hidden"
+        className="fixed right-0 top-[64px] bottom-0 w-full sm:w-[380px] bg-[#0a0a0c]/98 backdrop-blur-3xl border-l border-white/[0.08] shadow-[0_0_50px_rgba(0,0,0,0.8)] z-[60] flex flex-col overflow-hidden"
       >
         {/* Header */}
         <div className="p-5 border-b border-white/[0.08] flex items-center justify-between bg-white/[0.02]">
@@ -83,7 +83,8 @@ export function RightSidebar() {
           </div>
           <button
             onClick={toggleRightSidebar}
-            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
+            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+            aria-label="Close Studio Control Panel"
           >
             <X className="w-4 h-4" />
           </button>
@@ -94,7 +95,7 @@ export function RightSidebar() {
           <button
             onClick={() => setActiveTab("customize")}
             className={cn(
-              "py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all",
+              "py-2.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all min-h-[44px]",
               activeTab === "customize"
                 ? "bg-forge-500/20 text-forge-300 border border-forge-500/30 shadow-[0_0_15px_rgba(139,92,246,0.15)]"
                 : "text-muted-foreground hover:text-foreground hover:bg-white/5"
@@ -106,7 +107,7 @@ export function RightSidebar() {
           <button
             onClick={() => setActiveTab("briefing")}
             className={cn(
-              "py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all",
+              "py-2.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all min-h-[44px]",
               activeTab === "briefing"
                 ? "bg-forge-500/20 text-forge-300 border border-forge-500/30 shadow-[0_0_15px_rgba(139,92,246,0.15)]"
                 : "text-muted-foreground hover:text-foreground hover:bg-white/5"
@@ -117,8 +118,8 @@ export function RightSidebar() {
           </button>
         </div>
 
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden p-5 space-y-6 custom-scrollbar">
+        {/* Content Area with extra mobile bottom padding so no controls clip over BottomNav */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-5 pb-28 sm:pb-6 space-y-6 custom-scrollbar">
           {activeTab === "customize" ? (
             <>
               {/* Wallpaper Section */}

@@ -4,6 +4,8 @@ import { useAuthStore } from "@/lib/stores/authStore";
 import { useUpdateUser, useChangePassword } from "@/lib/queries/useUser";
 import { PageTransition } from "@/components/layouts/PageTransition";
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { SubscriptionTab } from "./SubscriptionTab";
 import {
   User,
   Lock,
@@ -18,6 +20,7 @@ import {
   Sliders,
   Image as ImageIcon,
   RotateCcw,
+  CreditCard,
 } from "lucide-react";
 import {
   useCustomizationStore,
@@ -32,6 +35,8 @@ export default function SettingsPage() {
   const { user } = useAuthStore();
   const updateMutation = useUpdateUser();
   const passwordMutation = useChangePassword();
+  const searchParams = useSearchParams();
+  const tabQuery = searchParams.get("tab") as any;
 
   const {
     wallpaper,
@@ -54,8 +59,8 @@ export default function SettingsPage() {
   } = useCustomizationStore();
 
   const [activeTab, setActiveTab] = useState<
-    "profile" | "appearance" | "widgets" | "security" | "notifications" | "data"
-  >("profile");
+    "profile" | "subscription" | "appearance" | "widgets" | "security" | "notifications" | "data"
+  >(tabQuery && ["profile", "subscription", "appearance", "widgets", "security", "notifications", "data"].includes(tabQuery) ? tabQuery : "profile");
 
   const [profileData, setProfileData] = useState({
     display_name: "",
@@ -125,6 +130,7 @@ export default function SettingsPage() {
 
   const navTabs = [
     { id: "profile", label: "Profile & Identity", icon: User },
+    { id: "subscription", label: "Subscription & Billing", icon: CreditCard },
     { id: "appearance", label: "Studio & Appearance", icon: Palette },
     { id: "widgets", label: "Modules & Widgets", icon: LayoutGrid },
     { id: "security", label: "Security & Auth", icon: Lock },
@@ -134,13 +140,13 @@ export default function SettingsPage() {
 
   return (
     <PageTransition>
-      <div className="max-w-6xl mx-auto pb-16">
+      <div className="max-w-6xl mx-auto pb-8 md:pb-16">
         {/* Header */}
-        <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
+        <div className="mb-6 md:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-display font-black tracking-tight text-white flex items-center gap-2.5">
-              Studio Configuration
-              <span className="text-[10px] font-mono px-2.5 py-1 rounded-full bg-forge-500/10 text-forge-400 border border-forge-500/20">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-display font-black tracking-tight text-white flex flex-wrap items-center gap-2 sm:gap-2.5">
+              <span>Studio Configuration</span>
+              <span className="text-[9px] sm:text-[10px] font-mono px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-forge-500/10 text-forge-400 border border-forge-500/20 shrink-0 whitespace-nowrap">
                 PRO CONTROL
               </span>
             </h1>
@@ -153,32 +159,32 @@ export default function SettingsPage() {
               resetToDefaults();
               toast.success("Studio layout reset to defaults");
             }}
-            className="self-start sm:self-auto px-3 py-1.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-semibold text-muted-foreground hover:text-white transition-all flex items-center gap-1.5"
+            className="self-start sm:self-auto px-3.5 py-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] text-xs font-semibold text-muted-foreground hover:text-white transition-all flex items-center gap-1.5 min-h-[44px] shrink-0"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <RotateCcw className="w-3.5 h-3.5 shrink-0" />
             <span>Reset Studio Defaults</span>
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Navigation Sidebar */}
-          <div className="lg:col-span-1 space-y-1.5">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
+          {/* Navigation Sidebar — swipeable pill navigation bar on mobile (< lg), vertical stack on desktop (lg+) */}
+          <div className="lg:col-span-1 flex lg:flex-col overflow-x-auto lg:overflow-visible gap-1.5 pb-2 lg:pb-0 scrollbar-none snap-x">
             {navTabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => setActiveTab(tab.id as any)}
                   className={cn(
-                    "w-full px-4 py-3 rounded-xl text-xs font-semibold transition-all flex items-center gap-3 text-left select-none",
+                    "px-4 py-3 rounded-xl text-xs font-semibold transition-all flex items-center gap-2.5 sm:gap-3 text-left select-none shrink-0 snap-start min-h-[44px]",
                     isActive
-                      ? "bg-gradient-to-r from-forge-500/20 via-forge-500/10 to-transparent text-forge-200 border-l-2 border-forge-500 shadow-[0_0_20px_rgba(139,92,246,0.15)]"
+                      ? "bg-gradient-to-r from-forge-500/20 via-forge-500/10 to-transparent text-forge-200 border-l-2 lg:border-l-2 border-forge-500 shadow-[0_0_20px_rgba(139,92,246,0.15)]"
                       : "text-muted-foreground hover:text-foreground hover:bg-white/[0.03]"
                   )}
                 >
                   <Icon className={cn("w-4 h-4 shrink-0", isActive ? "text-forge-400" : "text-muted-foreground")} />
-                  <span>{tab.label}</span>
+                  <span className="whitespace-nowrap">{tab.label}</span>
                 </button>
               );
             })}
@@ -186,6 +192,8 @@ export default function SettingsPage() {
 
           {/* Main Content Area */}
           <div className="lg:col-span-3 space-y-6">
+            {activeTab === "subscription" && <SubscriptionTab />}
+
             {/* 1. PROFILE TAB */}
             {activeTab === "profile" && (
               <div className="p-6 rounded-[24px] bg-[#0a0a0c]/80 backdrop-blur-xl border border-white/[0.08] shadow-[0_10px_40px_rgba(0,0,0,0.5)]">

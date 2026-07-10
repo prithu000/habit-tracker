@@ -25,10 +25,14 @@ import api from "@/lib/api";
 
 interface DynamicWidgetsGridProps {
   dashboard: DashboardData;
+  isFreeMode?: boolean;
 }
 
-export function DynamicWidgetsGrid({ dashboard }: DynamicWidgetsGridProps) {
+export function DynamicWidgetsGrid({ dashboard, isFreeMode = false }: DynamicWidgetsGridProps) {
   const { enabledWidgets, cardRadius } = useCustomizationStore();
+  const activeWidgets = isFreeMode
+    ? enabledWidgets.filter((w) => ["xp", "level", "streak"].includes(w))
+    : enabledWidgets;
   const { xp, streak } = dashboard.widgets;
 
   const {
@@ -96,7 +100,7 @@ export function DynamicWidgetsGrid({ dashboard }: DynamicWidgetsGridProps) {
           <h2 className="text-base font-display font-bold text-foreground flex items-center gap-2">
             Interactive Modular Widgets
             <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/5 text-muted-foreground border border-white/10">
-              {enabledWidgets.length} ACTIVE
+              {activeWidgets.length} ACTIVE
             </span>
           </h2>
           <p className="text-xs text-muted-foreground">
@@ -105,9 +109,9 @@ export function DynamicWidgetsGrid({ dashboard }: DynamicWidgetsGridProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* 1. XP & Level Ring Widget */}
-        {enabledWidgets.includes("xp") && (
+        {activeWidgets.includes("xp") && (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
@@ -137,7 +141,7 @@ export function DynamicWidgetsGrid({ dashboard }: DynamicWidgetsGridProps) {
         )}
 
         {/* 2. Level Status Badge */}
-        {enabledWidgets.includes("level") && (
+        {activeWidgets.includes("level") && (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
@@ -164,7 +168,7 @@ export function DynamicWidgetsGrid({ dashboard }: DynamicWidgetsGridProps) {
         )}
 
         {/* 3. Pomodoro Clock */}
-        {enabledWidgets.includes("pomodoro") && (
+        {activeWidgets.includes("pomodoro") && (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
@@ -212,7 +216,7 @@ export function DynamicWidgetsGrid({ dashboard }: DynamicWidgetsGridProps) {
         )}
 
         {/* 6. Water Tracker */}
-        {enabledWidgets.includes("water_tracker") && (
+        {activeWidgets.includes("water_tracker") && (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
@@ -261,7 +265,7 @@ export function DynamicWidgetsGrid({ dashboard }: DynamicWidgetsGridProps) {
         )}
 
         {/* 7. Workout Progress */}
-        {enabledWidgets.includes("workout_progress") && (
+        {activeWidgets.includes("workout_progress") && (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
@@ -309,7 +313,7 @@ export function DynamicWidgetsGrid({ dashboard }: DynamicWidgetsGridProps) {
         )}
 
         {/* 8. Study Progress */}
-        {enabledWidgets.includes("study_progress") && (
+        {activeWidgets.includes("study_progress") && (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
@@ -357,7 +361,7 @@ export function DynamicWidgetsGrid({ dashboard }: DynamicWidgetsGridProps) {
         )}
 
         {/* 9. World Clock */}
-        {enabledWidgets.includes("clock") && (
+        {activeWidgets.includes("clock") && (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
@@ -378,7 +382,7 @@ export function DynamicWidgetsGrid({ dashboard }: DynamicWidgetsGridProps) {
         )}
 
         {/* 8. GitHub Activity */}
-        {enabledWidgets.includes("github") && (
+        {activeWidgets.includes("github") && (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
@@ -413,7 +417,7 @@ export function DynamicWidgetsGrid({ dashboard }: DynamicWidgetsGridProps) {
         )}
 
         {/* 13. Mini Calendar */}
-        {enabledWidgets.includes("calendar") && (
+        {activeWidgets.includes("calendar") && (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
@@ -442,7 +446,7 @@ export function DynamicWidgetsGrid({ dashboard }: DynamicWidgetsGridProps) {
         )}
 
         {/* 15. Daily Wisdom Quote */}
-        {enabledWidgets.includes("quote") && (
+        {activeWidgets.includes("quote") && (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">

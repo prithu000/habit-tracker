@@ -12,6 +12,7 @@ import { CheckCircle2, AlertCircle, Plus, Sparkles, Sliders } from "lucide-react
 import Link from "next/link";
 import { PageTransition } from "@/components/layouts/PageTransition";
 import { useCustomizationStore } from "@/lib/stores/customizationStore";
+import { useAuthStore } from "@/lib/stores/authStore";
 import { cn } from "@/lib/utils/cn";
 
 const DashboardAnalytics = dynamic(
@@ -27,6 +28,8 @@ const DynamicWidgetsGrid = dynamic(
 export default function DashboardPage() {
   const { data: dashboard, isLoading, isError, error } = useDashboard();
   const { enabledWidgets, dashboardLayout, density, toggleRightSidebar } = useCustomizationStore();
+  const { user } = useAuthStore();
+  const isFreeMode = user?.subscription_status === "expired" || user?.is_premium_active === false;
 
   if (isLoading) {
     return (
@@ -57,7 +60,7 @@ export default function DashboardPage() {
     );
   }
 
-  const gapCls = density === "compact" ? "space-y-5" : "space-y-8";
+  const gapCls = density === "compact" ? "space-y-5 md:space-y-5" : "space-y-6 md:space-y-8";
 
   return (
     <PageTransition>
@@ -68,21 +71,22 @@ export default function DashboardPage() {
             displayName={dashboard.user.display_name} 
             identityStatement={dashboard.user.identity_statement} 
           />
-          <div className="flex items-center gap-2.5 self-start sm:self-auto shrink-0">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 self-start sm:self-auto shrink-0">
             <Link
               href="/routines"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-forge-500 to-purple-600 hover:from-forge-400 hover:to-purple-500 text-white font-semibold text-xs transition-all shadow-[0_0_20px_rgba(139,92,246,0.4)] hover:scale-105 active:scale-95"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-forge-500 to-purple-600 hover:from-forge-400 hover:to-purple-500 text-white font-semibold text-xs transition-all shadow-[0_0_20px_rgba(139,92,246,0.4)] hover:scale-105 active:scale-95 min-h-[44px] shrink-0"
             >
-              <Plus className="w-4 h-4 stroke-[3]" />
+              <Plus className="w-4 h-4 stroke-[3] shrink-0" />
               <span>Quick Add Routine</span>
             </Link>
             <button
               onClick={toggleRightSidebar}
-              className="p-2 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] text-muted-foreground hover:text-white transition-all flex items-center gap-1.5 text-xs font-semibold"
+              className="px-3 py-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] text-muted-foreground hover:text-white transition-all flex items-center gap-1.5 text-xs font-semibold min-h-[44px] shrink-0"
               title="Customize Studio Layout"
+              aria-label="Customize Studio Layout"
             >
-              <Sliders className="w-4 h-4 text-forge-400" />
-              <span className="hidden md:inline">Layout</span>
+              <Sliders className="w-4 h-4 text-forge-400 shrink-0" />
+              <span>Layout</span>
             </button>
           </div>
         </div>
@@ -91,7 +95,7 @@ export default function DashboardPage() {
         <StatsBar stats={dashboard.today.stats} />
 
         {/* 1. Neural Coach Section */}
-        {enabledWidgets.includes("ai_coach") && (
+        {!isFreeMode && enabledWidgets.includes("ai_coach") && (
           <section id="ai-coach-section" className="scroll-mt-20">
             <AICoachWidget dashboard={dashboard} />
           </section>
@@ -155,14 +159,16 @@ export default function DashboardPage() {
         </section>
 
         {/* 3. Interactive Modular Widgets Grid */}
-        <section id="widgets-grid-section" className="scroll-mt-20 pt-4">
-          <DynamicWidgetsGrid dashboard={dashboard} />
+        <section id="widgets-grid-section" className="scroll-mt-20 pt-0 md:pt-4">
+          <DynamicWidgetsGrid dashboard={dashboard} isFreeMode={isFreeMode} />
         </section>
 
         {/* 4. Performance & Analytics Studio */}
-        <section id="analytics-studio-section" className="scroll-mt-20 pt-4">
-          <DashboardAnalytics dashboard={dashboard} />
-        </section>
+        {!isFreeMode && (
+          <section id="analytics-studio-section" className="scroll-mt-20 pt-0 md:pt-4">
+            <DashboardAnalytics dashboard={dashboard} />
+          </section>
+        )}
       </div>
     </PageTransition>
   );

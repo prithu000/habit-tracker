@@ -30,7 +30,11 @@ export const useAuthStore = create<AuthState>()(
       setHasHydrated: (val) => set({ _hasHydrated: val }),
 
       setAuth: (user, tokens) =>
-        set({ user, tokens, isAuthenticated: true }),
+        set((state) => ({
+          user: state.user ? { ...state.user, ...user } : user,
+          tokens,
+          isAuthenticated: true,
+        })),
 
       setTokens: (tokens) =>
         set((state) => ({
@@ -46,10 +50,15 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "forge-auth-storage",
-      // Correct Zustand v5 way to detect hydration completion
-      onRehydrateStorage: () => (state) => {
+      // Correct Zustand v5 way to detect hydration completion with error/fallback safety
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          console.error("Zustand hydration error in authStore:", error);
+        }
         if (state) {
           state.setHasHydrated(true);
+        } else {
+          useAuthStore.setState({ _hasHydrated: true });
         }
       },
       // Don't persist the hydration flag itself
@@ -61,4 +70,23 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
+// Guarantee synchronous hydration verification right when client script loads
+if (typeof window !== "undefined") {
+  try {
+    if (useAuthStore.persist.hasHydrated()) {
+      useAuthStore.setState({ _hasHydrated: true });
+    } else {
+      useAuthStore.persist.rehydrate();
+      // Fast fallback to guarantee hydration completes within 50ms even across async storage or Next.js transitions
+      setTimeout(() => {
+        useAuthStore.setState({ _hasHydrated: true });
+      }, 50);
+    }
+  } catch (err) {
+    console.error("Client bootstrap rehydration fallback error:", err);
+    useAuthStore.setState({ _hasHydrated: true });
+  }
+}
+
 

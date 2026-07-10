@@ -7,9 +7,9 @@ import { cn } from "@/lib/utils/cn";
 export function PageTransition({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2, ease: "easeOut" }}
+      transition={{ duration: 0.18, ease: "easeOut" }}
       className={cn("flex-1 w-full flex flex-col", className)}
     >
       {children}

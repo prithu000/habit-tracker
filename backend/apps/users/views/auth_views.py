@@ -25,6 +25,7 @@ from drf_spectacular.utils import extend_schema
 from apps.users.serializers import (
     UserRegistrationSerializer,
     ForgeTokenObtainPairSerializer,
+    get_enriched_user_dict,
 )
 
 User = get_user_model()
@@ -55,16 +56,7 @@ class RegisterView(generics.CreateAPIView):
             {
                 "access": str(refresh.access_token),
                 "refresh": str(refresh),
-                "user": {
-                    "id": str(user.id),
-                    "email": user.email,
-                    "display_name": user.display_name,
-                    "username": user.username,
-                    "onboarding_completed": user.onboarding_completed,
-                    "current_level": user.current_level,
-                    "total_xp": user.total_xp,
-                    "avatar_url": user.avatar_url,
-                },
+                "user": get_enriched_user_dict(user),
             },
             status=status.HTTP_201_CREATED,
         )
@@ -189,16 +181,7 @@ def google_auth_view(request):
         {
             "access": str(refresh.access_token),
             "refresh": str(refresh),
-            "user": {
-                "id": str(user.id),
-                "email": user.email,
-                "display_name": getattr(user, "display_name", user.username),
-                "username": user.username,
-                "onboarding_completed": getattr(user, "onboarding_completed", False),
-                "current_level": getattr(user, "current_level", 1),
-                "total_xp": getattr(user, "total_xp", 0),
-                "avatar_url": getattr(user, "avatar_url", ""),
-            },
+            "user": get_enriched_user_dict(user),
         },
         status=status.HTTP_200_OK,
     )

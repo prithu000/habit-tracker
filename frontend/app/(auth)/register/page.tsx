@@ -40,8 +40,9 @@ export default function RegisterPage() {
 
       const authData = responseEnvelope.data;
       setAuth(authData.user, { access: authData.access, refresh: authData.refresh });
+      useAuthStore.getState().setHasHydrated(true);
       toast.success("Account created successfully!");
-      router.push("/onboarding");
+      router.replace("/onboarding");
     } catch (err: any) {
       console.error("REGISTRATION ERROR DETAILS:", {
         message: err.message,
@@ -73,7 +74,7 @@ export default function RegisterPage() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="glass-card p-8"
+      className="glass-card p-6 sm:p-8"
     >
       <div className="mb-8 text-center">
         <h2 className="text-2xl font-display font-bold tracking-tight">Welcome to YOU VS YOU.</h2>

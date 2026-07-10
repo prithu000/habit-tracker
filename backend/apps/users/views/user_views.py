@@ -21,6 +21,7 @@ from apps.users.serializers import (
     OnboardingSerializer,
     PasswordChangeSerializer,
     UserStatsSerializer,
+    get_enriched_user_dict,
 )
 from apps.core.permissions import IsSelf
 
@@ -49,15 +50,7 @@ class RegisterView(generics.CreateAPIView):
         refresh = RefreshToken.for_user(user)
         return Response(
             {
-                "user": {
-                    "id": str(user.id),
-                    "email": user.email,
-                    "display_name": user.display_name,
-                    "username": user.username,
-                    "onboarding_completed": user.onboarding_completed,
-                    "current_level": user.current_level,
-                    "total_xp": user.total_xp,
-                },
+                "user": get_enriched_user_dict(user),
                 "tokens": {
                     "access": str(refresh.access_token),
                     "refresh": str(refresh),

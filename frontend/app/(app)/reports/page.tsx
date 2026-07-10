@@ -42,6 +42,11 @@ const ExecutivePaperReport = dynamic(
   }
 );
 
+const PrintableA4Report = dynamic(
+  () => import("@/components/reports/PrintableA4Report").then((mod) => mod.PrintableA4Report),
+  { ssr: false }
+);
+
 export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState<"daily" | "weekly" | "monthly">("daily");
   const [isExporting, setIsExporting] = useState(false);
@@ -82,6 +87,10 @@ export default function ReportsPage() {
       const html2canvas = (await import("html2canvas")).default;
       const canvas = await html2canvas(element, {
         scale: 2,
+        width: 794,
+        height: 1123,
+        windowWidth: 794,
+        windowHeight: 1123,
         useCORS: true,
         backgroundColor: "#fcfbf9",
         logging: false,
@@ -95,7 +104,15 @@ export default function ReportsPage() {
       const pageHeight = 297; // A4 height in mm
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-      pdf.addImage(imgData, "PNG", 0, 0, imgWidth, Math.min(imgHeight, pageHeight));
+      if (imgHeight > pageHeight) {
+        // Automatically scale proportionally to guarantee single A4 page fit without cropping
+        const scaleRatio = pageHeight / imgHeight;
+        const scaledWidth = imgWidth * scaleRatio;
+        const xOffset = (imgWidth - scaledWidth) / 2;
+        pdf.addImage(imgData, "PNG", xOffset, 0, scaledWidth, pageHeight);
+      } else {
+        pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+      }
 
       // Calculate filename: Daily_Report.pdf, Weekly_Report.pdf, or Monthly_Report.pdf
       const tfCapitalized = activeTab.charAt(0).toUpperCase() + activeTab.slice(1);
@@ -118,9 +135,9 @@ export default function ReportsPage() {
   ];
 
   return (
-    <PageTransition className="space-y-12 max-w-6xl mx-auto pb-28 p-4 sm:p-8">
+    <PageTransition className="space-y-6 md:space-y-8 lg:space-y-12 max-w-6xl mx-auto pb-16 md:pb-28 p-4 sm:p-8">
       {/* ── TOP HEADING & BADGE ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-4 border-b border-white/[0.08]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 pb-4 border-b border-white/[0.08]">
         <div className="space-y-2">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white uppercase">
             PERFORMANCE{" "}
@@ -194,16 +211,32 @@ export default function ReportsPage() {
             </div>
           </div>
         ) : (
-          <ExecutivePaperReport
-            data={activeData}
-            dashboard={dashboard}
-            lifeScore={lifeScore}
-            disciplineScore={disciplineScore}
-            weeklyAnalytics={weeklyAnalytics}
-            monthlyAnalytics={monthlyAnalytics}
-            timeframe={activeTab}
-            id="printable-a4-paper"
-          />
+          <>
+            <ExecutivePaperReport
+              data={activeData}
+              dashboard={dashboard}
+              lifeScore={lifeScore}
+              disciplineScore={disciplineScore}
+              weeklyAnalytics={weeklyAnalytics}
+              monthlyAnalytics={monthlyAnalytics}
+              timeframe={activeTab}
+              id="preview-paper-report"
+            />
+
+            {/* Hidden strictly A4 dimension report for PDF capture */}
+            <div className="absolute top-[-9999px] left-[-9999px] opacity-0 pointer-events-none z-[-1] overflow-visible">
+              <PrintableA4Report
+                data={activeData}
+                dashboard={dashboard}
+                lifeScore={lifeScore}
+                disciplineScore={disciplineScore}
+                weeklyAnalytics={weeklyAnalytics}
+                monthlyAnalytics={monthlyAnalytics}
+                timeframe={activeTab}
+                id="printable-a4-paper"
+              />
+            </div>
+          </>
         )}
       </div>
 
@@ -212,7 +245,7 @@ export default function ReportsPage() {
         <button
           onClick={handleDownloadPDF}
           disabled={isLoading || isExporting}
-          className="group relative inline-flex items-center justify-center gap-3 px-10 py-5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:via-indigo-500 hover:to-purple-500 text-white font-black text-base sm:text-lg tracking-wider uppercase transition-all duration-300 shadow-2xl shadow-purple-500/25 hover:shadow-purple-500/40 hover:-translate-y-1 disabled:opacity-50 disabled:pointer-events-none active:translate-y-0"
+          className="group relative inline-flex w-full sm:w-auto items-center justify-center gap-3 px-10 py-5 rounded-2xl bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 hover:from-purple-500 hover:via-indigo-500 hover:to-purple-500 text-white font-black text-base sm:text-lg tracking-wider uppercase transition-all duration-300 shadow-2xl shadow-purple-500/25 hover:shadow-purple-500/40 hover:-translate-y-1 disabled:opacity-50 disabled:pointer-events-none active:translate-y-0"
         >
           {isExporting ? (
             <Loader2 className="w-6 h-6 animate-spin text-white" />

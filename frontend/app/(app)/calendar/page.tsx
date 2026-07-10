@@ -130,7 +130,7 @@ export default function CalendarPage() {
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-sm transition-all shadow-lg shadow-purple-500/25 shrink-0"
+          className="flex items-center justify-center w-full md:w-auto gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-sm transition-all shadow-lg shadow-purple-500/25 shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>SCHEDULE REMINDER</span>
@@ -177,18 +177,18 @@ export default function CalendarPage() {
             </div>
 
             {/* Days of Week */}
-            <div className="grid grid-cols-7 gap-2 mb-2 text-center">
+            <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2 text-center">
               {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-                <div key={day} className="text-xs font-bold text-zinc-500 uppercase tracking-wider py-1">
+                <div key={day} className="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-wider py-1">
                   {day}
                 </div>
               ))}
             </div>
 
             {/* Calendar Cells */}
-            <div className="grid grid-cols-7 gap-2">
+            <div className="grid grid-cols-7 gap-1 sm:gap-2">
               {Array.from({ length: firstDayOfMonth }).map((_, i) => (
-                <div key={`empty-${i}`} className="h-20 rounded-2xl bg-zinc-950/20 border border-zinc-900/40 opacity-40" />
+                <div key={`empty-${i}`} className="h-14 sm:h-20 rounded-xl sm:rounded-2xl bg-zinc-950/20 border border-zinc-900/40 opacity-40" />
               ))}
               {Array.from({ length: daysInMonth }).map((_, i) => {
                 const dayNum = i + 1;
@@ -206,7 +206,7 @@ export default function CalendarPage() {
                     key={dayNum}
                     onClick={() => setSelectedDate(new Date(year, month, dayNum))}
                     className={cn(
-                      "h-20 rounded-2xl p-2.5 border transition-all cursor-pointer flex flex-col justify-between relative group",
+                      "h-14 sm:h-20 rounded-xl sm:rounded-2xl p-1 sm:p-2.5 border transition-all cursor-pointer flex flex-col justify-between relative group",
                       isToday
                         ? "bg-purple-900/30 border-purple-500/50 shadow-lg shadow-purple-500/10"
                         : isSelected

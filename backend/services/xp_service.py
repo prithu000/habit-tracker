@@ -67,36 +67,37 @@ class XPService:
     def get_xp_earned_for_date(user, local_date) -> int:
         """
         Single source of truth for total XP earned by a user on a given local date.
-        Handles timezone ranges correctly so UTC timestamps match the user's local calendar day.
-        Also checks metadata__local_date when present.
+        Queries candidates across +- 2 UTC days and performs exact metadata / local timestamp checking.
+        Database-agnostic (works flawlessly on SQLite and PostgreSQL).
         """
         from apps.rewards.models import XPTransaction
-        from apps.core.utils import get_user_timezone
-        from datetime import datetime, time
-        import pytz
-        from django.db.models import Sum, Q
+        from apps.core.utils import localize_date
+        from datetime import timedelta
 
         date_str = str(local_date)
-        tz = get_user_timezone(user)
-        try:
-            start_local = tz.localize(datetime.combine(local_date, time.min))
-            end_local = tz.localize(datetime.combine(local_date, time.max))
-            start_utc = start_local.astimezone(pytz.UTC)
-            end_utc = end_local.astimezone(pytz.UTC)
-        except Exception:
-            start_utc = datetime.combine(local_date, time.min, tzinfo=pytz.UTC)
-            end_utc = datetime.combine(local_date, time.max, tzinfo=pytz.UTC)
 
-        total = (
-            XPTransaction.objects.filter(user=user, amount__gt=0)
-            .filter(
-                Q(metadata__local_date=date_str) |
-                Q(created_at__range=(start_utc, end_utc))
-            )
-            .distinct()
-            .aggregate(t=Sum("amount"))["t"] or 0
+        candidate_txs = XPTransaction.objects.filter(
+            user=user,
+            amount__gt=0,
+            created_at__date__gte=local_date - timedelta(days=2),
+            created_at__date__lte=local_date + timedelta(days=2),
         )
+
+        total = 0
+        for tx in candidate_txs:
+            meta = tx.metadata if isinstance(tx.metadata, dict) else {}
+            if meta.get("local_date") == date_str or meta.get("date") == date_str:
+                total += tx.amount
+            elif "local_date" not in meta and "date" not in meta:
+                try:
+                    if localize_date(tx.created_at, user) == local_date:
+                        total += tx.amount
+                except Exception:
+                    if tx.created_at.date() == local_date:
+                        total += tx.amount
+
         return total
+
 
     @staticmethod
     def award_xp(

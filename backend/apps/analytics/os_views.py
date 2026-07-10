@@ -9,7 +9,8 @@ from django.http import HttpResponse
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from apps.core.utils import get_user_local_date
+from apps.core.permissions import HasPremiumAccessPermission
+from apps.core.utils import get_user_local_date, get_week_bounds
 from apps.analytics.models import LifeScoreSnapshot, UserOSGoals, DailyOSMetrics
 from apps.completions.models import DayLog
 from apps.streaks.models import StreakRecord
@@ -36,7 +37,7 @@ def life_score_view(request):
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumAccessPermission])
 def motivation_view(request):
     """
     GET /api/v1/analytics/motivation/
@@ -67,7 +68,7 @@ def motivation_view(request):
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumAccessPermission])
 def smart_reports_view(request):
     """
     GET /api/v1/analytics/reports/?timeframe=daily|weekly|monthly|yearly&format=json|csv
@@ -87,13 +88,24 @@ def smart_reports_view(request):
     days = 7
     if timeframe == "daily":
         days = 1
+        start_date = local_date
+        end_date = local_date
+    elif timeframe == "weekly":
+        days = 7
+        start_date, end_date = get_week_bounds(local_date)
     elif timeframe == "monthly":
         days = 30
+        start_date = local_date - timedelta(days=29)
+        end_date = local_date
     elif timeframe == "yearly":
         days = 365
+        start_date = local_date - timedelta(days=364)
+        end_date = local_date
+    else:
+        start_date = local_date - timedelta(days=6)
+        end_date = local_date
 
-    start_date = local_date - timedelta(days=days - 1)
-    logs = list(DayLog.objects.filter(user=user, log_date__range=[start_date, local_date]).order_by("log_date"))
+    logs = list(DayLog.objects.filter(user=user, log_date__range=[start_date, end_date]).order_by("log_date"))
 
     if fmt in ["csv", "excel"]:
         response = HttpResponse(content_type="text/csv")
@@ -122,10 +134,10 @@ def smart_reports_view(request):
     total_scheduled = sum(log.tasks_scheduled for log in logs)
     total_completed = sum(log.tasks_completed for log in logs)
     total_xp = sum(log.xp_earned for log in logs)
-    avg_rate = round(sum(float(log.completion_rate) for log in logs) / max(1, len(logs)), 1) if logs else 0.0
+    avg_rate = round(sum(float(log.completion_rate) for log in logs) / max(1, days), 1) if logs else 0.0
     exec_efficiency = round((total_completed / max(1, total_scheduled)) * 100, 1)
 
-    os_metrics = list(DailyOSMetrics.objects.filter(user=user, date__range=[start_date, local_date]).order_by("date"))
+    os_metrics = list(DailyOSMetrics.objects.filter(user=user, date__range=[start_date, end_date]).order_by("date"))
     water_total = sum(m.water_ml for m in os_metrics)
     workout_total = sum(m.workout_exercises for m in os_metrics)
     study_total = sum(m.study_mins for m in os_metrics)
@@ -195,15 +207,22 @@ def smart_reports_view(request):
     month_logs = [l for l in logs if l.log_date >= (local_date - timedelta(days=29))]
     year_logs = [l for l in logs if l.log_date >= (local_date - timedelta(days=364))]
 
-    week_score = int(sum(float(l.completion_rate) for l in week_logs) / max(1, len(week_logs))) if week_logs else 0
-    month_score = int(sum(float(l.completion_rate) for l in month_logs) / max(1, len(month_logs))) if month_logs else 0
-    year_score = int(sum(float(l.completion_rate) for l in year_logs) / max(1, len(year_logs))) if year_logs else 0
+    week_score = int(round(sum(float(l.completion_rate) for l in week_logs) / 7.0)) if week_logs else 0
+    month_score = int(round(sum(float(l.completion_rate) for l in month_logs) / 30.0)) if month_logs else 0
+    year_score = int(round(sum(float(l.completion_rate) for l in year_logs) / 365.0)) if year_logs else 0
     lifetime_score = int(avg_rate)
 
     data = {
         "timeframe": timeframe.title(),
         "start_date": start_date.isoformat(),
-        "end_date": local_date.isoformat(),
+        "end_date": end_date.isoformat(),
+        "week_start": start_date.isoformat() if timeframe == "weekly" else None,
+        "week_end": end_date.isoformat() if timeframe == "weekly" else None,
+        "period": {
+            "start": start_date.isoformat(),
+            "end": end_date.isoformat(),
+            "type": timeframe
+        },
         "is_initializing": False,
         "unlock_status": unlock_status,
         "executive_summary": full_report["executive_summary"],
@@ -237,7 +256,7 @@ def smart_reports_view(request):
 
 
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumAccessPermission])
 def timeline_view(request):
     """
     GET /api/v1/analytics/timeline/
@@ -276,7 +295,7 @@ def timeline_view(request):
 
 
 @api_view(["GET", "POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumAccessPermission])
 def goals_view(request):
     """
     GET/POST /api/v1/analytics/goals/
@@ -304,7 +323,7 @@ def goals_view(request):
 
 
 @api_view(["GET", "POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumAccessPermission])
 def metrics_view(request):
     """
     GET/POST /api/v1/analytics/metrics/

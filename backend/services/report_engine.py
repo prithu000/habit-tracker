@@ -77,8 +77,8 @@ class ReportEngine:
         # ── Basic Aggregations ──
         total_scheduled = sum(log.tasks_scheduled for log in logs)
         total_completed = sum(log.tasks_completed for log in logs)
-        total_xp = sum(log.xp_earned for log in logs)
-        avg_rate = round(sum(float(log.completion_rate) for log in logs) / max(1, len(logs)), 1) if logs else 0.0
+        period_days = 1 if timeframe == "daily" else (7 if timeframe == "weekly" else (30 if timeframe == "monthly" else 365))
+        avg_rate = round(sum(float(log.completion_rate) for log in logs) / max(1, period_days), 1) if logs else 0.0
         exec_efficiency = round((total_completed / max(1, total_scheduled)) * 100, 1)
 
         streak_rec = StreakRecord.objects.filter(user=user, routine__isnull=True).first()

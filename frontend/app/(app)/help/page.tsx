@@ -73,9 +73,9 @@ export default function HelpPage() {
   };
 
   return (
-    <PageTransition className="space-y-8 max-w-6xl mx-auto pb-16">
+    <PageTransition className="space-y-6 md:space-y-8 max-w-6xl mx-auto pb-8 md:pb-16">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-purple-900/30 via-zinc-900/60 to-zinc-900/40 p-8 rounded-3xl border border-purple-500/20 backdrop-blur-xl shadow-2xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-purple-900/30 via-zinc-900/60 to-zinc-900/40 p-5 md:p-8 rounded-3xl border border-purple-500/20 backdrop-blur-xl shadow-2xl">
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-semibold uppercase tracking-wider">
             <HelpCircle className="w-3.5 h-3.5 animate-pulse" />
@@ -97,9 +97,9 @@ export default function HelpPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
         {/* Left Col: Issue Reporter Form */}
-        <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-3xl p-8 backdrop-blur-md shadow-xl space-y-6">
+        <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-3xl p-5 md:p-8 backdrop-blur-md shadow-xl space-y-6">
           <div className="flex items-center justify-between border-b border-zinc-800/80 pb-4">
             <div>
               <h3 className="text-lg font-black text-white flex items-center gap-2">
@@ -188,7 +188,7 @@ export default function HelpPage() {
         </div>
 
         {/* Right Col: FAQ Accordion */}
-        <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-3xl p-8 backdrop-blur-md shadow-xl space-y-6">
+        <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-3xl p-5 md:p-8 backdrop-blur-md shadow-xl space-y-6">
           <div className="border-b border-zinc-800/80 pb-4">
             <h3 className="text-lg font-black text-white flex items-center gap-2">
               <MessageSquare className="w-5 h-5 text-indigo-400" />

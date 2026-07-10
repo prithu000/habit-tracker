@@ -101,17 +101,32 @@ class CacheService:
 
     @staticmethod
     def invalidate_today(user_id: str):
-        """Invalidates all today-related caches. Call on every completion."""
+        """Invalidates all today-related caches across server/client timezones. Call on every completion."""
         from datetime import date, timedelta
         today = date.today()
-        dates = [
+        dates_set = {
             "",
             today.isoformat(),
             (today - timedelta(days=1)).isoformat(),
             (today + timedelta(days=1)).isoformat(),
-        ]
+            (today - timedelta(days=2)).isoformat(),
+            (today + timedelta(days=2)).isoformat(),
+        }
+        try:
+            from django.contrib.auth import get_user_model
+            from apps.core.utils import get_user_local_date
+            User = get_user_model()
+            u = User.objects.filter(id=user_id).first()
+            if u:
+                u_date = get_user_local_date(u)
+                dates_set.add(u_date.isoformat())
+                dates_set.add((u_date - timedelta(days=1)).isoformat())
+                dates_set.add((u_date + timedelta(days=1)).isoformat())
+        except Exception:
+            pass
+
         keys = []
-        for d in dates:
+        for d in dates_set:
             keys.extend([
                 CacheService._key(user_id, "dashboard", d),
                 CacheService._key(user_id, "today", d),
@@ -124,6 +139,7 @@ class CacheService:
                 CacheService._key(user_id, "smart_reports", d),
             ])
         cache.delete_many(keys)
+
 
     @staticmethod
     def invalidate_analytics(user_id: str):
