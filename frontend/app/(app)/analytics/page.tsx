@@ -1,5 +1,11 @@
 "use client";
 
+import { useEffect } from "react";
+import { useAuthStore } from "@/lib/stores/authStore";
+import { useRouter } from "next/navigation";
+import { usePaywallStore } from "@/lib/stores/paywallStore";
+import { useSubscription } from "@/lib/hooks/useSubscription";
+import { Loader2 } from "lucide-react";
 import { useWeeklyAnalytics, useDisciplineScore } from "@/lib/queries/useAnalytics";
 import { Skeleton } from "@/components/shared/Skeleton";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -14,6 +20,29 @@ const WeeklyAnalyticsAreaChart = dynamic(
 );
 
 export default function WeeklyAnalyticsPage() {
+  const { user } = useAuthStore();
+  const router = useRouter();
+  const { openPaywall } = usePaywallStore();
+  const { isFreeMode } = useSubscription();
+
+  useEffect(() => {
+    if (isFreeMode) {
+      openPaywall();
+      router.replace("/pricing");
+    }
+  }, [isFreeMode, router, openPaywall]);
+  if (isFreeMode) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-purple-400" />
+      </div>
+    );
+  }
+
+  return <WeeklyAnalyticsPageContent />;
+}
+
+function WeeklyAnalyticsPageContent() {
   const { data: weekly, isLoading: isWeeklyLoading, isError: isWeeklyError } = useWeeklyAnalytics();
   const { data: score, isLoading: isScoreLoading } = useDisciplineScore();
 
@@ -47,6 +76,9 @@ export default function WeeklyAnalyticsPage() {
     total: day.tasks_scheduled,
   }));
 
+  // Check if user has any data
+  const hasData = weekly.days.some((day: any) => day.tasks_completed > 0);
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -62,9 +94,23 @@ export default function WeeklyAnalyticsPage() {
             <p className="text-sm text-muted-foreground">Your task completion rate over the last 7 days.</p>
           </div>
           
-          <div className="h-[300px] w-full">
-            <WeeklyAnalyticsAreaChart chartData={chartData} />
-          </div>
+          {!hasData ? (
+            <div className="h-[300px] w-full flex flex-col items-center justify-center text-center space-y-4 border-2 border-dashed border-white/10 rounded-2xl">
+              <div className="w-16 h-16 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+                <BarChart3 className="w-8 h-8 text-purple-400" />
+              </div>
+              <div>
+                <h4 className="text-base font-bold text-foreground mb-2">📈 Weekly Trend Locked</h4>
+                <p className="text-sm text-muted-foreground max-w-xs">
+                  Complete your first routine to unlock your weekly trend graph.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="h-[300px] w-full">
+              <WeeklyAnalyticsAreaChart chartData={chartData} />
+            </div>
+          )}
         </motion.div>
 
         {/* Discipline Score Widget */}

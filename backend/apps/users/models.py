@@ -39,7 +39,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         FLEXIBLE = "flexible", "Flexible"
 
     class PlanType(models.TextChoices):
-        TRIAL = "trial", "7-Day Free Trial"
+        TRIAL = "trial", "8-Day Free Trial"
         MONTHLY = "monthly", "Monthly Plan (₹99)"
         SIX_MONTH = "6_month", "6-Month Plan (₹399)"
         TWELVE_MONTH = "12_month", "12-Month Plan (₹699)"

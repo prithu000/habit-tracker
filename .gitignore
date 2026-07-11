@@ -6,6 +6,12 @@ Thumbs.db
 .agents/
 scratch/
 
+# IDE / Editor settings (local machine only)
+.vscode/
+.idea/
+*.suo
+*.user
+
 # Environment variables & Secrets
 .env
 .env.*

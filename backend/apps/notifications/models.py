@@ -5,25 +5,6 @@ from apps.core.models import BaseModel
 User = get_user_model()
 
 
-class Notification(BaseModel):
-    class NotifType(models.TextChoices):
-        STREAK = "streak", "Streak"
-        BADGE = "badge", "Badge"
-        MILESTONE = "milestone", "Milestone"
-        REMINDER = "reminder", "Reminder"
-        SYSTEM = "system", "System"
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
-    title = models.CharField(max_length=200)
-    body = models.TextField()
-    notif_type = models.CharField(max_length=20, choices=NotifType.choices, default=NotifType.SYSTEM)
-    is_read = models.BooleanField(default=False)
-    action_url = models.CharField(max_length=200, blank=True)
-
-    class Meta:
-        db_table = "notifications_notification"
-        ordering = ["-created_at"]
-
 
 class EmailReminderSchedule(BaseModel):
     class Frequency(models.TextChoices):

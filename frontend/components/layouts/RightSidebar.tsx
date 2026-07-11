@@ -64,7 +64,7 @@ export function RightSidebar() {
         animate={{ x: 0, opacity: 1 }}
         exit={{ x: 380, opacity: 0 }}
         transition={{ type: "spring", damping: 28, stiffness: 300 }}
-        className="fixed right-0 top-[64px] bottom-0 w-full sm:w-[380px] bg-[#0a0a0c]/98 backdrop-blur-3xl border-l border-white/[0.08] shadow-[0_0_50px_rgba(0,0,0,0.8)] z-[60] flex flex-col overflow-hidden"
+        className="fixed right-0 top-[60px] bottom-0 w-full sm:w-[380px] bg-[#0a0a0c]/98 backdrop-blur-3xl border-l border-white/[0.08] shadow-[0_0_50px_rgba(0,0,0,0.8)] z-[60] flex flex-col overflow-hidden"
       >
         {/* Header */}
         <div className="p-5 border-b border-white/[0.08] flex items-center justify-between bg-white/[0.02]">

@@ -197,26 +197,38 @@ The Personal Operating System
 Engineer Your Best Self.
 Every action compounds.
             """
-            send_mail(
-                subject=subject,
-                message=body.strip(),
-                from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@youvsyou-os.com"),
-                recipient_list=[reminder.user.email],
-                fail_silently=True
-            )
+            try:
+                send_mail(
+                    subject=subject,
+                    message=body.strip(),
+                    from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@youvsyou-os.com"),
+                    recipient_list=[reminder.user.email],
+                    fail_silently=False
+                )
+                
+                logger.info(
+                    f"Email Sent Successfully | Planner ID: {reminder.id} | Execution Time: {now.isoformat()} | "
+                    f"Recipient: {reminder.user.email} | Subject: {subject} | Status: success"
+                )
 
-            # Update schedule based on frequency
-            if reminder.frequency == EmailReminderSchedule.Frequency.ONE_TIME:
-                reminder.is_active = False
-            elif reminder.frequency == EmailReminderSchedule.Frequency.DAILY:
-                reminder.deadline += timedelta(days=1)
-            elif reminder.frequency == EmailReminderSchedule.Frequency.WEEKLY:
-                reminder.deadline += timedelta(days=7)
-            elif reminder.frequency == EmailReminderSchedule.Frequency.MONTHLY:
-                reminder.deadline += timedelta(days=30)
-            elif reminder.frequency == EmailReminderSchedule.Frequency.YEARLY:
-                reminder.deadline += timedelta(days=365)
-            reminder.save()
+                # Update schedule based on frequency
+                if reminder.frequency == EmailReminderSchedule.Frequency.ONE_TIME:
+                    reminder.is_active = False
+                elif reminder.frequency == EmailReminderSchedule.Frequency.DAILY:
+                    reminder.deadline += timedelta(days=1)
+                elif reminder.frequency == EmailReminderSchedule.Frequency.WEEKLY:
+                    reminder.deadline += timedelta(days=7)
+                elif reminder.frequency == EmailReminderSchedule.Frequency.MONTHLY:
+                    reminder.deadline += timedelta(days=30)
+                elif reminder.frequency == EmailReminderSchedule.Frequency.YEARLY:
+                    reminder.deadline += timedelta(days=365)
+                reminder.save()
+
+            except Exception as e:
+                logger.error(
+                    f"Email Failed | Planner ID: {reminder.id} | Execution Time: {now.isoformat()} | "
+                    f"Recipient: {reminder.user.email} | Subject: {subject} | Status: failed | Failure reason: {str(e)}"
+                )
 
         logger.info(f"Processed {len(due_reminders)} scheduled email reminders.")
         return True

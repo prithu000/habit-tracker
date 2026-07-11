@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <title>Today's Mission</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #000000; color: #ffffff; }
+        
+        .wrapper { width: 100%; background-color: #000000; padding: 40px 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: #0a0a0a; }
+        
+        .header { text-align: center; padding: 32px 20px 24px; }
+        .logo { font-size: 24px; font-weight: 900; letter-spacing: -0.03em; background: linear-gradient(135deg, #ffffff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .date { font-size: 12px; color: #6b7280; margin-top: 8px; letter-spacing: 0.1em; }
+        
+        .content { padding: 20px; }
+        
+        .hero { text-align: center; padding: 32px 0; }
+        .hero-title { font-size: 36px; font-weight: 900; color: #ffffff; margin: 0 0 12px; letter-spacing: -0.03em; }
+        .hero-subtitle { font-size: 16px; color: #8b5cf6; font-weight: 600; }
+        
+        .stats-grid { display: table; width: 100%; margin: 32px 0; }
+        .stat-row { display: table-row; }
+        .stat-cell { display: table-cell; text-align: center; padding: 20px; background: rgba(139, 92, 246, 0.05); border-radius: 12px; margin: 4px; }
+        .stat-value { font-size: 32px; font-weight: 900; color: #8b5cf6; margin-bottom: 8px; }
+        .stat-label { font-size: 11px; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.1em; }
+        
+        .quote-card { background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.08)); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 16px; padding: 32px; margin: 32px 0; text-align: center; }
+        .quote-icon { font-size: 40px; margin-bottom: 16px; }
+        .quote-text { font-size: 22px; line-height: 1.5; color: #e5e7eb; font-weight: 600; margin: 0; }
+        
+        .priority-card { background: rgba(255, 255, 255, 0.02); border-left: 4px solid #8b5cf6; padding: 24px; margin: 24px 0; border-radius: 8px; }
+        .priority-label { font-size: 12px; text-transform: uppercase; color: #6b7280; letter-spacing: 0.1em; margin-bottom: 8px; }
+        .priority-text { font-size: 18px; color: #ffffff; font-weight: 700; }
+        
+        .cta { text-align: center; margin: 40px 0; }
+        .cta-button { display: inline-block; padding: 18px 48px; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #ffffff !important; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 16px; box-shadow: 0 8px 32px rgba(139, 92, 246, 0.4); }
+        
+        .footer { padding: 32px 20px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+        .footer-text { font-size: 12px; color: #6b7280; }
+        
+        @media only screen and (max-width: 600px) {
+            .hero-title { font-size: 28px !important; }
+            .stat-cell { display: block; margin: 8px 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <table class="container">
+            <tr>
+                <td>
+                    <div class="header">
+                        <div class="logo">YOU VS YOU</div>
+                        <div class="date">{{ date }}</div>
+                    </div>
+                    
+                    <div class="content">
+                        <div class="hero">
+                            <h1 class="hero-title">Good Morning,<br>{{ user_name }}</h1>
+                            <p class="hero-subtitle">Your daily mission awaits</p>
+                        </div>
+                        
+                        <table class="stats-grid">
+                            <tr class="stat-row">
+                                <td class="stat-cell" style="padding-right: 4px;">
+                                    <div class="stat-value">🔥 {{ current_streak }}</div>
+                                    <div class="stat-label">Day Streak</div>
+                                </td>
+                                <td class="stat-cell" style="padding-left: 4px;">
+                                    <div class="stat-value">{{ life_score }}</div>
+                                    <div class="stat-label">Life Score</div>
+                                </td>
+                            </tr>
+                        </table>
+                        
+                        <div class="quote-card">
+                            <div class="quote-icon">💎</div>
+                            <p class="quote-text">"{{ quote }}"</p>
+                        </div>
+                        
+                        <div class="priority-card">
+                            <div class="priority-label">Today's Challenge</div>
+                            <div class="priority-text">{{ tip }}</div>
+                        </div>
+                        
+                        <div class="cta">
+                            <a href="{{ dashboard_url }}" class="cta-button">
+                                Open YOU VS YOU
+                            </a>
+                        </div>
+                        
+                        <p style="text-align: center; color: #9ca3af; font-size: 14px; margin-top: 32px;">
+                            You don't become disciplined by waiting.<br>
+                            <strong style="color: #ffffff;">You become disciplined by acting.</strong>
+                        </p>
+                    </div>
+                    
+                    <div class="footer">
+                        <p class="footer-text">© {{ current_year }} YOU VS YOU</p>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>

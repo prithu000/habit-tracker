@@ -157,6 +157,8 @@ export function GlobalFocusController() {
       const timer = setTimeout(() => {
         stopSession();
       }, 3000);
+      
+      prevStatusRef.current = status;
       return () => clearTimeout(timer);
     }
     prevStatusRef.current = status;

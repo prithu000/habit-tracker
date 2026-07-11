@@ -3,6 +3,7 @@ import api from "../api";
 import { DASHBOARD_QUERY_KEY } from "./useDashboard";
 import { ApiResponse, Task } from "../../types/api";
 import { toast } from "react-hot-toast";
+import { useAuthStore } from "../stores/authStore";
 
 export interface Routine {
   id: string;
@@ -22,11 +23,14 @@ export interface Routine {
   tasks?: Task[]; // Returned in detail view
 }
 
-export const ROUTINES_QUERY_KEY = ["routines"];
+export const ROUTINES_QUERY_KEY = (userId: string) => ["routines", userId];
 
 export function useRoutines() {
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
+
   return useQuery({
-    queryKey: ROUTINES_QUERY_KEY,
+    queryKey: ROUTINES_QUERY_KEY(userId),
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnMount: false,
@@ -40,8 +44,11 @@ export function useRoutines() {
 }
 
 export function useRoutine(id: string) {
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
+
   return useQuery({
-    queryKey: [...ROUTINES_QUERY_KEY, id],
+    queryKey: [...ROUTINES_QUERY_KEY(userId), id],
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnMount: false,
@@ -57,6 +64,8 @@ export function useRoutine(id: string) {
 
 export function useCreateRoutine() {
   const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
   
   return useMutation({
     mutationFn: async (routineData: Partial<Routine>) => {
@@ -64,8 +73,8 @@ export function useCreateRoutine() {
       return data.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ROUTINES_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ROUTINES_QUERY_KEY(userId) });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY(userId) });
       toast.success("Routine created successfully.");
     },
     onError: () => {
@@ -76,6 +85,8 @@ export function useCreateRoutine() {
 
 export function useUpdateRoutine() {
   const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
   
   return useMutation({
     mutationFn: async ({ id, data }: { id: string, data: Partial<Routine> }) => {
@@ -83,9 +94,9 @@ export function useUpdateRoutine() {
       return response.data.data;
     },
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ROUTINES_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: [...ROUTINES_QUERY_KEY, variables.id] });
-      queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ROUTINES_QUERY_KEY(userId) });
+      queryClient.invalidateQueries({ queryKey: [...ROUTINES_QUERY_KEY(userId), variables.id] });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY(userId) });
       toast.success("Routine updated successfully.");
     },
     onError: () => {
@@ -96,14 +107,16 @@ export function useUpdateRoutine() {
 
 export function useDeleteRoutine() {
   const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
   
   return useMutation({
     mutationFn: async (id: string) => {
       await api.delete(`/routines/${id}/`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ROUTINES_QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ROUTINES_QUERY_KEY(userId) });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY(userId) });
       toast.success("Routine deleted.");
     },
     onError: () => {
@@ -112,11 +125,55 @@ export function useDeleteRoutine() {
   });
 }
 
+export function useArchiveRoutine() {
+  const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
+  
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.post(`/routines/${id}/archive/`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ROUTINES_QUERY_KEY(userId) });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY(userId) });
+      toast.success("Routine archived.");
+    },
+    onError: () => {
+      toast.error("Failed to archive routine.");
+    }
+  });
+}
+
+export function useDuplicateRoutine() {
+  const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
+  
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await api.post<ApiResponse<Routine>>(`/routines/${id}/duplicate/`);
+      return response.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ROUTINES_QUERY_KEY(userId) });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY(userId) });
+      toast.success("Routine duplicated successfully.");
+    },
+    onError: () => {
+      toast.error("Failed to duplicate routine.");
+    }
+  });
+}
+
 // ---- Tasks nested under Routines ----
 
 export function useRoutineTasks(routineId: string) {
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
+
   return useQuery({
-    queryKey: [...ROUTINES_QUERY_KEY, routineId, "tasks"],
+    queryKey: [...ROUTINES_QUERY_KEY(userId), routineId, "tasks"],
     queryFn: async () => {
       const { data } = await api.get<ApiResponse<Task[]>>(`/routines/${routineId}/tasks/`);
       return data.data || []; 
@@ -127,6 +184,8 @@ export function useRoutineTasks(routineId: string) {
 
 export function useCreateTask() {
   const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
   
   return useMutation({
     mutationFn: async ({ routineId, taskData }: { routineId: string, taskData: Partial<Task> }) => {
@@ -134,9 +193,9 @@ export function useCreateTask() {
       return data.data;
     },
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: [...ROUTINES_QUERY_KEY, variables.routineId] });
-      queryClient.invalidateQueries({ queryKey: [...ROUTINES_QUERY_KEY, variables.routineId, "tasks"] });
-      queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: [...ROUTINES_QUERY_KEY(userId), variables.routineId] });
+      queryClient.invalidateQueries({ queryKey: [...ROUTINES_QUERY_KEY(userId), variables.routineId, "tasks"] });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY(userId) });
       toast.success("Task added.");
     },
     onError: () => {
@@ -147,15 +206,17 @@ export function useCreateTask() {
 
 export function useDeleteTask() {
   const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
   
   return useMutation({
     mutationFn: async ({ routineId, taskId }: { routineId: string, taskId: string }) => {
       await api.delete(`/routines/${routineId}/tasks/${taskId}/`);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: [...ROUTINES_QUERY_KEY, variables.routineId] });
-      queryClient.invalidateQueries({ queryKey: [...ROUTINES_QUERY_KEY, variables.routineId, "tasks"] });
-      queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: [...ROUTINES_QUERY_KEY(userId), variables.routineId] });
+      queryClient.invalidateQueries({ queryKey: [...ROUTINES_QUERY_KEY(userId), variables.routineId, "tasks"] });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY(userId) });
       toast.success("Task deleted.");
     },
     onError: () => {

@@ -105,33 +105,40 @@ export function useReportData({
   const rightMetricLabel =
     timeframe === "daily" ? "Tasks" : "Days";
 
-  // Strict 5 Habits Breakdown in exact requested order:
-  const waterMl = dashboard?.widgets?.os_metrics?.water_ml ?? 0;
-  const waterGoal = dashboard?.widgets?.os_goals?.water_goal_ml || 3000;
-  const waterRate = Math.min(100, Math.round((waterMl / waterGoal) * 100) || Math.round(data?.executive_summary?.water_consistency ?? 0));
-
-  const studyMins = dashboard?.widgets?.os_metrics?.study_mins ?? 0;
-  const studyGoal = dashboard?.widgets?.os_goals?.study_goal_mins || 120;
-  const readingRate = Math.min(100, Math.round((studyMins / studyGoal) * 100) || Math.round(data?.executive_summary?.study_consistency ?? 0));
-
-  const workoutEx = dashboard?.widgets?.os_metrics?.workout_exercises ?? 0;
-  const workoutGoal = dashboard?.widgets?.os_goals?.workout_goal_exercises || 8;
-  const hypertrophyRate = Math.min(100, Math.round((workoutEx / workoutGoal) * 100) || Math.round(data?.executive_summary?.workout_consistency ?? 0));
-
-  const pomoSessions = dashboard?.widgets?.os_metrics?.pomodoro_sessions ?? 0;
-  const pomodoroRate = Math.min(100, Math.round((pomoSessions / 4) * 100) || Math.round(data?.executive_summary?.pomodoro_consistency ?? 0));
-
   const consistencyRate = Math.min(
     100,
     Math.round(dashboard?.today?.stats?.completion_rate ?? dashboard?.widgets?.day_progress?.completion_rate ?? data?.summary?.avg_completion_rate ?? data?.executive_summary?.completion_percentage ?? 0)
   );
 
+  const colorHexMap: Record<string, string> = {
+    "blue-400": "#60a5fa",
+    "cyan-400": "#22d3ee",
+    "rose-400": "#fb7185",
+    "purple-400": "#c084fc",
+    "emerald-400": "#34d399",
+    "amber-400": "#fbbf24",
+    "forge-400": "#a78bfa"
+  };
+
+  let dynamicHabits: any[] = [];
+  const dynamicAnalytics = data?.executive_summary?.dynamic_widget_analytics || data?.charts?.dynamic_widget_analytics;
+  
+  // SINGLE SOURCE OF TRUTH: dynamic_widget_analytics is populated exclusively from
+  // ReportSettings.selected_habit_breakdown on the backend. Never fall back to
+  // dashboard widgets or show_in_reports — that would break the separation of concerns.
+  if (Array.isArray(dynamicAnalytics) && dynamicAnalytics.length > 0) {
+    dynamicHabits = dynamicAnalytics.map((wa: any) => ({
+      name: wa.name,
+      val: wa.consistency_pct || 0,
+      color: colorHexMap[wa.color] || "#3b82f6"
+    }));
+  }
+  // If dynamicAnalytics is empty (no widgets selected in Report Settings),
+  // show only Overall Consistency — do NOT inject random dashboard widgets.
+
   const habitsList = [
-    { name: "Water Intake", val: waterRate, color: "#06b6d4" },
-    { name: "Deep Study", val: readingRate, color: "#3b82f6" },
-    { name: "Workout Progress", val: hypertrophyRate, color: "#8b5cf6" },
-    { name: "Pomodoro Consistency", val: pomodoroRate, color: "#f97316" },
     { name: "Overall Consistency", val: consistencyRate, color: "#10b981" },
+    ...dynamicHabits.slice(0, 4),
   ];
 
   // Weekly Line Chart Data

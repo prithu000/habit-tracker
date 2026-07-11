@@ -8,6 +8,7 @@ import {
   RotateCcw,
   Droplets,
   Plus,
+  Minus,
   Clock,
   GitCommit,
   Calendar as CalendarIcon,
@@ -16,19 +17,34 @@ import {
   BookOpen,
   Dumbbell,
   CheckCircle2,
+  Edit2,
 } from "lucide-react";
+import confetti from "canvas-confetti";
 import { useCustomizationStore, WidgetId } from "@/lib/stores/customizationStore";
 import { useFocusStore, TIMER_MODES } from "@/lib/stores/focusStore";
 import { DashboardData } from "@/types/api";
 import { cn } from "@/lib/utils/cn";
 import api from "@/lib/api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { DASHBOARD_QUERY_KEY } from "@/lib/queries/useDashboard";
+import { useAuthStore } from "@/lib/stores/authStore";
 
 interface DynamicWidgetsGridProps {
   dashboard: DashboardData;
   isFreeMode?: boolean;
 }
 
-export function DynamicWidgetsGrid({ dashboard, isFreeMode = false }: DynamicWidgetsGridProps) {
+import { memo } from "react";
+import { WidgetBuilderModal } from "./WidgetBuilderModal";
+
+export const DynamicWidgetsGrid = memo(function DynamicWidgetsGrid({ dashboard, isFreeMode = false }: DynamicWidgetsGridProps) {
+  const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
+
+  const [isBuilderOpen, setIsBuilderOpen] = useState(false);
+  const [widgetToEdit, setWidgetToEdit] = useState<any>(null);
+
   const { enabledWidgets, cardRadius } = useCustomizationStore();
   const activeWidgets = isFreeMode
     ? enabledWidgets.filter((w) => ["xp", "level", "streak"].includes(w))
@@ -60,29 +76,14 @@ export function DynamicWidgetsGrid({ dashboard, isFreeMode = false }: DynamicWid
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Water Tracker State
-  const [waterMl, setWaterMl] = useState(dashboard.widgets.os_metrics?.water_ml ?? 0);
-  const [waterGoal, setWaterGoal] = useState(dashboard.widgets.os_goals?.water_goal_ml ?? 3000);
+  // Water Tracker State (Strict Server State)
+  
 
-  // Workout / Study States
-  const [workoutDone, setWorkoutDone] = useState(dashboard.widgets.os_metrics?.workout_exercises ?? 0);
-  const [workoutGoal, setWorkoutGoal] = useState(dashboard.widgets.os_goals?.workout_goal_exercises ?? 8);
-
-  const [studyMins, setStudyMins] = useState(dashboard.widgets.os_metrics?.study_mins ?? 0);
-  const [studyGoal, setStudyGoal] = useState(dashboard.widgets.os_goals?.study_goal_mins ?? 120);
-
-  const updateMetric = async (key: string, val: number) => {
-    try {
-      await api.post("/analytics/metrics/", { [key]: val });
-    } catch (e) {}
-  };
-
-  const updateGoal = async (key: string, val: number) => {
-    try {
-      await api.post("/analytics/goals/", { [key]: val });
-    } catch (e) {}
-  };
-
+  
+  
+  const allWidgets = dashboard.widgets.custom_widgets || [];
+  const dashboardWidgets = allWidgets.filter((w: any) => w.show_on_dashboard);
+  
   const radiusClasses = {
     "16px": "rounded-[16px]",
     "20px": "rounded-[20px]",
@@ -100,13 +101,20 @@ export function DynamicWidgetsGrid({ dashboard, isFreeMode = false }: DynamicWid
           <h2 className="text-base font-display font-bold text-foreground flex items-center gap-2">
             Interactive Modular Widgets
             <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/5 text-muted-foreground border border-white/10">
-              {activeWidgets.length} ACTIVE
+              {activeWidgets.length + dashboardWidgets.length} ACTIVE
             </span>
           </h2>
           <p className="text-xs text-muted-foreground">
             Customize which productivity and lifestyle widgets appear here via Studio Control.
           </p>
         </div>
+        <button
+          onClick={() => { setWidgetToEdit(null); setIsBuilderOpen(true); }}
+          className="px-3 py-1.5 rounded-lg bg-forge-500/20 hover:bg-forge-500/30 text-forge-300 border border-forge-500/40 transition-colors text-xs font-semibold flex items-center gap-1.5"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          New Widget
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -214,151 +222,117 @@ export function DynamicWidgetsGrid({ dashboard, isFreeMode = false }: DynamicWid
             </div>
           </motion.div>
         )}
+        {/* Dynamic Custom Widgets */}
+        {dashboardWidgets.map((cw: any) => {
+          const colorMap: Record<string, string> = {
+            "blue-400": "bg-blue-500 text-blue-300 border-blue-500/40 shadow-[0_0_8px_#3b82f6]",
+            "cyan-400": "bg-cyan-500 text-cyan-300 border-cyan-500/40 shadow-[0_0_8px_#06b6d4]",
+            "rose-400": "bg-rose-500 text-rose-300 border-rose-500/40 shadow-[0_0_8px_#f43f5e]",
+            "purple-400": "bg-purple-500 text-purple-300 border-purple-500/40 shadow-[0_0_8px_#8b5cf6]",
+            "emerald-400": "bg-emerald-500 text-emerald-300 border-emerald-500/40 shadow-[0_0_8px_#10b981]",
+            "amber-400": "bg-amber-500 text-amber-300 border-amber-500/40 shadow-[0_0_8px_#f59e0b]",
+            "forge-400": "bg-forge-500 text-forge-300 border-forge-500/40 shadow-[0_0_8px_#8b5cf6]"
+          };
+          const baseColor = colorMap[cw.color] || colorMap["blue-400"];
+          const Icon = cw.icon === "droplets" ? Droplets : cw.icon === "dumbbell" ? Dumbbell : cw.icon === "book-open" ? BookOpen : cw.icon === "clock" ? Clock : CheckCircle2;
 
-        {/* 6. Water Tracker */}
-        {activeWidgets.includes("water_tracker") && (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                <Droplets className="w-4 h-4 text-cyan-400" />
-                Hydration Log
-              </span>
-              <select
-                value={waterGoal}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setWaterGoal(val);
-                  updateGoal("water_goal_ml", val);
-                }}
-                className="bg-black/40 border border-cyan-500/30 text-[10px] font-mono text-cyan-300 rounded px-1.5 py-0.5 focus:outline-none focus:border-cyan-400"
-              >
-                {[1000, 1500, 2000, 2500, 3000, 3500, 4000, 5000].map((g) => (
-                  <option key={g} value={g}>{g} ml</option>
-                ))}
-              </select>
-            </div>
-            <div className="my-2 flex items-baseline justify-between">
-              <div>
-                <span className="text-3xl font-display font-black text-white">{waterMl}</span>
-                <span className="text-xs font-mono text-muted-foreground ml-1">/ {waterGoal} ml</span>
-              </div>
-              <button
-                onClick={() => {
-                  const next = Math.min(waterGoal, waterMl + 250);
-                  setWaterMl(next);
-                  updateMetric("water_ml", next);
-                }}
-                className="p-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 transition-colors flex items-center gap-1 text-xs font-semibold"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                250ml
-              </button>
-            </div>
-            <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden mt-3">
-              <motion.div
-                className="bg-cyan-400 h-full rounded-full shadow-[0_0_8px_#06b6d4]"
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min(100, (waterMl / waterGoal) * 100)}%` }}
-              />
-            </div>
-          </motion.div>
-        )}
+          const isCompleted = cw.progress >= cw.goal;
 
-        {/* 7. Workout Progress */}
-        {activeWidgets.includes("workout_progress") && (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                <Dumbbell className="w-4 h-4 text-rose-400" />
-                Hypertrophy Push
-              </span>
-              <select
-                value={workoutGoal}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setWorkoutGoal(val);
-                  updateGoal("workout_goal_exercises", val);
-                }}
-                className="bg-black/40 border border-rose-500/30 text-[10px] font-mono text-rose-300 rounded px-1.5 py-0.5 focus:outline-none focus:border-rose-400"
-              >
-                {[5, 8, 10, 12, 15, 20].map((g) => (
-                  <option key={g} value={g}>{g} Ex</option>
-                ))}
-              </select>
-            </div>
-            <div className="my-2 flex items-baseline justify-between">
-              <div>
-                <span className="text-3xl font-display font-black text-white">{workoutDone}</span>
-                <span className="text-xs font-mono text-muted-foreground ml-1">/ {workoutGoal} Ex</span>
+          return (
+            <motion.div 
+              key={`cw-${cw.id}`} 
+              initial={{ opacity: 0, scale: 0.95 }} 
+              animate={{ opacity: 1, scale: 1 }} 
+              className={cn(cardCls, isCompleted && "shadow-[0_0_20px_rgba(255,255,255,0.05)] border-white/20")}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                  <Icon className={cn("w-4 h-4", `text-${cw.color}`)} style={{ color: cw.color === 'blue-400' ? '#60a5fa' : cw.color === 'cyan-400' ? '#22d3ee' : cw.color === 'rose-400' ? '#fb7185' : cw.color === 'purple-400' ? '#c084fc' : cw.color === 'emerald-400' ? '#34d399' : cw.color === 'amber-400' ? '#fbbf24' : '#a78bfa' }} />
+                  {cw.name}
+                </span>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => { setWidgetToEdit(cw); setIsBuilderOpen(true); }} className="text-white/30 hover:text-white transition-colors" title="Edit Widget">
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+                  <span className="text-[10px] font-mono text-muted-foreground bg-white/5 px-2 py-0.5 rounded-full border border-white/10 uppercase">
+                    Goal: {cw.goal} {cw.unit}
+                  </span>
+                </div>
               </div>
-              <button
-                onClick={() => {
-                  const next = Math.min(workoutGoal, workoutDone + 1);
-                  setWorkoutDone(next);
-                  updateMetric("workout_exercises", next);
-                }}
-                className="p-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 transition-colors text-xs font-semibold"
-              >
-                +1 Ex
-              </button>
-            </div>
-            <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden mt-3">
-              <motion.div
-                className="bg-rose-500 h-full rounded-full shadow-[0_0_8px_#f43f5e]"
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min(100, (workoutDone / workoutGoal) * 100)}%` }}
-              />
-            </div>
-          </motion.div>
-        )}
-
-        {/* 8. Study Progress */}
-        {activeWidgets.includes("study_progress") && (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                <BookOpen className="w-4 h-4 text-purple-400" />
-                Deep Study
-              </span>
-              <select
-                value={studyGoal}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setStudyGoal(val);
-                  updateGoal("study_goal_mins", val);
-                }}
-                className="bg-black/40 border border-purple-500/30 text-[10px] font-mono text-purple-300 rounded px-1.5 py-0.5 focus:outline-none focus:border-purple-400"
-              >
-                {[60, 120, 240, 360, 480, 720].map((g) => (
-                  <option key={g} value={g}>{g / 60} hr</option>
-                ))}
-              </select>
-            </div>
-            <div className="my-2 flex items-baseline justify-between">
-              <div>
-                <span className="text-3xl font-display font-black text-white">{studyMins}</span>
-                <span className="text-xs font-mono text-muted-foreground ml-1">/ {studyGoal} mins</span>
+              <div className="my-2 flex items-baseline justify-between">
+                <div>
+                  {isCompleted ? (
+                    <>
+                      <span className="text-xl font-display font-black text-white flex items-center gap-1">🎉 Goal Completed!</span>
+                      <span className="text-[11px] font-mono text-muted-foreground block mt-1">
+                        Completed at: {cw.completed_at ? new Date(cw.completed_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : "Just now"}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-3xl font-display font-black text-white">{cw.progress}</span>
+                      <span className="text-xs font-mono text-muted-foreground ml-1">/ {cw.goal} {cw.unit}</span>
+                    </>
+                  )}
+                </div>
+                
+                {isCompleted ? (
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] uppercase tracking-wider font-bold shadow-[0_0_10px_rgba(16,185,129,0.2)]">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    Completed Today
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={async () => {
+                        const next = Math.max(0, cw.progress - cw.step_size);
+                        await api.post(`/analytics/widgets/${cw.id}/log/`, { progress: next });
+                        queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY(userId) });
+                        queryClient.invalidateQueries({ queryKey: ["smartReports"] });
+                        queryClient.invalidateQueries({ queryKey: ["analytics"] });
+                      }}
+                      className={cn(
+                        "p-2 rounded-xl border transition-colors flex items-center justify-center",
+                        `bg-${cw.color.replace("-400", "-500")}/10 hover:bg-${cw.color.replace("-400", "-500")}/20 text-${cw.color} border-${cw.color.replace("-400", "-500")}/30`
+                      )}
+                      style={{ color: cw.color === 'blue-400' ? '#60a5fa' : cw.color === 'cyan-400' ? '#22d3ee' : cw.color === 'rose-400' ? '#fb7185' : cw.color === 'purple-400' ? '#c084fc' : cw.color === 'emerald-400' ? '#34d399' : cw.color === 'amber-400' ? '#fbbf24' : '#a78bfa', borderColor: cw.color === 'blue-400' ? 'rgba(96,165,250,0.3)' : cw.color === 'cyan-400' ? 'rgba(34,211,238,0.3)' : cw.color === 'rose-400' ? 'rgba(251,113,133,0.3)' : cw.color === 'purple-400' ? 'rgba(192,132,252,0.3)' : cw.color === 'emerald-400' ? 'rgba(52,211,153,0.3)' : cw.color === 'amber-400' ? 'rgba(251,191,36,0.3)' : 'rgba(167,139,250,0.3)', backgroundColor: cw.color === 'blue-400' ? 'rgba(96,165,250,0.1)' : cw.color === 'cyan-400' ? 'rgba(34,211,238,0.1)' : cw.color === 'rose-400' ? 'rgba(251,113,133,0.1)' : cw.color === 'purple-400' ? 'rgba(192,132,252,0.1)' : cw.color === 'emerald-400' ? 'rgba(52,211,153,0.1)' : cw.color === 'amber-400' ? 'rgba(251,191,36,0.1)' : 'rgba(167,139,250,0.1)' }}
+                    >
+                      <Minus className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={async () => {
+                        const next = Math.min(cw.goal, cw.progress + cw.step_size);
+                        if (next >= cw.goal && cw.progress < cw.goal) {
+                          confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                        }
+                        await api.post(`/analytics/widgets/${cw.id}/log/`, { progress: next });
+                        queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY(userId) });
+                        queryClient.invalidateQueries({ queryKey: ["smartReports"] });
+                        queryClient.invalidateQueries({ queryKey: ["analytics"] });
+                      }}
+                      className={cn(
+                        "px-3 py-2 rounded-xl border transition-colors text-xs font-semibold flex items-center gap-1",
+                        `bg-${cw.color.replace("-400", "-500")}/20 hover:bg-${cw.color.replace("-400", "-500")}/30 text-${cw.color} border-${cw.color.replace("-400", "-500")}/40`
+                      )}
+                      style={{ color: cw.color === 'blue-400' ? '#60a5fa' : cw.color === 'cyan-400' ? '#22d3ee' : cw.color === 'rose-400' ? '#fb7185' : cw.color === 'purple-400' ? '#c084fc' : cw.color === 'emerald-400' ? '#34d399' : cw.color === 'amber-400' ? '#fbbf24' : '#a78bfa', borderColor: cw.color === 'blue-400' ? 'rgba(96,165,250,0.4)' : cw.color === 'cyan-400' ? 'rgba(34,211,238,0.4)' : cw.color === 'rose-400' ? 'rgba(251,113,133,0.4)' : cw.color === 'purple-400' ? 'rgba(192,132,252,0.4)' : cw.color === 'emerald-400' ? 'rgba(52,211,153,0.4)' : cw.color === 'amber-400' ? 'rgba(251,191,36,0.4)' : 'rgba(167,139,250,0.4)', backgroundColor: cw.color === 'blue-400' ? 'rgba(96,165,250,0.2)' : cw.color === 'cyan-400' ? 'rgba(34,211,238,0.2)' : cw.color === 'rose-400' ? 'rgba(251,113,133,0.2)' : cw.color === 'purple-400' ? 'rgba(192,132,252,0.2)' : cw.color === 'emerald-400' ? 'rgba(52,211,153,0.2)' : cw.color === 'amber-400' ? 'rgba(251,191,36,0.2)' : 'rgba(167,139,250,0.2)' }}
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      {cw.step_size}
+                    </button>
+                  </div>
+                )}
               </div>
-              <button
-                onClick={() => {
-                  const next = Math.min(studyGoal, studyMins + 15);
-                  setStudyMins(next);
-                  updateMetric("study_mins", next);
-                }}
-                className="p-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 transition-colors text-xs font-semibold"
-              >
-                +15m
-              </button>
-            </div>
-            <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden mt-3">
-              <motion.div
-                className="bg-purple-500 h-full rounded-full shadow-[0_0_8px_#8b5cf6]"
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min(100, (studyMins / studyGoal) * 100)}%` }}
-              />
-            </div>
-          </motion.div>
-        )}
+              <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden mt-3">
+                <motion.div
+                  className="h-full rounded-full"
+                  style={{ backgroundColor: cw.color === 'blue-400' ? '#60a5fa' : cw.color === 'cyan-400' ? '#22d3ee' : cw.color === 'rose-400' ? '#fb7185' : cw.color === 'purple-400' ? '#c084fc' : cw.color === 'emerald-400' ? '#34d399' : cw.color === 'amber-400' ? '#fbbf24' : '#a78bfa' }}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(100, (cw.progress / cw.goal) * 100)}%` }}
+                />
+              </div>
+            </motion.div>
+          );
+        })}
 
         {/* 9. World Clock */}
         {activeWidgets.includes("clock") && (
@@ -462,6 +436,13 @@ export function DynamicWidgetsGrid({ dashboard, isFreeMode = false }: DynamicWid
           </motion.div>
         )}
       </div>
+
+      <WidgetBuilderModal 
+        isOpen={isBuilderOpen} 
+        onClose={() => setIsBuilderOpen(false)} 
+        widgetToEdit={widgetToEdit} 
+        existingWidgets={allWidgets}
+      />
     </div>
   );
-}
+});

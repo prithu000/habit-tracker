@@ -2,17 +2,22 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../api";
 import { DashboardData, ApiResponse } from "../../types/api";
 import { toast } from "react-hot-toast";
+import { useAuthStore } from "../stores/authStore";
 
-export const DASHBOARD_QUERY_KEY = ["dashboard"];
+export const DASHBOARD_QUERY_KEY = (userId: string) => ["dashboard", userId];
 
 export function useDashboard() {
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
+
   return useQuery({
-    queryKey: DASHBOARD_QUERY_KEY,
+    queryKey: DASHBOARD_QUERY_KEY(userId),
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
+    enabled: !!user,
     queryFn: async () => {
       const { data } = await api.get<ApiResponse<DashboardData>>("/dashboard/");
       return data.data; // unwrapping the standard ApiResponse envelope
@@ -23,6 +28,8 @@ export function useDashboard() {
 // Hook for completing a task with optimistic updates
 export function useCompleteTask() {
   const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
 
   return useMutation({
     mutationFn: async ({ taskId, note, mood }: { taskId: string, note?: string, mood?: number }) => {
@@ -35,14 +42,14 @@ export function useCompleteTask() {
     },
     onMutate: async (variables) => {
       // Cancel any outgoing refetches to avoid overwriting our optimistic update
-      await queryClient.cancelQueries({ queryKey: DASHBOARD_QUERY_KEY });
+      await queryClient.cancelQueries({ queryKey: DASHBOARD_QUERY_KEY(userId) });
 
       // Snapshot the previous value
-      const previousDashboard = queryClient.getQueryData<DashboardData>(DASHBOARD_QUERY_KEY);
+      const previousDashboard = queryClient.getQueryData<DashboardData>(DASHBOARD_QUERY_KEY(userId));
 
       // Optimistically update to the new value
       if (previousDashboard) {
-        queryClient.setQueryData<DashboardData>(DASHBOARD_QUERY_KEY, (old) => {
+        queryClient.setQueryData<DashboardData>(DASHBOARD_QUERY_KEY(userId), (old) => {
           if (!old) return old;
 
           // Deep clone for optimistic update
@@ -88,7 +95,7 @@ export function useCompleteTask() {
     onSuccess: (data, variables, context) => {
       // Instantly apply accurate server-computed XP and level stats
       if (data) {
-        queryClient.setQueryData<DashboardData>(DASHBOARD_QUERY_KEY, (old) => {
+        queryClient.setQueryData<DashboardData>(DASHBOARD_QUERY_KEY(userId), (old) => {
           if (!old) return old;
           const updated = JSON.parse(JSON.stringify(old)) as DashboardData;
           if (updated.widgets && updated.widgets.xp) {
@@ -119,7 +126,7 @@ export function useCompleteTask() {
     onError: (err, variables, context) => {
       // Rollback on error
       if (context?.previousDashboard) {
-        queryClient.setQueryData(DASHBOARD_QUERY_KEY, context.previousDashboard);
+        queryClient.setQueryData(DASHBOARD_QUERY_KEY(userId), context.previousDashboard);
       }
       toast.error("Failed to complete task.");
     },
@@ -127,7 +134,7 @@ export function useCompleteTask() {
       // Invalidate to ensure sync with server (though optimistic update handles the immediate UI)
       // For a perfectly snappy UI, we might NOT invalidate immediately, or rely on the server response to update the cache.
       // But invalidating is safer to ensure consistency of XP/streaks which the server calculates.
-      queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY(userId) });
     },
   });
 }
@@ -135,6 +142,8 @@ export function useCompleteTask() {
 // Hook for undoing a completion
 export function useUndoCompletion() {
   const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
 
   return useMutation({
     mutationFn: async (completionId: string) => {
@@ -142,7 +151,7 @@ export function useUndoCompletion() {
       return data.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY(userId) });
     },
     onError: () => {
       toast.error("Failed to undo task.");

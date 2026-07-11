@@ -40,6 +40,9 @@ export default function MonthlyAnalyticsPage() {
     rate: day.completion_rate,
   }));
 
+  // Check if user has any data
+  const hasData = days.some((day: any) => day.completion_rate > 0);
+
   return (
     <div className="space-y-6">
       <motion.div 
@@ -52,9 +55,23 @@ export default function MonthlyAnalyticsPage() {
           <p className="text-sm text-muted-foreground">Your task completion rate over the last 30 days.</p>
         </div>
         
-        <div className="h-[350px] w-full">
-          <MonthlyAnalyticsBarChart chartData={chartData} />
-        </div>
+        {!hasData ? (
+          <div className="h-[350px] w-full flex flex-col items-center justify-center text-center space-y-4 border-2 border-dashed border-white/10 rounded-2xl">
+            <div className="w-16 h-16 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+              <BarChart3 className="w-8 h-8 text-purple-400" />
+            </div>
+            <div>
+              <h4 className="text-base font-bold text-foreground mb-2">📊 Monthly Insights Locked</h4>
+              <p className="text-sm text-muted-foreground max-w-xs">
+                Your monthly insights will appear here after completing routines.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="h-[350px] w-full">
+            <MonthlyAnalyticsBarChart chartData={chartData} />
+          </div>
+        )}
       </motion.div>
     </div>
   );

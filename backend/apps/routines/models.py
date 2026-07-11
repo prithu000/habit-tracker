@@ -44,6 +44,8 @@ class Routine(BaseModel):
     sort_order = models.PositiveIntegerField(
         default=0, validators=[validate_sort_order]
     )
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         db_table = "routines_routine"
@@ -58,10 +60,14 @@ class Routine(BaseModel):
 
     @property
     def active_task_count(self) -> int:
+        if hasattr(self, 'annotated_task_count'):
+            return self.annotated_task_count
         return self.tasks.filter(is_active=True).count()
 
     @property
     def estimated_total_minutes(self) -> int:
+        if hasattr(self, 'annotated_total_minutes'):
+            return self.annotated_total_minutes
         from django.db.models import Sum
         result = self.tasks.filter(
             is_active=True, duration_minutes__isnull=False

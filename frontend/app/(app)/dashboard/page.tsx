@@ -13,7 +13,9 @@ import Link from "next/link";
 import { PageTransition } from "@/components/layouts/PageTransition";
 import { useCustomizationStore } from "@/lib/stores/customizationStore";
 import { useAuthStore } from "@/lib/stores/authStore";
+import { useRoutePrefetch } from "@/lib/hooks/useRoutePrefetch";
 import { cn } from "@/lib/utils/cn";
+import { useSubscription } from "@/lib/hooks/useSubscription";
 
 const DashboardAnalytics = dynamic(
   () => import("@/components/dashboard/DashboardAnalytics").then((m) => m.DashboardAnalytics),
@@ -29,7 +31,10 @@ export default function DashboardPage() {
   const { data: dashboard, isLoading, isError, error } = useDashboard();
   const { enabledWidgets, dashboardLayout, density, toggleRightSidebar } = useCustomizationStore();
   const { user } = useAuthStore();
-  const isFreeMode = user?.subscription_status === "expired" || user?.is_premium_active === false;
+  const { isFreeMode } = useSubscription();
+
+  // Prefetch routes for instant navigation
+  useRoutePrefetch();
 
   if (isLoading) {
     return (
@@ -94,13 +99,6 @@ export default function DashboardPage() {
         {/* Stats Bar */}
         <StatsBar stats={dashboard.today.stats} />
 
-        {/* 1. Neural Coach Section */}
-        {!isFreeMode && enabledWidgets.includes("ai_coach") && (
-          <section id="ai-coach-section" className="scroll-mt-20">
-            <AICoachWidget dashboard={dashboard} />
-          </section>
-        )}
-
         {/* 2. Today's Routines Section */}
         <section id="routines-section" className="scroll-mt-20 space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
@@ -162,6 +160,13 @@ export default function DashboardPage() {
         <section id="widgets-grid-section" className="scroll-mt-20 pt-0 md:pt-4">
           <DynamicWidgetsGrid dashboard={dashboard} isFreeMode={isFreeMode} />
         </section>
+
+        {/* 4. Neural Coach Section */}
+        {!isFreeMode && enabledWidgets.includes("ai_coach") && (
+          <section id="ai-coach-section" className="scroll-mt-20 pt-0 md:pt-4">
+            <AICoachWidget dashboard={dashboard} />
+          </section>
+        )}
 
         {/* 4. Performance & Analytics Studio */}
         {!isFreeMode && (

@@ -125,8 +125,8 @@ export default function LeaguesPage() {
       </div>
 
       {/* Scope Selector Tabs */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-2 bg-zinc-900/80 p-1.5 rounded-2xl border border-zinc-800">
+      <div className="w-full relative">
+        <div className="flex items-center gap-2 bg-zinc-900/80 p-1.5 rounded-2xl border border-zinc-800 overflow-x-auto scrollbar-hide snap-x w-full">
           {[
             { key: "global", label: "Global", icon: Globe },
             { key: "friends", label: "Friends", icon: Users },
@@ -141,13 +141,13 @@ export default function LeaguesPage() {
                 key={tab.key}
                 onClick={() => setScope(tab.key)}
                 className={cn(
-                  "px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all",
+                  "px-4 py-2 min-h-[44px] rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap snap-center shrink-0",
                   isSelected
                     ? "bg-purple-600 text-white shadow-md shadow-purple-500/20"
                     : "text-zinc-400 hover:text-white hover:bg-zinc-800/60"
                 )}
               >
-                <Icon className="w-3.5 h-3.5" />
+                <Icon className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                 <span>{tab.label}</span>
               </button>
             );

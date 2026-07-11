@@ -1,6 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useAuthStore } from "@/lib/stores/authStore";
+import { useRouter } from "next/navigation";
+import { usePaywallStore } from "@/lib/stores/paywallStore";
+import { useSubscription } from "@/lib/hooks/useSubscription";
+import { Loader2 } from "lucide-react";
 import { useEmailReminders, useCreateEmailReminder, useDeleteEmailReminder } from "@/lib/queries/useOS";
 import { Skeleton } from "@/components/shared/Skeleton";
 import { PageTransition } from "@/components/layouts/PageTransition";
@@ -20,6 +25,7 @@ import {
   Mail,
   Globe,
 } from "lucide-react";
+import { ResponsiveModal, ResponsiveModalFooter } from "@/components/ui/ResponsiveModal";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils/cn";
@@ -30,6 +36,30 @@ const YearHeatmap = dynamic(
 );
 
 export default function CalendarPage() {
+  const { user } = useAuthStore();
+  const router = useRouter();
+  const { openPaywall } = usePaywallStore();
+  const { isFreeMode } = useSubscription();
+
+  useEffect(() => {
+    if (isFreeMode) {
+      openPaywall();
+      router.replace("/pricing");
+    }
+
+  }, [isFreeMode, router, openPaywall]);
+  if (isFreeMode) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-purple-400" />
+      </div>
+    );
+  }
+
+  return <CalendarPageContent />;
+}
+
+function CalendarPageContent() {
   const { data: remindersData, isLoading: isRemindersLoading } = useEmailReminders();
   const createReminderMutation = useCreateEmailReminder();
   const deleteReminderMutation = useDeleteEmailReminder();
@@ -308,241 +338,223 @@ export default function CalendarPage() {
       </div>
 
       {/* Add Reminder Modal — Upgraded with Calendar/Time Picker & Live Email Preview */}
-      <AnimatePresence>
-        {showAddModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-zinc-900 border border-purple-500/30 rounded-3xl p-6 sm:p-8 max-w-4xl w-full shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto"
-            >
-              <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
-                    <Bell className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-black text-white">Schedule 1-Click Telemetry Alert</h3>
-                    <p className="text-xs text-zinc-400">Configure timezone-aware reminders with automated JWT tokens</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowAddModal(false)}
-                  className="w-8 h-8 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-400 flex items-center justify-center transition-colors"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Left Col: Form Controls */}
-                <form onSubmit={handleCreateReminder} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">
-                      Task Name / Objective
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={taskName}
-                      onChange={(e) => setTaskName(e.target.value)}
-                      placeholder="e.g. Complete Morning Workout & Cold Plunge"
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-purple-500"
-                    />
-                  </div>
-
-                  {/* Calendar Date Picker & Quick Pills */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
-                        <CalendarIcon className="w-3.5 h-3.5 text-purple-400" />
-                        Target Date
-                      </label>
-                      <div className="flex gap-1">
-                        {[
-                          { label: "Today", days: 0 },
-                          { label: "Tomorrow", days: 1 },
-                          { label: "+3 Days", days: 3 },
-                        ].map((pill) => {
-                          const target = new Date();
-                          target.setDate(target.getDate() + pill.days);
-                          const iso = target.toISOString().split("T")[0];
-                          return (
-                            <button
-                              key={pill.label}
-                              type="button"
-                              onClick={() => setDatePart(iso)}
-                              className={cn(
-                                "px-2 py-0.5 rounded text-[10px] font-bold transition-all",
-                                datePart === iso ? "bg-purple-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-white"
-                              )}
-                            >
-                              {pill.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                    <input
-                      type="date"
-                      required
-                      value={datePart}
-                      onChange={(e) => setDatePart(e.target.value)}
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-purple-500"
-                    />
-                  </div>
-
-                  {/* Time Picker & Timezone */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-purple-400" />
-                          Alert Time
-                        </label>
-                      </div>
-                      <input
-                        type="time"
-                        required
-                        value={timePart}
-                        onChange={(e) => setTimePart(e.target.value)}
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-purple-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                        <Globe className="w-3.5 h-3.5 text-purple-400" />
-                        Timezone
-                      </label>
-                      <select
-                        value={timezone}
-                        onChange={(e) => setTimezone(e.target.value)}
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-purple-500"
-                      >
-                        <option value={timezone}>{timezone} (Detected)</option>
-                        <option value="UTC">UTC (Universal Time)</option>
-                        <option value="America/New_York">America/New_York (EST/EDT)</option>
-                        <option value="America/Los_Angeles">America/Los_Angeles (PST/PDT)</option>
-                        <option value="Europe/London">Europe/London (GMT/BST)</option>
-                        <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
-                        <option value="Asia/Tokyo">Asia/Tokyo (JST)</option>
-                        <option value="Australia/Sydney">Australia/Sydney (AEST/AEDT)</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Priority & Recurring Selector */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">
-                        Priority Level
-                      </label>
-                      <select
-                        value={priority}
-                        onChange={(e) => setPriority(e.target.value)}
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-purple-500"
-                      >
-                        <option value="Low">Low</option>
-                        <option value="Medium">Medium</option>
-                        <option value="High">High</option>
-                        <option value="Urgent">Urgent</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">
-                        Recurrence Schedule
-                      </label>
-                      <select
-                        value={frequency}
-                        onChange={(e) => setFrequency(e.target.value)}
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-purple-500"
-                      >
-                        <option value="One Time">One Time</option>
-                        <option value="Daily">Daily</option>
-                        <option value="Weekly">Weekly</option>
-                        <option value="Monthly">Monthly</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="pt-4 flex items-center justify-end gap-3 border-t border-zinc-800">
-                    <button
-                      type="button"
-                      onClick={() => setShowAddModal(false)}
-                      className="px-5 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-xs transition-all"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={createReminderMutation.isPending}
-                      className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-xs transition-all shadow-lg shadow-purple-500/20"
-                    >
-                      {createReminderMutation.isPending ? "Scheduling..." : "Schedule Alert"}
-                    </button>
-                  </div>
-                </form>
-
-                {/* Right Col: Live Email Preview Box */}
-                <div className="bg-zinc-950 p-5 rounded-2xl border border-zinc-800 flex flex-col justify-between space-y-4 shadow-inner">
-                  <div>
-                    <div className="flex items-center justify-between border-b border-zinc-800 pb-3 mb-3">
-                      <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
-                        <Mail className="w-3.5 h-3.5 text-purple-400" />
-                        Live Production Email Preview
-                      </span>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">
-                        SMTP Ready
-                      </span>
-                    </div>
-                    <div className="text-xs text-zinc-400 mb-1 truncate">
-                      <strong className="text-zinc-500">Subject:</strong>{" "}
-                      <span className="text-white font-semibold">
-                        🔔 [{priority.toUpperCase()} PRIORITY] YOU VS YOU Reminder: {taskName || "Scheduled Task"}
-                      </span>
-                    </div>
-                    <div className="text-xs text-zinc-400 mb-4">
-                      <strong className="text-zinc-500">To:</strong> <span className="text-zinc-300">user@forge-os.com</span>
-                    </div>
-
-                    <div className="bg-zinc-900/90 p-4 rounded-xl border border-zinc-800/80 space-y-3 font-mono text-xs text-zinc-300">
-                      <div className="text-purple-400 font-bold border-b border-zinc-800 pb-2 flex items-center justify-between">
-                        <span>YOU VS YOU — SCHEDULED REMINDER</span>
-                        <span className="text-[10px] text-zinc-500">{frequency}</span>
-                      </div>
-                      <div>
-                        <span className="text-zinc-500">Task     :</span> <strong className="text-white">{taskName || "Complete Daily Routine"}</strong>
-                      </div>
-                      <div>
-                        <span className="text-zinc-500">Priority :</span> <span className={cn("font-bold", priority === "Urgent" ? "text-rose-400" : priority === "High" ? "text-amber-400" : "text-purple-400")}>{priority}</span>
-                      </div>
-                      <div>
-                        <span className="text-zinc-500">Alert At :</span> <span className="text-zinc-300">{datePart} @ {timePart} ({timezone})</span>
-                      </div>
-                      <div className="pt-2">
-                        <p className="text-[11px] text-zinc-400 font-sans leading-relaxed">
-                          This automated telemetry reminder includes a secure JWT completion token. You can mark this task 100% complete without opening the application.
-                        </p>
-                      </div>
-                      <div className="pt-2 flex justify-center">
-                        <div className="px-4 py-2.5 rounded-lg bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 font-bold text-center text-[11px] w-full flex items-center justify-center gap-1.5 shadow-sm">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          [ ⚡ Mark Completed with 1-Click ]
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-[10px] text-zinc-600 text-center italic">
-                    * Delivered reliably via Rahul Business SMTP service at exact local timezone trigger.
-                  </div>
-                </div>
-              </div>
-            </motion.div>
+      <ResponsiveModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        className="max-w-4xl bg-zinc-900 border-purple-500/30 p-0"
+        title="Schedule 1-Click Telemetry Alert"
+        description="Configure timezone-aware reminders with automated JWT tokens"
+        icon={
+          <div className="w-10 h-10 mx-auto rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
+            <Bell className="w-5 h-5" />
           </div>
-        )}
-      </AnimatePresence>
+        }
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 text-left">
+          {/* Left Col: Form Controls */}
+          <form onSubmit={handleCreateReminder} className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">
+                Task Name / Objective
+              </label>
+              <input
+                type="text"
+                required
+                value={taskName}
+                onChange={(e) => setTaskName(e.target.value)}
+                placeholder="e.g. Complete Morning Workout & Cold Plunge"
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-purple-500"
+              />
+            </div>
+
+            {/* Calendar Date Picker & Quick Pills */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <CalendarIcon className="w-3.5 h-3.5 text-purple-400" />
+                  Target Date
+                </label>
+                <div className="flex gap-1">
+                  {[
+                    { label: "Today", days: 0 },
+                    { label: "Tomorrow", days: 1 },
+                    { label: "+3 Days", days: 3 },
+                  ].map((pill) => {
+                    const target = new Date();
+                    target.setDate(target.getDate() + pill.days);
+                    const iso = target.toISOString().split("T")[0];
+                    return (
+                      <button
+                        key={pill.label}
+                        type="button"
+                        onClick={() => setDatePart(iso)}
+                        className={cn(
+                          "px-2 py-0.5 rounded text-[10px] font-bold transition-all",
+                          datePart === iso ? "bg-purple-600 text-white" : "bg-zinc-800 text-zinc-400 hover:text-white"
+                        )}
+                      >
+                        {pill.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <input
+                type="date"
+                required
+                value={datePart}
+                onChange={(e) => setDatePart(e.target.value)}
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-purple-500"
+              />
+            </div>
+
+            {/* Time Picker & Timezone */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-purple-400" />
+                    Alert Time
+                  </label>
+                </div>
+                <input
+                  type="time"
+                  required
+                  value={timePart}
+                  onChange={(e) => setTimePart(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <Globe className="w-3.5 h-3.5 text-purple-400" />
+                  Timezone
+                </label>
+                <select
+                  value={timezone}
+                  onChange={(e) => setTimezone(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-purple-500"
+                >
+                  <option value={timezone}>{timezone} (Detected)</option>
+                  <option value="UTC">UTC (Universal Time)</option>
+                  <option value="America/New_York">America/New_York (EST/EDT)</option>
+                  <option value="America/Los_Angeles">America/Los_Angeles (PST/PDT)</option>
+                  <option value="Europe/London">Europe/London (GMT/BST)</option>
+                  <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+                  <option value="Asia/Tokyo">Asia/Tokyo (JST)</option>
+                  <option value="Australia/Sydney">Australia/Sydney (AEST/AEDT)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Priority & Recurring Selector */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">
+                  Priority Level
+                </label>
+                <select
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-purple-500"
+                >
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                  <option value="Urgent">Urgent</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">
+                  Recurrence Schedule
+                </label>
+                <select
+                  value={frequency}
+                  onChange={(e) => setFrequency(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-purple-500"
+                >
+                  <option value="One Time">One Time</option>
+                  <option value="Daily">Daily</option>
+                  <option value="Weekly">Weekly</option>
+                  <option value="Monthly">Monthly</option>
+                </select>
+              </div>
+            </div>
+
+            <ResponsiveModalFooter className="pt-4 border-t border-zinc-800">
+              <button
+                type="submit"
+                disabled={createReminderMutation.isPending}
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-xs transition-all shadow-lg shadow-purple-500/20"
+              >
+                {createReminderMutation.isPending ? "Scheduling..." : "Schedule Alert"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAddModal(false)}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold text-xs transition-all"
+              >
+                Cancel
+              </button>
+            </ResponsiveModalFooter>
+          </form>
+
+          {/* Right Col: Live Email Preview Box */}
+          <div className="bg-zinc-950 p-5 rounded-2xl border border-zinc-800 flex flex-col justify-between space-y-4 shadow-inner">
+            <div>
+              <div className="flex items-center justify-between border-b border-zinc-800 pb-3 mb-3">
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-purple-400" />
+                  Live Production Email Preview
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                  SMTP Ready
+                </span>
+              </div>
+              <div className="text-xs text-zinc-400 mb-1 truncate">
+                <strong className="text-zinc-500">Subject:</strong>{" "}
+                <span className="text-white font-semibold">
+                  🔔 [{priority.toUpperCase()} PRIORITY] YOU VS YOU Reminder: {taskName || "Scheduled Task"}
+                </span>
+              </div>
+              <div className="text-xs text-zinc-400 mb-4">
+                <strong className="text-zinc-500">To:</strong> <span className="text-zinc-300">user@forge-os.com</span>
+              </div>
+
+              <div className="bg-zinc-900/90 p-4 rounded-xl border border-zinc-800/80 space-y-3 font-mono text-xs text-zinc-300">
+                <div className="text-purple-400 font-bold border-b border-zinc-800 pb-2 flex items-center justify-between">
+                  <span>YOU VS YOU — SCHEDULED REMINDER</span>
+                  <span className="text-[10px] text-zinc-500">{frequency}</span>
+                </div>
+                <div>
+                  <span className="text-zinc-500">Task     :</span> <strong className="text-white">{taskName || "Complete Daily Routine"}</strong>
+                </div>
+                <div>
+                  <span className="text-zinc-500">Priority :</span> <span className={cn("font-bold", priority === "Urgent" ? "text-rose-400" : priority === "High" ? "text-amber-400" : "text-purple-400")}>{priority}</span>
+                </div>
+                <div>
+                  <span className="text-zinc-500">Alert At :</span> <span className="text-zinc-300">{datePart} @ {timePart} ({timezone})</span>
+                </div>
+                <div className="pt-2">
+                  <p className="text-[11px] text-zinc-400 font-sans leading-relaxed">
+                    This automated telemetry reminder includes a secure JWT completion token. You can mark this task 100% complete without opening the application.
+                  </p>
+                </div>
+                <div className="pt-2 flex justify-center">
+                  <div className="px-4 py-2.5 rounded-lg bg-emerald-600/20 border border-emerald-500/40 text-emerald-400 font-bold text-center text-[11px] w-full flex items-center justify-center gap-1.5 shadow-sm">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    [ ⚡ Mark Completed with 1-Click ]
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="text-[10px] text-zinc-600 text-center italic">
+              * Delivered reliably via Rahul Business SMTP service at exact local timezone trigger.
+            </div>
+          </div>
+        </div>
+      </ResponsiveModal>
     </PageTransition>
   );
 }

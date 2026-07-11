@@ -11,7 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from apps.core.permissions import HasPremiumAccessPermission
 from apps.core.utils import get_user_local_date, get_week_bounds
-from apps.analytics.models import LifeScoreSnapshot, UserOSGoals, DailyOSMetrics
+from apps.analytics.models import LifeScoreSnapshot, UserOSGoals, DailyOSMetrics, WidgetLog
 from apps.completions.models import DayLog
 from apps.streaks.models import StreakRecord
 from apps.rewards.models import XPTransaction, UserBadge
@@ -106,6 +106,7 @@ def smart_reports_view(request):
         end_date = local_date
 
     logs = list(DayLog.objects.filter(user=user, log_date__range=[start_date, end_date]).order_by("log_date"))
+    widget_logs_qs = WidgetLog.objects.filter(widget__user=user, date__range=[start_date, end_date])
 
     if fmt in ["csv", "excel"]:
         response = HttpResponse(content_type="text/csv")
@@ -199,7 +200,19 @@ def smart_reports_view(request):
         "Ensure at least 1 routine completion on weekends to eliminate Monday friction and safeguard streaks."
     ]
 
-    full_report = ReportEngine.generate_full_report(user, timeframe, local_date, start_date, logs, os_metrics, life_data=life_data, disc_data=disc_data)
+    full_report = ReportEngine.generate_full_report(user, timeframe, local_date, start_date, logs, widget_logs_qs, life_data=life_data, disc_data=disc_data)
+    
+    dynamic_kpis = []
+    for w in full_report["executive_summary"]["dynamic_widget_analytics"]:
+        dynamic_kpis.append({
+            "label": f"Total {w['name']}",
+            "val": str(w['total_progress']),
+            "unit": w['unit'],
+            "change": f"{w['goal']} / day goal",
+            "trend": "neutral"
+        })
+    kpis.extend(dynamic_kpis)
+    
     unlock_status = ReportEngine.get_report_unlock_status(user)
     chart_data = full_report["charts"]
 

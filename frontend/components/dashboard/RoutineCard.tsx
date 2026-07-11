@@ -4,17 +4,27 @@ import { RoutineBlock } from "@/types/api";
 import { TaskItem } from "./TaskItem";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils/cn";
-import { ChevronDown, ChevronUp, Sparkles, CheckCircle2 } from "lucide-react";
-import { useState } from "react";
+import { ChevronDown, ChevronUp, Sparkles, CheckCircle2, MoreVertical, Edit2, Copy, Archive, Trash2 } from "lucide-react";
+import { format } from "date-fns";
+import { useState, memo } from "react";
 import { useCustomizationStore } from "@/lib/stores/customizationStore";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { DeleteRoutineModal } from "../routines/DeleteRoutineModal";
+import { useArchiveRoutine, useDuplicateRoutine } from "@/lib/queries/useRoutines";
+import { useRouter } from "next/navigation";
 
 interface RoutineCardProps {
   routine: RoutineBlock;
 }
 
-export function RoutineCard({ routine }: RoutineCardProps) {
+export const RoutineCard = memo(function RoutineCard({ routine }: RoutineCardProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const { cardRadius, animationsEnabled } = useCustomizationStore();
+  const router = useRouter();
+  
+  const { mutate: archiveRoutine } = useArchiveRoutine();
+  const { mutate: duplicateRoutine } = useDuplicateRoutine();
 
   const radiusClasses = {
     "16px": "rounded-[16px]",
@@ -103,6 +113,63 @@ export function RoutineCard({ routine }: RoutineCardProps) {
           >
             {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
+          
+          <div onClick={(e) => e.stopPropagation()}>
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger asChild>
+                <button
+                  className="w-8 h-8 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] text-muted-foreground hover:text-white transition-all flex items-center justify-center outline-none focus:ring-2 focus:ring-forge-500/50"
+                  aria-label="Routine options"
+                >
+                  <MoreVertical className="w-4 h-4" />
+                </button>
+              </DropdownMenu.Trigger>
+
+              <DropdownMenu.Portal>
+                <DropdownMenu.Content
+                  className="z-50 min-w-[200px] overflow-hidden rounded-xl border border-white/10 bg-[#121214]/95 p-1 text-white shadow-2xl backdrop-blur-xl animate-in fade-in-80 zoom-in-95"
+                  sideOffset={8}
+                  align="end"
+                >
+                  <DropdownMenu.Item 
+                    className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium outline-none transition-colors focus:bg-white/10"
+                    onClick={() => router.push(`/routines/${routine.id}`)}
+                  >
+                    <Edit2 className="w-4 h-4 text-forge-400" />
+                    Edit Routine
+                  </DropdownMenu.Item>
+                  
+                  <DropdownMenu.Item 
+                    className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium outline-none transition-colors focus:bg-white/10"
+                    onClick={() => duplicateRoutine(routine.id)}
+                  >
+                    <Copy className="w-4 h-4 text-emerald-400" />
+                    Duplicate Routine
+                  </DropdownMenu.Item>
+
+                  {routine.is_active && (
+                    <DropdownMenu.Item 
+                      className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium outline-none transition-colors focus:bg-white/10"
+                      onClick={() => archiveRoutine(routine.id)}
+                    >
+                      <Archive className="w-4 h-4 text-amber-400" />
+                      Archive Routine
+                    </DropdownMenu.Item>
+                  )}
+
+                  <DropdownMenu.Separator className="my-1 h-[1px] bg-white/10" />
+
+                  <DropdownMenu.Item 
+                    className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-red-400 outline-none transition-colors focus:bg-red-500/10"
+                    onClick={() => setIsDeleteModalOpen(true)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete Routine
+                  </DropdownMenu.Item>
+                </DropdownMenu.Content>
+              </DropdownMenu.Portal>
+            </DropdownMenu.Root>
+          </div>
         </div>
       </div>
 
@@ -135,6 +202,12 @@ export function RoutineCard({ routine }: RoutineCardProps) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <DeleteRoutineModal 
+        routine={routine}
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+      />
     </motion.div>
   );
-}
+});

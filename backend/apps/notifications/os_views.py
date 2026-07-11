@@ -9,6 +9,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from apps.core.permissions import HasPremiumAccessPermission
 from apps.notifications.models import EmailReminderSchedule
 from workers.tasks.os_tasks import report_issue_task, send_pomodoro_email_task
 
@@ -49,7 +50,7 @@ def support_report_view(request):
 
 
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumAccessPermission])
 def pomodoro_email_view(request):
     """
     POST /api/v1/notifications/pomodoro-email/
@@ -95,7 +96,7 @@ def pomodoro_email_view(request):
 
 
 @api_view(["GET", "POST", "DELETE"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumAccessPermission])
 def email_reminders_view(request):
     """
     GET/POST/DELETE /api/v1/notifications/reminders/

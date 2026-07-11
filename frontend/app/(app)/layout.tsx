@@ -6,6 +6,7 @@ import { Footer } from "@/components/layouts/Footer";
 import { StudioBackgroundWrapper } from "@/components/layouts/StudioBackgroundWrapper";
 import { MobileSidebarDrawer } from "@/components/layouts/MobileSidebarDrawer";
 import { BottomNav } from "@/components/layouts/BottomNav";
+import { DesktopExperienceBanner } from "@/components/shared/DesktopExperienceBanner";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
@@ -21,9 +22,8 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 
       {/* Main column: Topbar + scrollable content */}
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative z-10">
-        <div className="h-[64px] min-h-[64px] max-h-[64px] shrink-0 w-full relative z-30">
-          <Topbar />
-        </div>
+        {/* Topbar spacer for fixed positioning */}
+        <div className="h-[60px] min-h-[60px] max-h-[60px] shrink-0 w-full" />
 
         {/*
           Scrollable main content.
@@ -42,12 +42,16 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         >
           <div className="mx-auto max-w-7xl w-full min-h-[calc(100%-2rem)] flex flex-col justify-between gap-6 lg:gap-12">
             <div className="w-full flex-1">
+              <DesktopExperienceBanner />
               {children}
             </div>
             <Footer />
           </div>
         </main>
       </div>
+
+      {/* Fixed Topbar */}
+      <Topbar />
 
       {/* Studio Right Sidebar — full-width on mobile (existing behaviour), 380px on desktop */}
       <RightSidebar />

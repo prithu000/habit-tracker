@@ -38,6 +38,9 @@ class WeeklyInsight(BaseModel):
 class LifeScoreSnapshot(BaseModel):
     """
     Daily/Weekly snapshot of a user's 9-dimensional Life Score and overall classification.
+    
+    CRITICAL: All score defaults MUST be 0 to prevent inflated scores for new users.
+    ScoreEngine computes actual values based on user activity.
     """
     class Title(models.TextChoices):
         EXCELLENT = "Excellent", "Excellent"
@@ -55,18 +58,18 @@ class LifeScoreSnapshot(BaseModel):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="life_scores")
     date = models.DateField(db_index=True)
-    fitness_score = models.PositiveIntegerField(default=75)
-    learning_score = models.PositiveIntegerField(default=75)
-    work_score = models.PositiveIntegerField(default=75)
-    mental_health_score = models.PositiveIntegerField(default=75)
-    health_score = models.PositiveIntegerField(default=75)
-    sleep_score = models.PositiveIntegerField(default=75)
-    finance_score = models.PositiveIntegerField(default=75)
-    personal_score = models.PositiveIntegerField(default=75)
-    discipline_score = models.PositiveIntegerField(default=75)
-    overall_score = models.PositiveIntegerField(default=75)
-    title = models.CharField(max_length=30, choices=Title.choices, default=Title.GOOD)
-    ai_analysis = models.TextField(blank=True, default="Your life systems are running with solid equilibrium.")
+    fitness_score = models.PositiveIntegerField(default=0)
+    learning_score = models.PositiveIntegerField(default=0)
+    work_score = models.PositiveIntegerField(default=0)
+    mental_health_score = models.PositiveIntegerField(default=0)
+    health_score = models.PositiveIntegerField(default=0)
+    sleep_score = models.PositiveIntegerField(default=0)
+    finance_score = models.PositiveIntegerField(default=0)
+    personal_score = models.PositiveIntegerField(default=0)
+    discipline_score = models.PositiveIntegerField(default=0)
+    overall_score = models.PositiveIntegerField(default=0)
+    title = models.CharField(max_length=30, choices=Title.choices, default=Title.INITIALIZING)
+    ai_analysis = models.TextField(blank=True, default="Complete your first day to unlock your Personal Operating System analytics.")
     improvement_suggestions = models.JSONField(default=list, blank=True)
 
     class Meta:
@@ -132,3 +135,52 @@ class DailyOSMetrics(BaseModel):
     def __str__(self):
         return f"{self.user.email} — OS Metrics for {self.date}"
 
+
+class CustomWidget(BaseModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="custom_widgets")
+    name = models.CharField(max_length=100)
+    goal = models.PositiveIntegerField()
+    unit = models.CharField(max_length=50)
+    icon = models.CharField(max_length=50, default="check")
+    color = models.CharField(max_length=50, default="blue")
+    step_size = models.PositiveIntegerField(default=1)
+    
+    reset_daily = models.BooleanField(default=True)
+    show_in_reports = models.BooleanField(default=True)
+    show_on_dashboard = models.BooleanField(default=True)
+    
+    display_order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = "analytics_customwidget"
+        ordering = ["display_order", "created_at"]
+
+    def __str__(self):
+        return f"{self.user.email} — {self.name} ({self.goal} {self.unit})"
+
+
+class WidgetLog(BaseModel):
+    widget = models.ForeignKey(CustomWidget, on_delete=models.CASCADE, related_name="logs")
+    date = models.DateField(db_index=True)
+    progress = models.PositiveIntegerField(default=0)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = "analytics_widgetlog"
+        unique_together = [("widget", "date")]
+        ordering = ["-date"]
+
+    def __str__(self):
+        return f"{self.widget.name} on {self.date}: {self.progress}/{self.widget.goal}"
+
+
+class ReportSettings(BaseModel):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="report_settings")
+    selected_habit_breakdown = models.JSONField(default=list, blank=True)
+
+    class Meta:
+        db_table = "analytics_reportsettings"
+
+    def __str__(self):
+        return f"{self.user.email} — Report Settings"

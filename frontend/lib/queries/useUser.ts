@@ -26,9 +26,7 @@ export function useUserProfile() {
     enabled: isAuthenticated,
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
+    refetchOnWindowFocus: "always",
   });
 }
 
@@ -37,9 +35,7 @@ export function useUserStats() {
     queryKey: [...USER_QUERY_KEY, "stats"],
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
+    refetchOnWindowFocus: "always",
     queryFn: async () => {
       const { data } = await api.get<ApiResponse<any>>("/users/me/stats/");
       return data.data;

@@ -1,13 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { memo } from "react";
 
 interface GreetingHeaderProps {
   displayName: string;
   identityStatement: string;
 }
 
-export function GreetingHeader({ displayName, identityStatement }: GreetingHeaderProps) {
+export const GreetingHeader = memo(function GreetingHeader({ displayName, identityStatement }: GreetingHeaderProps) {
   const hour = new Date().getHours();
   let greeting = "Good evening";
   if (hour < 12) greeting = "Good morning";
@@ -34,4 +35,4 @@ export function GreetingHeader({ displayName, identityStatement }: GreetingHeade
       )}
     </motion.div>
   );
-}
+});

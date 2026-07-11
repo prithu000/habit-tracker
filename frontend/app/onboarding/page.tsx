@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuthStore } from "@/lib/stores/authStore";
 import api from "@/lib/api";
 import { toast } from "react-hot-toast";
+import { WelcomeTransition } from "@/components/shared/WelcomeTransition";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -13,9 +14,15 @@ export default function OnboardingPage() {
   
   const [step, setStep] = useState(1);
   const [identityStatement, setIdentityStatement] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [timePreference, setTimePreference] = useState("morning");
   const [timezone, setTimezone] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showTransition, setShowTransition] = useState(false);
+  
+  // Step-specific validation errors
+  const [step1Errors, setStep1Errors] = useState<{name?: string; identity?: string}>({});
+  const [step2Errors, setStep2Errors] = useState<{time?: string}>({});
 
   useEffect(() => {
     try {
@@ -28,30 +35,92 @@ export default function OnboardingPage() {
     if (user?.onboarding_completed) {
       router.push("/dashboard");
     }
+    
+    // Set display name from user if available
+    if (user?.display_name) {
+      setDisplayName(user.display_name);
+    }
   }, [user, router]);
 
-  const handleComplete = async () => {
+  // Validate Step 1 fields only
+  const validateStep1 = (): boolean => {
+    const errors: {name?: string; identity?: string} = {};
+    
+    if (!displayName.trim()) {
+      errors.name = "Name is required";
+    } else if (displayName.trim().length < 2) {
+      errors.name = "Name must be at least 2 characters";
+    }
+    
     if (!identityStatement.trim()) {
-      toast.error("Identity statement is required.");
+      errors.identity = "Identity statement is required";
+    } else if (identityStatement.trim().length < 10) {
+      errors.identity = "Identity statement must be at least 10 characters";
+    }
+    
+    setStep1Errors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // Validate Step 2 fields only
+  const validateStep2 = (): boolean => {
+    const errors: {time?: string} = {};
+    
+    if (!timePreference) {
+      errors.time = "Please select your preferred work time";
+    }
+    
+    setStep2Errors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleStep1Next = () => {
+    if (validateStep1()) {
+      // Clear step 1 errors and move to step 2
+      setStep1Errors({});
+      setStep(2);
+    }
+  };
+
+  const handleStep2Back = () => {
+    // Clear step 2 errors when going back
+    setStep2Errors({});
+    setStep(1);
+  };
+
+  const handleComplete = async () => {
+    // Validate step 2 before submission
+    if (!validateStep2()) {
       return;
     }
 
     setIsLoading(true);
     try {
       await api.post("/users/me/onboarding/complete/", {
+        display_name: displayName,
         identity_statement: identityStatement,
         time_preference: timePreference,
         timezone: timezone,
       });
 
-      updateUser({ onboarding_completed: true, identity_statement: identityStatement });
-      toast.success("Welcome to YOU VS YOU.");
-      router.push("/dashboard");
+      updateUser({ 
+        onboarding_completed: true, 
+        identity_statement: identityStatement,
+        display_name: displayName
+      });
+      
+      // Show welcome transition screen instead of immediate redirect
+      setShowTransition(true);
     } catch (error: any) {
       toast.error(error.userMessage || error.response?.data?.error?.message || "Failed to complete onboarding. Please try again.");
       setIsLoading(false);
     }
   };
+
+  // Show transition screen if onboarding completed
+  if (showTransition) {
+    return <WelcomeTransition />;
+  }
 
   return (
     <div className="w-full max-w-xl mx-auto">
@@ -78,26 +147,41 @@ export default function OnboardingPage() {
               </p>
             </div>
 
-            <div className="space-y-4 mb-10">
-              <label className="block text-sm font-medium text-foreground mb-2">
-                I am the type of person who...
-              </label>
-              <textarea
-                value={identityStatement}
-                onChange={(e) => setIdentityStatement(e.target.value)}
-                placeholder="e.g. shows up every day, no matter what."
-                className="forge-input h-32 resize-none text-lg leading-relaxed placeholder:text-muted-foreground/50"
-              />
+            <div className="space-y-4 mb-8">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  What should we call you?
+                </label>
+                <input
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="Your name"
+                  className="forge-input text-lg"
+                />
+                {step1Errors.name && (
+                  <p className="text-red-400 text-sm mt-2">{step1Errors.name}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  I am the type of person who...
+                </label>
+                <textarea
+                  value={identityStatement}
+                  onChange={(e) => setIdentityStatement(e.target.value)}
+                  placeholder="e.g. shows up every day, no matter what."
+                  className="forge-input h-32 resize-none text-lg leading-relaxed placeholder:text-muted-foreground/50"
+                />
+                {step1Errors.identity && (
+                  <p className="text-red-400 text-sm mt-2">{step1Errors.identity}</p>
+                )}
+              </div>
             </div>
 
             <button
-              onClick={() => {
-                if (!identityStatement.trim()) {
-                  toast.error("Please set an identity statement.");
-                  return;
-                }
-                setStep(2);
-              }}
+              onClick={handleStep1Next}
               className="btn-forge w-full py-3 text-lg"
             >
               Continue
@@ -147,7 +231,7 @@ export default function OnboardingPage() {
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <button
-                onClick={() => setStep(1)}
+                onClick={handleStep2Back}
                 className="btn-ghost flex-1 py-3"
               >
                 Back

@@ -5,6 +5,7 @@ import { useAuthStore } from "@/lib/stores/authStore";
 import { usePaywallStore } from "@/lib/stores/paywallStore";
 import { useRouter, usePathname } from "next/navigation";
 import { Sparkles, CheckCircle2, Lock, ArrowRight, ShieldCheck } from "lucide-react";
+import { ResponsiveModal } from "@/components/ui/ResponsiveModal";
 
 export function PaywallModal() {
   const { user } = useAuthStore();
@@ -42,35 +43,38 @@ export function PaywallModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-[#0a0a0c]/85 backdrop-blur-xl animate-in fade-in duration-300 overflow-y-auto">
-      {/* Background ambient glow */}
-      <div className="absolute w-[500px] h-[500px] bg-forge-500/10 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none translate-x-32" />
-
-      {/* Modal Container */}
-      <div className="relative w-full max-w-xl bg-[#121216] border border-white/10 rounded-3xl p-6 sm:p-8 md:p-10 shadow-[0_20px_70px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col items-center text-center">
+    <ResponsiveModal
+      isOpen={shouldShow}
+      onClose={handleContinueFree}
+      hideCloseButton={true}
+      className="bg-[#121216] max-w-xl p-0"
+    >
+      <div className="relative overflow-hidden flex flex-col items-center text-center p-6 sm:p-8 md:p-10">
+        {/* Background ambient glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-forge-500/10 rounded-full blur-[140px] pointer-events-none" />
+        <div className="absolute top-1/2 left-[80%] -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
         
         {/* Top Lock Badge */}
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/20 via-forge-500/20 to-purple-600/20 border border-amber-500/30 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(245,158,11,0.2)]">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/20 via-forge-500/20 to-purple-600/20 border border-amber-500/30 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(245,158,11,0.2)] relative z-10">
           <Lock className="w-8 h-8 text-amber-400 animate-pulse" />
         </div>
 
         {/* Header */}
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-semibold mb-3">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-semibold mb-3 relative z-10">
           <Sparkles className="w-3.5 h-3.5" />
           <span>Subscription Gating</span>
         </div>
 
-        <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-3">
+        <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-3 relative z-10">
           Your Premium Trial Has Ended
         </h2>
 
-        <p className="text-sm sm:text-base text-muted-foreground max-w-md mb-8 leading-relaxed">
+        <p className="text-sm sm:text-base text-muted-foreground max-w-md mb-8 leading-relaxed relative z-10">
           You can still continue tracking your daily routines for free.
         </p>
 
         {/* Benefits Box */}
-        <div className="w-full bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4 sm:p-5 mb-8 text-left space-y-3">
+        <div className="w-full bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4 sm:p-5 mb-8 text-left space-y-3 relative z-10">
           <div className="text-xs font-bold uppercase tracking-wider text-forge-400 mb-2">
             Upgrade to unlock:
           </div>
@@ -111,7 +115,7 @@ export function PaywallModal() {
         </div>
 
         {/* Actions */}
-        <div className="w-full flex flex-col sm:flex-row items-center gap-3">
+        <div className="w-full flex flex-col sm:flex-row-reverse items-center gap-3 relative z-10">
           <button
             onClick={handleUpgrade}
             className="w-full sm:flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-forge-500 to-purple-600 hover:from-forge-600 hover:to-purple-700 text-white font-bold text-sm sm:text-base shadow-[0_0_30px_rgba(139,92,246,0.4)] hover:shadow-[0_0_45px_rgba(139,92,246,0.6)] transition-all flex items-center justify-center gap-2 group"
@@ -129,11 +133,11 @@ export function PaywallModal() {
         </div>
 
         {/* Security / Guarantee Footer */}
-        <div className="mt-6 flex items-center gap-2 text-[11px] text-muted-foreground">
+        <div className="mt-6 flex items-center gap-2 text-[11px] text-muted-foreground relative z-10">
           <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>Secure Razorpay checkout · Cancel anytime from Account Settings</span>
+          <span>Secure Razorpay checkout · Cancel anytime</span>
         </div>
       </div>
-    </div>
+    </ResponsiveModal>
   );
 }

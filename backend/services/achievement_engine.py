@@ -385,14 +385,7 @@ class AchievementEngine:
                     )
 
                     # Send notification
-                    from apps.notifications.models import Notification
-                    Notification.objects.create(
-                        user=user,
-                        title=f"🏅 Badge Unlocked: {rule['name']}",
-                        body=rule["description"],
-                        notif_type=Notification.NotifType.BADGE,
-                        action_url="/achievements",
-                    )
+                                        pass
 
                     logger.info("Badge '%s' awarded to user %s", slug, user.id)
 

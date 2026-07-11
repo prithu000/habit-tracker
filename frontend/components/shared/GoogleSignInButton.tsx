@@ -30,38 +30,50 @@ export function GoogleSignInButton({ label = "Continue with Google" }: { label?:
   const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
 
   const handleGoogleResponse = async (response: any) => {
-    const isDev = process.env.NODE_ENV === "development";
-    if (isDev) {
-      console.log("🔍 [GIS Diagnostics] Credential Callback Executed! Token length:", response?.credential?.length);
-    }
-
     if (!response || !response.credential) {
-      toast.error("Failed to receive Google credentials.");
+      toast.error("Unable to connect. Please try again.");
       return;
     }
+    
     setIsLoading(true);
-    try {
-      if (isDev) {
-        console.log("🔍 [GIS Diagnostics] Sending POST /api/v1/auth/google/...");
+    
+    // Premium onboarding flow
+    const messages = [
+      { text: "Welcome back 👋", delay: 0 },
+      { text: "Preparing your Personal Operating System...", delay: 800 },
+      { text: "Syncing your routines...", delay: 1600 },
+      { text: "Loading your AI Coach...", delay: 2400 },
+      { text: "Almost ready...", delay: 3200 },
+    ];
+    
+    const toastId = toast.loading(messages[0].text);
+    let currentIndex = 0;
+    
+    const messageInterval = setInterval(() => {
+      currentIndex++;
+      if (currentIndex < messages.length) {
+        toast.loading(messages[currentIndex].text, { id: toastId });
       }
+    }, 800);
+    
+    try {
       const { data: responseEnvelope } = await api.post<ApiResponse<AuthResponse>>("/auth/google/", {
         credential: response.credential,
       });
 
+      clearInterval(messageInterval);
       const authData = responseEnvelope.data;
-      if (isDev) {
-        console.log("✅ [GIS Diagnostics] Backend Verification Success! User:", authData.user.email);
-        console.log("✅ [GIS Diagnostics] JWT Access Token Issued:", authData.access ? "YES (Valid)" : "NO");
-      }
       setAuth(authData.user, { access: authData.access, refresh: authData.refresh });
       useAuthStore.getState().setHasHydrated(true);
-      toast.success(`🌐 Google OAuth Verified! Welcome, ${authData.user.display_name || "User"}.`);
+      
+      toast.success(`Welcome to YOU VS YOU.`, { id: toastId, duration: 3000 });
 
       const targetPath = authData.user.onboarding_completed ? "/dashboard" : "/onboarding";
       router.replace(targetPath);
     } catch (err: any) {
-      console.error("GOOGLE OAUTH ERROR:", err);
-      toast.error(err.userMessage || err.response?.data?.error?.message || err.response?.data?.detail || "Unable to sign in with Google. Please try again.");
+      clearInterval(messageInterval);
+      console.error("Sign in error:", err);
+      toast.error(err.userMessage || err.response?.data?.error?.message || err.response?.data?.detail || "Unable to sign in. Please try again.", { id: toastId });
     } finally {
       setIsLoading(false);
     }
@@ -79,11 +91,7 @@ export function GoogleSignInButton({ label = "Continue with Google" }: { label?:
         const msg = `Origin Mismatch: ${currentOrigin} is NOT in Authorized JavaScript Origins (${AUTHORIZED_ORIGINS.join(", ")}).`;
         setOriginError(msg);
         console.error("🚨 [GIS Diagnostics] " + msg);
-      } else {
-        console.log("✅ [GIS Diagnostics] Runtime Origin Authorized:", currentOrigin);
       }
-      console.log("🔍 [GIS Diagnostics] Client ID:", CLIENT_ID);
-      console.log("🔍 [GIS Diagnostics] Already Initialized:", window.__google_gis_initialized || isInitializedRef.current);
     }
 
     let scriptElement: HTMLScriptElement | null = null;
@@ -91,23 +99,12 @@ export function GoogleSignInButton({ label = "Continue with Google" }: { label?:
     const setupGoogle = () => {
       if (!window.google?.accounts?.id || !buttonDivRef.current) return;
 
-      // Requirement 1: Ensure initialize() executes exactly once using useRef guard & global state
-      if (!window.__google_gis_initialized && !isInitializedRef.current) {
-        window.google.accounts.id.initialize({
-          client_id: CLIENT_ID,
-          callback: handleGoogleResponse,
-        });
-        window.__google_gis_initialized = true;
-        isInitializedRef.current = true;
-        window.__google_gis_init_count = (window.__google_gis_init_count || 0) + 1;
-        if (isDev) {
-          console.log(`✅ [GIS Diagnostics] google.accounts.id.initialize() executed. Total calls: ${window.__google_gis_init_count}`);
-        }
-      } else if (isDev) {
-        console.log("⏭️ [GIS Diagnostics] Skipping duplicate initialize() call.");
-      }
+      // Always initialize to update the callback reference and ensure GIS is ready for this specific component instance
+      window.google.accounts.id.initialize({
+        client_id: CLIENT_ID,
+        callback: handleGoogleResponse,
+      });
 
-      // Requirement 1: Ensure renderButton() executes exactly once per DOM node & prevent duplicate rendering
       if (!isRenderedRef.current && buttonDivRef.current) {
         buttonDivRef.current.innerHTML = "";
         window.google.accounts.id.renderButton(buttonDivRef.current, {
@@ -118,10 +115,6 @@ export function GoogleSignInButton({ label = "Continue with Google" }: { label?:
           text: "continue_with",
         });
         isRenderedRef.current = true;
-        window.__google_gis_render_count = (window.__google_gis_render_count || 0) + 1;
-        if (isDev) {
-          console.log(`✅ [GIS Diagnostics] google.accounts.id.renderButton() executed. Total calls: ${window.__google_gis_render_count}`);
-        }
       }
     };
 
@@ -166,7 +159,7 @@ export function GoogleSignInButton({ label = "Continue with Google" }: { label?:
       {isLoading ? (
         <div className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-full bg-zinc-900 border border-zinc-700 text-white text-xs font-semibold">
           <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          <span>Verifying with Google Identity...</span>
+          <span>Setting up your account...</span>
         </div>
       ) : (
         <div ref={buttonDivRef} className="w-full flex justify-center min-h-[40px]" />

@@ -26,6 +26,7 @@ import {
   BarChart3,
   Calendar,
 } from "lucide-react";
+import { ResponsiveModal, ResponsiveModalFooter } from "@/components/ui/ResponsiveModal";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils/cn";
@@ -454,119 +455,103 @@ export default function LifeScorePage() {
       </div>
 
       {/* Interactive Score Breakdown Modal */}
-      <AnimatePresence>
-        {showBreakdownModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-zinc-900 border border-purple-500/30 rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto space-y-6"
-            >
-              <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
-                    <BarChart3 className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-black text-white">Life Score 2.0 Calculation Engine</h3>
-                    <p className="text-xs text-zinc-400">Exact mathematical synthesis & anti-gaming telemetry</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowBreakdownModal(false)}
-                  className="w-8 h-8 rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-400 flex items-center justify-center transition-colors"
-                >
-                  ✕
-                </button>
-              </div>
+      <ResponsiveModal
+        isOpen={showBreakdownModal}
+        onClose={() => setShowBreakdownModal(false)}
+        className="max-w-2xl bg-zinc-900 border-purple-500/30 p-0"
+        title="Life Score 2.0 Calculation Engine"
+        description="Exact mathematical synthesis & anti-gaming telemetry"
+        icon={
+          <div className="w-10 h-10 mx-auto rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
+            <BarChart3 className="w-5 h-5" />
+          </div>
+        }
+      >
+        <div className="space-y-6 text-left">
+          {/* Score summary badge */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 bg-zinc-950 p-4 rounded-2xl border border-zinc-800 text-center">
+            <div>
+              <span className="text-[10px] font-bold text-zinc-500 uppercase block">Overall Score</span>
+              <span className="text-xl sm:text-2xl font-black text-white">{overall_score}</span>
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-zinc-500 uppercase block">Data Confidence</span>
+              <span className="text-xl sm:text-2xl font-black text-emerald-400">{confidence_pct || 95}%</span>
+            </div>
+            <div>
+              <span className="text-[10px] font-bold text-zinc-500 uppercase block">7-Day Trend</span>
+              <span className="text-xl sm:text-2xl font-black text-purple-400">
+                {trend ? (trend.change > 0 ? `+${trend.change}` : trend.change) : "+4.2"}
+              </span>
+            </div>
+          </div>
 
-              {/* Score summary badge */}
-              <div className="grid grid-cols-3 gap-4 bg-zinc-950 p-4 rounded-2xl border border-zinc-800 text-center">
-                <div>
-                  <span className="text-[10px] font-bold text-zinc-500 uppercase block">Overall Score</span>
-                  <span className="text-2xl font-black text-white">{overall_score}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-zinc-500 uppercase block">Data Confidence</span>
-                  <span className="text-2xl font-black text-emerald-400">{confidence_pct || 95}%</span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-zinc-500 uppercase block">7-Day Trend</span>
-                  <span className="text-2xl font-black text-purple-400">
-                    {trend ? (trend.change > 0 ? `+${trend.change}` : trend.change) : "+4.2"}
+          {/* Additions */}
+          <div className="space-y-3">
+            <h4 className="text-[10px] sm:text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+              <Award className="w-4 h-4 shrink-0" />
+              <span>Weighted Positive Telemetry (Additions)</span>
+            </h4>
+            <div className="space-y-2">
+              {(breakdown?.additions || [
+                { label: "Discipline & Adherence", value: "+20", detail: "88% execution reliability" },
+                { label: "Consistency Streak", value: "+18", detail: "Active uninterrupted streak" },
+                { label: "Task Completion Volume", value: "+22", detail: "High checklist completion rate" },
+                { label: "OS Habit Execution", value: "+25", detail: "Water, workout, study & focus logged" },
+              ]).map((item: any, idx: number) => (
+                <div key={idx} className="flex items-center justify-between bg-zinc-950/60 p-3 rounded-xl border border-zinc-800/80">
+                  <div className="pr-2">
+                    <span className="text-xs sm:text-sm font-bold text-white block">{item.label}</span>
+                    <span className="text-[10px] sm:text-xs text-zinc-500">{item.detail}</span>
+                  </div>
+                  <span className="text-xs sm:text-sm font-black text-emerald-400 bg-emerald-500/10 px-2 sm:px-3 py-1 rounded-lg border border-emerald-500/20 whitespace-nowrap">
+                    {item.value}
                   </span>
                 </div>
-              </div>
-
-              {/* Additions */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <Award className="w-4 h-4" />
-                  Weighted Positive Telemetry (Additions)
-                </h4>
-                <div className="space-y-2">
-                  {(breakdown?.additions || [
-                    { label: "Discipline & Adherence", value: "+20", detail: "88% execution reliability" },
-                    { label: "Consistency Streak", value: "+18", detail: "Active uninterrupted streak" },
-                    { label: "Task Completion Volume", value: "+22", detail: "High checklist completion rate" },
-                    { label: "OS Habit Execution", value: "+25", detail: "Water, workout, study & focus logged" },
-                  ]).map((item: any, idx: number) => (
-                    <div key={idx} className="flex items-center justify-between bg-zinc-950/60 p-3 rounded-xl border border-zinc-800/80">
-                      <div>
-                        <span className="text-sm font-bold text-white block">{item.label}</span>
-                        <span className="text-xs text-zinc-500">{item.detail}</span>
-                      </div>
-                      <span className="text-sm font-black text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-lg border border-emerald-500/20">
-                        {item.value}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Penalties */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <AlertTriangle className="w-4 h-4" />
-                  Anti-Gaming & Consistency Deductions (Penalties)
-                </h4>
-                {breakdown?.penalties && breakdown.penalties.length > 0 ? (
-                  <div className="space-y-2">
-                    {breakdown.penalties.map((item: any, idx: number) => (
-                      <div key={idx} className="flex items-center justify-between bg-rose-950/20 p-3 rounded-xl border border-rose-500/30">
-                        <div>
-                          <span className="text-sm font-bold text-rose-200 block">{item.label}</span>
-                          <span className="text-xs text-rose-400/80">{item.detail}</span>
-                        </div>
-                        <span className="text-sm font-black text-rose-400 bg-rose-500/10 px-3 py-1 rounded-lg border border-rose-500/20">
-                          {item.value}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="bg-emerald-950/20 p-4 rounded-xl border border-emerald-500/30 text-center">
-                    <span className="text-xs font-bold text-emerald-400 block mb-1">🎉 Zero Deductions Applied!</span>
-                    <p className="text-[11px] text-zinc-400">
-                      No high-priority tasks were missed and core daily habits were executed consistently.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div className="pt-4 border-t border-zinc-800 flex justify-end">
-                <button
-                  onClick={() => setShowBreakdownModal(false)}
-                  className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase tracking-wider transition-all"
-                >
-                  Close Diagnostic
-                </button>
-              </div>
-            </motion.div>
+              ))}
+            </div>
           </div>
-        )}
-      </AnimatePresence>
+
+          {/* Penalties */}
+          <div className="space-y-3">
+            <h4 className="text-[10px] sm:text-xs font-bold text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <span>Anti-Gaming & Consistency Deductions</span>
+            </h4>
+            {breakdown?.penalties && breakdown.penalties.length > 0 ? (
+              <div className="space-y-2">
+                {breakdown.penalties.map((item: any, idx: number) => (
+                  <div key={idx} className="flex items-center justify-between bg-rose-950/20 p-3 rounded-xl border border-rose-500/30">
+                    <div className="pr-2">
+                      <span className="text-xs sm:text-sm font-bold text-rose-200 block">{item.label}</span>
+                      <span className="text-[10px] sm:text-xs text-rose-400/80">{item.detail}</span>
+                    </div>
+                    <span className="text-xs sm:text-sm font-black text-rose-400 bg-rose-500/10 px-2 sm:px-3 py-1 rounded-lg border border-rose-500/20 whitespace-nowrap">
+                      {item.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-emerald-950/20 p-4 rounded-xl border border-emerald-500/30 text-center">
+                <span className="text-xs font-bold text-emerald-400 block mb-1">🎉 Zero Deductions Applied!</span>
+                <p className="text-[10px] sm:text-[11px] text-zinc-400">
+                  No high-priority tasks were missed and core daily habits were executed consistently.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <ResponsiveModalFooter className="pt-4 border-t border-zinc-800">
+            <button
+              onClick={() => setShowBreakdownModal(false)}
+              className="w-full sm:w-auto px-6 py-3 sm:py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase tracking-wider transition-all"
+            >
+              Close Diagnostic
+            </button>
+          </ResponsiveModalFooter>
+        </div>
+      </ResponsiveModal>
     </PageTransition>
   );
 }

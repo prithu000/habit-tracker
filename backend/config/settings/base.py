@@ -273,6 +273,27 @@ CELERY_BEAT_SCHEDULE = {
         "task": "workers.tasks.cache_management.refresh_leaderboard_cache",
         "schedule": 60 * 3,  # every 3 minutes
     },
+    # Planner & Email Schedules
+    "process-email-reminders": {
+        "task": "workers.tasks.os_tasks.send_scheduled_reminders_task",
+        "schedule": 60,  # every 1 minute
+    },
+    "daily-motivation-emails": {
+        "task": "workers.tasks.email_tasks.send_daily_motivation_emails",
+        "schedule": 60 * 60 * 24, # daily
+    },
+    "trial-reminders": {
+        "task": "workers.tasks.email_tasks.send_trial_reminders",
+        "schedule": 60 * 60 * 24, # daily
+    },
+    "weekly-summaries": {
+        "task": "workers.tasks.email_tasks.send_weekly_summaries",
+        "schedule": 60 * 60 * 24 * 7, # weekly
+    },
+    "monthly-reports": {
+        "task": "workers.tasks.email_tasks.send_monthly_reports",
+        "schedule": 60 * 60 * 24 * 30, # approx monthly
+    },
 }
 
 # ─────────────────────────────────────────────
@@ -371,7 +392,8 @@ EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
 EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
 EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="").replace(" ", "")
-DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@youvsyou.com")
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="YOU VS YOU <noreply@youvsyou.com>")
+SERVER_EMAIL = config("SERVER_EMAIL", default="noreply@youvsyou.com")
 
 # Google OAuth
 GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID", default="")

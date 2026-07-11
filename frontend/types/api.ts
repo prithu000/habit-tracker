@@ -11,6 +11,8 @@ export interface User {
   level_title?: string;
   time_preference?: string;
   timezone?: string;
+  plan_name?: string;
+  trial_used?: boolean;
   trial_start?: string | null;
   trial_end?: string | null;
   plan_type?: 'trial' | 'monthly' | '6_month' | '12_month';
@@ -81,6 +83,7 @@ export interface RoutineBlock {
   completed_count: number;
   completion_rate: number;
   tasks: Task[];
+  is_active?: boolean;
 }
 
 export interface DashboardData {
@@ -138,6 +141,18 @@ export interface DashboardData {
       focus_mins: number;
       daily_xp: number;
     };
+    custom_widgets?: {
+      id: string;
+      name: string;
+      goal: number;
+      unit: string;
+      icon: string;
+      color: string;
+      step_size: number;
+      progress: number;
+      completed_at?: string | null;
+      show_on_dashboard?: boolean;
+    }[];
     github_history?: {
       date: string;
       level: number;

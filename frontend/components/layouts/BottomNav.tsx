@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -26,6 +26,7 @@ const bottomNavItems = [
 
 export const BottomNav = memo(function BottomNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user } = useAuthStore();
   const isFreeMode = user?.subscription_status === "expired" || user?.is_premium_active === false;
 
@@ -59,6 +60,9 @@ export const BottomNav = memo(function BottomNav() {
               key={item.href}
               href={isLocked ? "/pricing" : item.href}
               prefetch={!isLocked}
+              onMouseEnter={() => !isLocked && router.prefetch(item.href)}
+              onTouchStart={() => !isLocked && router.prefetch(item.href)}
+              onFocus={() => !isLocked && router.prefetch(item.href)}
               onClick={(e) => {
                 if (isLocked) {
                   e.preventDefault();

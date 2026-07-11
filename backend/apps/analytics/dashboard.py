@@ -33,6 +33,7 @@ import logging
 from apps.core.utils import get_user_local_date
 from services.cache_service import CacheService, TTL_DASHBOARD
 from services.xp_service import XPService
+from services.widget_service import WidgetService
 
 logger = logging.getLogger(__name__)
 
@@ -46,8 +47,7 @@ def _build_dashboard(user, local_date) -> dict:
     from apps.completions.models import Completion, DayLog
     from apps.streaks.models import StreakRecord
     from apps.rewards.models import XPTransaction, UserBadge
-    from apps.notifications.models import Notification
-    from apps.analytics.models import UserOSGoals, DailyOSMetrics
+    from apps.analytics.models import UserOSGoals, DailyOSMetrics, CustomWidget, WidgetLog
 
     # ── Query 1: Routines + tasks (2 DB hits via prefetch) ──
     # Use Prefetch with queryset to filter tasks in-DB, not Python
@@ -100,12 +100,8 @@ def _build_dashboard(user, local_date) -> dict:
         ).only("log_date", "completion_rate", "tasks_completed")
     }
 
-    # ── Query 5: Notification count + unseen badges (combined) ──
-    notif_count = (
-        Notification.objects
-        .filter(user=user, is_read=False)
-        .aggregate(c=Count("id"))["c"] or 0
-    )
+    # ── Query 5: Unseen badges ──
+    notif_count = 0
     unseen_badges = list(
         UserBadge.objects
         .filter(user=user, seen=False)
@@ -193,6 +189,28 @@ def _build_dashboard(user, local_date) -> dict:
     # ── OS Goals & Daily Metrics (Daily Reset Engine) ──
     os_goals, _ = UserOSGoals.objects.get_or_create(user=user)
     os_metrics, _ = DailyOSMetrics.objects.get_or_create(user=user, date=local_date)
+
+    # ── Custom Widgets (Return ALL active widgets for unified state) ──
+    custom_widgets_qs = list(CustomWidget.objects.filter(user=user, is_active=True).order_by("display_order"))
+    widget_logs_map = {l.widget_id: l for l in WidgetLog.objects.filter(widget__user=user, date=local_date)}
+    custom_widgets_out = []
+    for cw in custom_widgets_qs:
+        log_obj = widget_logs_map.get(cw.id)
+        progress = log_obj.progress if log_obj else 0
+        custom_widgets_out.append({
+            "id": cw.id,
+            "name": cw.name,
+            "goal": cw.goal,
+            "unit": cw.unit,
+            "icon": cw.icon,
+            "color": cw.color,
+            "step_size": cw.step_size,
+            "show_in_reports": cw.show_in_reports,
+            "show_on_dashboard": cw.show_on_dashboard,
+            "progress": progress,
+            "completion_pct": WidgetService.calculate_completion_pct(progress, cw.goal, 1),
+            "completed_at": log_obj.completed_at.isoformat() if log_obj and log_obj.completed_at else None,
+        })
 
     # ── GitHub Activity Grid (Real historical completion, no fake history before date_joined) ──
     joined_date = user.date_joined.date() if user.date_joined else local_date
@@ -285,6 +303,7 @@ def _build_dashboard(user, local_date) -> dict:
                 "focus_mins": os_metrics.focus_mins,
                 "daily_xp": xp_today,
             },
+            "custom_widgets": custom_widgets_out,
             "github_history": github_history,
         },
         # ── User context ──
@@ -300,7 +319,7 @@ def _build_dashboard(user, local_date) -> dict:
         },
         # ── Notifications ──
         "notifications": {
-            "unread_count": notif_count,
+            "unread_count": 0,
             "unseen_badges": unseen_badges,
         },
     }

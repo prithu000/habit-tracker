@@ -168,6 +168,26 @@ def google_auth_view(request):
         if picture and hasattr(user, "avatar_url"):
             user.avatar_url = picture
         user.save()
+        
+        # CRITICAL FIX: Send welcome email for Google OAuth registration
+        # The post_save signal may not fire reliably for Google OAuth users
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"📧 GOOGLE AUTH EMAIL TRIGGER for {user.email}")
+        
+        try:
+            from services.email_service import EmailService
+            logger.info(f"   ↳ Calling EmailService.send_welcome_email()...")
+            email_sent = EmailService.send_welcome_email(user)
+            logger.info(f"   ↳ Result: {email_sent}")
+            if email_sent:
+                logger.info(f"✅ Welcome email sent to Google OAuth user: {user.email}")
+            else:
+                logger.warning(f"⚠️ Welcome email failed for Google OAuth user: {user.email}")
+        except Exception as e:
+            import traceback
+            logger.error(f"❌ Failed to send welcome email to Google OAuth user {user.email}: {e}")
+            logger.error(f"   ↳ Full traceback:\n{traceback.format_exc()}")
     else:
         # Link existing account: update avatar and verification status if not set
         if hasattr(user, "is_verified") and not user.is_verified:

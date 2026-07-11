@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { toast } from "react-hot-toast";
-import { getSubscriptionCountdown } from "@/lib/utils/subscriptionCountdown";
+import { useSubscription } from "@/lib/hooks/useSubscription";
 
 export const SubscriptionTab: React.FC = () => {
   const { user } = useAuthStore();
@@ -31,14 +31,15 @@ export const SubscriptionTab: React.FC = () => {
     queryKey: ["paymentHistory"],
     queryFn: async () => {
       const res = await api.get("/subscriptions/history/");
-      return res.data?.data || res.data || [];
+      // Handle paginated response or direct array
+      const data = res.data?.results || res.data?.data || res.data;
+      return Array.isArray(data) ? data : [];
     },
   });
 
-  const countdown = getSubscriptionCountdown(user?.trial_end, user?.subscription_status);
+  const { countdown, daysRemaining: trialDaysLeft, subscription } = useSubscription();
   const subStatus = countdown.status;
-  const planType = user?.plan_type || "trial";
-  const trialDaysLeft = countdown.daysRemaining;
+  const planType = subscription?.plan_type || user?.plan_type || "trial";
 
   const getPlanTitle = () => {
     if (planType === "monthly") return "Monthly Pro Plan (₹99)";
@@ -123,7 +124,7 @@ Thank you for investing in yourself. Keep showing up.
                     </strong>
                   </span>
                 </div>
-              ) : user?.trial_end ? (
+              ) : (user?.trial_end && subStatus === "trial") ? (
                 <div className="flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-amber-400" />
                   <span>

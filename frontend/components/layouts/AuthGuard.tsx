@@ -4,6 +4,9 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { AlertTriangle, RotateCcw, LayoutDashboard, LogOut } from "lucide-react";
+import { useLogout } from "@/lib/utils/logout";
+import { useUserProfile } from "@/lib/queries/useUser";
+import { useSubscription } from "@/lib/hooks/useSubscription";
 
 const PUBLIC_PATHS = ["/", "/login", "/register", "/about"];
 const AUTH_ONLY_PATHS = ["/login", "/register"];
@@ -13,8 +16,14 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user);
   const hasHydrated = useAuthStore((s) => s._hasHydrated);
   const setHasHydrated = useAuthStore((s) => s.setHasHydrated);
+  
+  // CRITICAL FIX: Mount these global queries here so they stay active across the app.
+  // This enables `refetchOnWindowFocus` to trigger, which syncs fresh API data to Zustand.
+  const { refetch: refetchUser } = useUserProfile();
+
   const router = useRouter();
   const pathname = usePathname();
+  const performLogout = useLogout();
   const isPublicPath = PUBLIC_PATHS.includes(pathname);
   const isAuthOnlyPath = AUTH_ONLY_PATHS.includes(pathname);
 
@@ -107,8 +116,8 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
                 <span>Go to Dashboard</span>
               </button>
               <button
-                onClick={() => {
-                  useAuthStore.getState().logout();
+                onClick={async () => {
+                  await performLogout();
                   window.location.href = "/login";
                 }}
                 className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-xs font-semibold flex items-center justify-center gap-2 transition-all"

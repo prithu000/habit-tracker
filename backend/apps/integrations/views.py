@@ -34,7 +34,6 @@ def widget_bundle(request):
     """
     from apps.completions.models import DayLog
     from apps.streaks.models import StreakRecord
-    from apps.notifications.models import Notification
     from apps.rewards.models import UserBadge, XPTransaction
 
     user = request.user
@@ -70,7 +69,7 @@ def widget_bundle(request):
     xp_today = XPService.get_xp_earned_for_date(user, local_date)
 
     # Counts (indexed queries — fast)
-    notif_count = Notification.objects.filter(user=user, is_read=False).count()
+    notif_count = 0
     unseen_count = UserBadge.objects.filter(user=user, seen=False).count()
 
     # ── Assemble ──

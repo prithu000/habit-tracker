@@ -31,7 +31,7 @@ urlpatterns = [
     path("api/v1/streaks/",       include("apps.streaks.urls")),
     path("api/v1/analytics/",     include("apps.analytics.urls")),
     path("api/v1/rewards/",       include("apps.rewards.urls")),
-    path("api/v1/notifications/", include("apps.notifications.urls")),
+
     path("api/v1/widgets/",       include("apps.integrations.urls")),
     path("api/v1/subscriptions/", include("apps.subscriptions.urls")),
     path("api/v1/subscription/",  include("apps.subscriptions.urls")),

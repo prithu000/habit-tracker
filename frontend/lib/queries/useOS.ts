@@ -2,10 +2,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../api";
 import { ApiResponse } from "../../types/api";
 import { toast } from "react-hot-toast";
+import { useAuthStore } from "../stores/authStore";
 
 export function useLifeScore(enabled = true) {
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
+
   return useQuery({
-    queryKey: ["lifeScore"],
+    queryKey: ["lifeScore", userId],
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnMount: false,
@@ -20,8 +24,11 @@ export function useLifeScore(enabled = true) {
 }
 
 export function useMotivation(enabled = true) {
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
+
   return useQuery({
-    queryKey: ["motivation"],
+    queryKey: ["motivation", userId],
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnMount: false,
@@ -36,8 +43,11 @@ export function useMotivation(enabled = true) {
 }
 
 export function useSmartReports(timeframe = "weekly", enabled = true) {
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
+
   return useQuery({
-    queryKey: ["smartReports", timeframe],
+    queryKey: ["smartReports", userId, timeframe],
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnMount: false,
@@ -52,8 +62,11 @@ export function useSmartReports(timeframe = "weekly", enabled = true) {
 }
 
 export function useLeagues(scope = "global") {
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
+
   return useQuery({
-    queryKey: ["leagues", scope],
+    queryKey: ["leagues", userId, scope],
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnMount: false,
@@ -67,8 +80,11 @@ export function useLeagues(scope = "global") {
 }
 
 export function useHardcoreAchievements() {
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
+
   return useQuery({
-    queryKey: ["hardcoreAchievements"],
+    queryKey: ["hardcoreAchievements", userId],
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnMount: false,
@@ -82,8 +98,11 @@ export function useHardcoreAchievements() {
 }
 
 export function useStreakFreeze() {
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
+
   return useQuery({
-    queryKey: ["streakFreeze"],
+    queryKey: ["streakFreeze", userId],
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnMount: false,
@@ -121,8 +140,11 @@ export function usePomodoroEmail() {
 }
 
 export function useEmailReminders() {
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
+
   return useQuery({
-    queryKey: ["emailReminders"],
+    queryKey: ["emailReminders", userId],
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnMount: false,
@@ -137,6 +159,9 @@ export function useEmailReminders() {
 
 export function useCreateEmailReminder() {
   const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
+
   return useMutation({
     mutationFn: async (payload: { task_name: string; deadline: string; priority: string; frequency: string; timezone?: string }) => {
       const { data } = await api.post<ApiResponse<any>>("/notifications/reminders/", payload);
@@ -144,7 +169,7 @@ export function useCreateEmailReminder() {
     },
     onSuccess: () => {
       toast.success("Scheduled email reminder set!");
-      queryClient.invalidateQueries({ queryKey: ["emailReminders"] });
+      queryClient.invalidateQueries({ queryKey: ["emailReminders", userId] });
     },
     onError: () => {
       toast.error("Failed to set reminder.");
@@ -154,6 +179,9 @@ export function useCreateEmailReminder() {
 
 export function useDeleteEmailReminder() {
   const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
+
   return useMutation({
     mutationFn: async (id: string) => {
       const { data } = await api.delete<ApiResponse<any>>(`/notifications/reminders/?id=${id}`);
@@ -161,7 +189,7 @@ export function useDeleteEmailReminder() {
     },
     onSuccess: () => {
       toast.success("Reminder deleted.");
-      queryClient.invalidateQueries({ queryKey: ["emailReminders"] });
+      queryClient.invalidateQueries({ queryKey: ["emailReminders", userId] });
     },
     onError: () => {
       toast.error("Failed to delete reminder.");

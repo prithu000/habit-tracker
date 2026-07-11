@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import withBundleAnalyzer from '@next/bundle-analyzer';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -7,11 +8,9 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     let backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
-    // If backendUrl is relative (e.g. "/api/v1"), fall back to 127.0.0.1:8000 for rewrite destination
     if (!backendUrl.startsWith("http://") && !backendUrl.startsWith("https://")) {
       backendUrl = "http://127.0.0.1:8000";
     }
-    // Clean up trailing /api/v1 if present
     const cleanBackend = backendUrl.replace(/\/api\/v1\/?$/, "");
     return [
       {
@@ -22,4 +21,8 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+const withAnalyzer = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
+
+export default withAnalyzer(nextConfig);

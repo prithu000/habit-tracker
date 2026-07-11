@@ -6,11 +6,13 @@ import { DashboardData } from "@/types/api";
 import { AnimatedCounter } from "@/components/shared/AnimatedCounter";
 import { cn } from "@/lib/utils/cn";
 
+import { memo } from "react";
+
 interface StatsBarProps {
   stats: DashboardData["today"]["stats"];
 }
 
-export function StatsBar({ stats }: StatsBarProps) {
+export const StatsBar = memo(function StatsBar({ stats }: StatsBarProps) {
   const statCards = [
     {
       label: "Completion",
@@ -84,4 +86,4 @@ export function StatsBar({ stats }: StatsBarProps) {
       ))}
     </div>
   );
-}
+});

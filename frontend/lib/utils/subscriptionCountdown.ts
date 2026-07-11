@@ -25,23 +25,27 @@ export interface SubscriptionCountdown {
  * - < 1 hour remaining: "Ends in X Minutes" (e.g. "Ends in 30 Minutes")
  * - Expired (totalSeconds <= 0): "Trial Expired"
  */
+import { User } from "@/types/api";
+
 export function getSubscriptionCountdown(
-  trialEnd: string | Date | null | undefined,
-  status: string | null | undefined = "trial",
+  user: Partial<User> | null | undefined,
   nowTs?: number
 ): SubscriptionCountdown {
-  const currentStatus = (status || "trial").toLowerCase();
+  const currentStatus = (user?.subscription_status || "trial").toLowerCase();
+  const isPremiumActive = user?.is_premium_active;
+  const trialEnd = user?.trial_end;
   const now = nowTs ?? Date.now();
 
-  // Handle active paid subscriptions
-  if (currentStatus === "active" || currentStatus === "pro") {
+  // PRIORITY 1: Handle active paid subscriptions by status (or if plan is not trial)
+  // If premium is active, NEVER show trial countdown
+  if (currentStatus === "active" || currentStatus === "pro" || (isPremiumActive && currentStatus !== "trial" && currentStatus !== "expired")) {
     return {
       isExpired: false,
       isTrial: false,
       isActivePaid: true,
       status: "active",
-      label: "PRO Active",
-      shortLabel: "PRO Active",
+      label: "Premium Active",
+      shortLabel: "Premium",
       daysRemaining: 999,
       hoursRemaining: 9999,
       minutesRemaining: 999999,
@@ -70,7 +74,7 @@ export function getSubscriptionCountdown(
   }
 
   // Calculate exact difference from single source of truth server timestamp
-  const endMs = typeof trialEnd === "string" ? new Date(trialEnd).getTime() : trialEnd.getTime();
+  const endMs = typeof trialEnd === "string" ? new Date(trialEnd).getTime() : (trialEnd as Date).getTime();
   const diffSec = Math.floor((endMs - now) / 1000);
 
   // Expired

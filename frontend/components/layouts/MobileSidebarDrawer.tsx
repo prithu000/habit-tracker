@@ -17,10 +17,12 @@ import {
   User,
   Lock,
   X,
+  PanelRight,
 } from "lucide-react";
 import { memo, useEffect, useRef } from "react";
 import { useUiStore } from "@/lib/stores/uiStore";
 import { useAuthStore } from "@/lib/stores/authStore";
+import { useCustomizationStore } from "@/lib/stores/customizationStore";
 import { usePaywallStore } from "@/lib/stores/paywallStore";
 import { cn } from "@/lib/utils/cn";
 
@@ -37,9 +39,15 @@ const navItems = [
   { href: "/help",       label: "Help & Bugs",  icon: HelpCircle },
 ];
 
+// Special menu items for small screens where Studio is hidden
+const mobileOnlyActions = [
+  { id: "studio", label: "Studio Customization", icon: PanelRight },
+];
+
 export const MobileSidebarDrawer = memo(function MobileSidebarDrawer() {
   const { isMobileDrawerOpen, closeMobileDrawer } = useUiStore();
   const { user } = useAuthStore();
+  const { isRightSidebarOpen, toggleRightSidebar } = useCustomizationStore();
   const isFreeMode = user?.subscription_status === "expired" || user?.is_premium_active === false;
   const pathname = usePathname();
   const router = useRouter();
@@ -171,6 +179,28 @@ export const MobileSidebarDrawer = memo(function MobileSidebarDrawer() {
 
             {/* Navigation */}
             <nav className="flex-1 px-3 py-4 flex flex-col gap-1 overflow-y-auto custom-scrollbar">
+              {/* Quick Actions (only visible on iPhone SE where Studio/Notifications are hidden) */}
+              <div className="min-[380px]:hidden mb-2 space-y-1">
+                <button
+                  onClick={() => {
+                    toggleRightSidebar();
+                    closeMobileDrawer();
+                  }}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-colors select-none",
+                    isRightSidebarOpen
+                      ? "bg-gradient-to-r from-forge-500/20 via-forge-500/10 to-transparent text-forge-200"
+                      : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
+                  )}
+                >
+                  <PanelRight className="w-4 h-4 shrink-0 text-forge-400" />
+                  <span>Studio Customization</span>
+                  <Sparkles className="w-3 h-3 text-forge-400 ml-auto" />
+                </button>
+
+                <div className="h-px bg-white/[0.08] my-2" />
+              </div>
+
               {navItems.map((item) => {
                 const isActive = pathname.startsWith(item.href);
                 const Icon = item.icon;

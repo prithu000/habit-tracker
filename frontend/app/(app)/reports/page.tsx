@@ -1,10 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useAuthStore } from "@/lib/stores/authStore";
+import { useRouter } from "next/navigation";
+import { usePaywallStore } from "@/lib/stores/paywallStore";
 import dynamic from "next/dynamic";
 import { useSmartReports, useLifeScore } from "@/lib/queries/useOS";
 import { useDashboard } from "@/lib/queries/useDashboard";
 import { useDisciplineScore, useWeeklyAnalytics, useMonthlyAnalytics } from "@/lib/queries/useAnalytics";
+import { EmptyState } from "@/components/shared/EmptyState";
+import { useSubscription } from "@/lib/hooks/useSubscription";
 import { Skeleton } from "@/components/shared/Skeleton";
 import { PageTransition } from "@/components/layouts/PageTransition";
 import {
@@ -14,10 +19,13 @@ import {
   Sun,
   TrendingUp,
   Loader2,
+  Settings,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { cn } from "@/lib/utils/cn";
 import { format, parseISO } from "date-fns";
+import { ReportSettingsModal } from "@/components/reports/ReportSettingsModal";
+import { useQueryClient } from "@tanstack/react-query";
 
 const ExecutivePaperReport = dynamic(
   () => import("@/components/reports/ExecutivePaperReport").then((mod) => mod.ExecutivePaperReport),
@@ -48,8 +56,34 @@ const PrintableA4Report = dynamic(
 );
 
 export default function ReportsPage() {
+  const { user } = useAuthStore();
+  const { isFreeMode } = useSubscription();
+  const router = useRouter();
+  const { openPaywall } = usePaywallStore();
+
+  useEffect(() => {
+    if (isFreeMode) {
+      openPaywall();
+      router.replace("/pricing");
+    }
+  }, [isFreeMode, router, openPaywall]);
+  
+  if (isFreeMode) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-purple-400" />
+      </div>
+    );
+  }
+
+  return <ReportsPageContent />;
+}
+
+function ReportsPageContent() {
   const [activeTab, setActiveTab] = useState<"daily" | "weekly" | "monthly">("daily");
   const [isExporting, setIsExporting] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   const dailyQuery = useSmartReports("daily", activeTab === "daily");
   const weeklyQuery = useSmartReports("weekly", activeTab === "weekly");
@@ -76,13 +110,21 @@ export default function ReportsPage() {
   const handleDownloadPDF = async () => {
     const element = document.getElementById("printable-a4-paper");
     if (!element) {
-      toast.error("Report element not found");
+      toast.error("Report not ready. Please try again.");
       return;
     }
 
     try {
       setIsExporting(true);
-      toast.loading("Synthesizing A4 printable PDF...", { id: "pdf-export" });
+      
+      // Professional download flow with progress messages
+      const toastId = toast.loading("Preparing Report...");
+      
+      await new Promise(resolve => setTimeout(resolve, 500));
+      toast.loading("Collecting Analytics...", { id: toastId });
+      
+      await new Promise(resolve => setTimeout(resolve, 500));
+      toast.loading("Generating Insights...", { id: toastId });
 
       const html2canvas = (await import("html2canvas")).default;
       const canvas = await html2canvas(element, {
@@ -95,6 +137,9 @@ export default function ReportsPage() {
         backgroundColor: "#fcfbf9",
         logging: false,
       } as any);
+
+      toast.loading("Rendering PDF...", { id: toastId });
+      await new Promise(resolve => setTimeout(resolve, 400));
 
       const imgData = canvas.toDataURL("image/png");
       const jsPDF = (await import("jspdf")).default;
@@ -114,15 +159,18 @@ export default function ReportsPage() {
         pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
       }
 
+      toast.loading("Almost Ready...", { id: toastId });
+      await new Promise(resolve => setTimeout(resolve, 300));
+
       // Calculate filename: Daily_Report.pdf, Weekly_Report.pdf, or Monthly_Report.pdf
       const tfCapitalized = activeTab.charAt(0).toUpperCase() + activeTab.slice(1);
       const filename = `${tfCapitalized}_Report.pdf`;
 
       pdf.save(filename);
-      toast.success(`Downloaded ${filename}!`, { id: "pdf-export", duration: 4000 });
+      toast.success(`✅ Report downloaded successfully!`, { id: toastId, duration: 4000 });
     } catch (err) {
       console.error("PDF generation error:", err);
-      toast.error("Failed to generate PDF. Please try again.", { id: "pdf-export" });
+      toast.error("Download failed. Please try again.", { id: "pdf-export" });
     } finally {
       setIsExporting(false);
     }
@@ -152,17 +200,29 @@ export default function ReportsPage() {
           </p>
         </div>
 
-        {/* 100% REAL DATA BADGE */}
-        <div className="flex items-center gap-3.5 px-5 py-3 rounded-2xl bg-zinc-900/80 border border-purple-500/30 shadow-lg backdrop-blur-md self-start md:self-auto">
-          <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400 shrink-0">
-            <ShieldCheck className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="text-xs sm:text-sm font-mono font-black text-purple-400 tracking-wider">
-              100% REAL DATA
+        {/* RIGHT ACTION CLUSTER */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 self-start md:self-auto">
+          {/* Report Settings Button */}
+          <button 
+            onClick={() => setIsSettingsOpen(true)}
+            className="flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700 transition-all shadow-md text-zinc-300"
+          >
+            <Settings className="w-4 h-4 text-zinc-400" />
+            <span className="text-xs sm:text-sm font-semibold tracking-wide">Report Settings</span>
+          </button>
+
+          {/* 100% REAL DATA BADGE */}
+          <div className="flex items-center gap-3.5 px-5 py-3 rounded-2xl bg-zinc-900/80 border border-purple-500/30 shadow-lg backdrop-blur-md">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400 shrink-0">
+              <ShieldCheck className="w-5 h-5" />
             </div>
-            <div className="text-[11px] text-zinc-400 font-medium">
-              No fake numbers. Only you.
+            <div>
+              <div className="text-xs sm:text-sm font-mono font-black text-purple-400 tracking-wider">
+                100% REAL DATA
+              </div>
+              <div className="text-[11px] text-zinc-400 font-medium">
+                No fake numbers. Only you.
+              </div>
             </div>
           </div>
         </div>
@@ -260,6 +320,22 @@ export default function ReportsPage() {
           </div>
         </button>
       </div>
+
+      <ReportSettingsModal 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)}
+        onSaved={() => {
+          // Invalidate every query key that touches report data so the UI
+          // immediately reflects the new selection without a manual page refresh.
+          queryClient.invalidateQueries({ queryKey: ["smartReports"] });
+          queryClient.invalidateQueries({ queryKey: ["smartReports", "daily"] });
+          queryClient.invalidateQueries({ queryKey: ["smartReports", "weekly"] });
+          queryClient.invalidateQueries({ queryKey: ["smartReports", "monthly"] });
+          queryClient.invalidateQueries({ queryKey: ["analytics"] });
+          queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+          queryClient.invalidateQueries({ queryKey: ["reportSettings"] });
+        }}
+      />
     </PageTransition>
   );
 }

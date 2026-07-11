@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <title>Your Data Is Safe</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #000000; color: #ffffff; }
+        
+        .wrapper { width: 100%; background-color: #000000; padding: 40px 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: #0a0a0a; }
+        
+        .header { text-align: center; padding: 32px 20px; }
+        .logo { font-size: 28px; font-weight: 900; background: linear-gradient(135deg, #ffffff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        .content { padding: 20px; }
+        
+        .hero { text-align: center; padding: 40px 0; }
+        .hero-title { font-size: 36px; font-weight: 900; color: #ffffff; margin: 0 0 16px; letter-spacing: -0.03em; line-height: 1.2; }
+        .hero-subtitle { font-size: 18px; color: #9ca3af; line-height: 1.6; }
+        
+        .body-text { font-size: 17px; line-height: 1.7; color: #d1d5db; margin: 24px 0; text-align: center; }
+        
+        .locked-card { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 32px; margin: 32px 0; position: relative; overflow: hidden; }
+        .locked-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; }
+        .locked-icon { font-size: 48px; }
+        .locked-content { filter: blur(4px); opacity: 0.3; }
+        .locked-feature { font-size: 16px; color: #6b7280; margin: 12px 0; }
+        
+        .cta { text-align: center; margin: 48px 0; }
+        .cta-button { display: inline-block; padding: 20px 56px; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #ffffff !important; text-decoration: none; border-radius: 14px; font-weight: 800; font-size: 17px; box-shadow: 0 10px 40px rgba(139, 92, 246, 0.5); }
+        
+        .footer { padding: 32px 20px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+        .footer-text { font-size: 12px; color: #6b7280; }
+        
+        @media only screen and (max-width: 600px) {
+            .hero-title { font-size: 30px !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <table class="container">
+            <tr>
+                <td>
+                    <div class="header">
+                        <div class="logo">YOU VS YOU</div>
+                    </div>
+                    
+                    <div class="content">
+                        <div class="hero">
+                            <h1 class="hero-title">Your data is safe.<br>Your progress is waiting.</h1>
+                            <p class="hero-subtitle">Your trial has ended, but your journey doesn't have to.</p>
+                        </div>
+                        
+                        <p class="body-text">
+                            The momentum you built is real.<br>
+                            The system that tracked it is still here.
+                        </p>
+                        
+                        <div class="locked-card">
+                            <div class="locked-content">
+                                <div class="locked-feature">📊 Advanced Analytics</div>
+                                <div class="locked-feature">🤖 AI Executive Coach</div>
+                                <div class="locked-feature">📈 Weekly & Monthly Reports</div>
+                                <div class="locked-feature">🎯 Focus Mode</div>
+                                <div class="locked-feature">🔥 Streak Insights</div>
+                            </div>
+                            <div class="locked-overlay">
+                                <div class="locked-icon">🔒</div>
+                            </div>
+                        </div>
+                        
+                        <p class="body-text" style="font-size: 18px; color: #ffffff; font-weight: 600; margin-top: 40px;">
+                            The next version of you needs this system.
+                        </p>
+                        
+                        <div class="cta">
+                            <a href="{{ upgrade_url }}" class="cta-button">
+                                Unlock Your Operating System
+                            </a>
+                        </div>
+                        
+                        <p style="text-align: center; color: #9ca3af; font-size: 14px; margin-top: 32px;">
+                            <a href="{{ dashboard_url }}" style="color: #8b5cf6; text-decoration: none;">View Dashboard</a> • 
+                            <a href="{{ settings_url }}" style="color: #8b5cf6; text-decoration: none;">Manage Subscription</a>
+                        </p>
+                    </div>
+                    
+                    <div class="footer">
+                        <p class="footer-text">© {{ current_year }} YOU VS YOU</p>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>

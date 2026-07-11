@@ -11,6 +11,7 @@ from apps.rewards.models import XPTransaction, UserBadge, HardcoreAchievement, U
 from apps.routines.models import Routine, Task
 from services.xp_service import XPService
 from services.score_engine import ScoreEngine
+from services.widget_service import WidgetService
 import logging
 
 logger = logging.getLogger(__name__)
@@ -69,11 +70,18 @@ class ReportEngine:
         }
 
     @staticmethod
-    def generate_full_report(user, timeframe: str, local_date: date, start_date: date, logs_qs, os_metrics_qs, life_data=None, disc_data=None) -> dict:
+    def generate_full_report(user, timeframe: str, local_date: date, start_date: date, logs_qs, widget_logs_qs, life_data=None, disc_data=None) -> dict:
         logs = list(logs_qs)
-        os_metrics = list(os_metrics_qs)
-        os_goals, _ = UserOSGoals.objects.get_or_create(user=user)
-
+        widget_logs = list(widget_logs_qs)
+        
+        from apps.analytics.models import ReportSettings, CustomWidget
+        settings, _ = ReportSettings.objects.get_or_create(user=user)
+        raw_selected_ids = settings.selected_habit_breakdown or []
+        selected_ids = [str(sid) for sid in raw_selected_ids][:4]
+        widgets_qs = CustomWidget.objects.filter(id__in=selected_ids, user=user, is_active=True)
+        widgets_dict = {str(w.id): w for w in widgets_qs}
+        active_widgets = [widgets_dict[w_id] for w_id in selected_ids if w_id in widgets_dict]
+        
         # ── Basic Aggregations ──
         total_scheduled = sum(log.tasks_scheduled for log in logs)
         total_completed = sum(log.tasks_completed for log in logs)
@@ -85,28 +93,43 @@ class ReportEngine:
         current_streak = streak_rec.current_streak if streak_rec else 0
         longest_streak = streak_rec.longest_streak if streak_rec else 0
 
-        water_total = sum(m.water_ml for m in os_metrics)
-        workout_total = sum(m.workout_exercises for m in os_metrics)
-        study_total = sum(m.study_mins for m in os_metrics)
-        pomo_total = sum(m.pomodoro_sessions for m in os_metrics)
-        focus_total = sum(m.focus_mins for m in os_metrics)
-
         if life_data is None:
             life_data = ScoreEngine.get_life_score_data(user, local_date)
         if disc_data is None:
             disc_data = ScoreEngine.get_discipline_score(user, local_date)
         current_life_score = life_data["overall_score"]
         discipline_index = disc_data["score"]
+        total_xp = sum(log.xp_earned for log in logs)
+
+        # ── Dynamic Widget Aggregations ──
+        # Build the initial analytics pool for ALL active widgets (required by other charts if any)
+        # Note: active_widgets is built exclusively from ReportSettings.selected_habit_breakdown
+        dynamic_widget_analytics = []
+        for widget in active_widgets:
+            logs_for_widget = [wl for wl in widget_logs if wl.widget_id == widget.id]
+            total_progress = sum(wl.progress for wl in logs_for_widget)
+            consistency_pct = WidgetService.calculate_completion_pct(total_progress, widget.goal, period_days)
+            dynamic_widget_analytics.append({
+                "name": widget.name,
+                "color": widget.color,
+                "icon": widget.icon,
+                "consistency_pct": consistency_pct,
+                "total_progress": total_progress,
+                "goal": widget.goal,
+                "unit": widget.unit,
+                "daily_avg": round(total_progress / max(1, period_days), 1)
+            })
+
+        water_consistency_pct = next((wa["consistency_pct"] for wa in dynamic_widget_analytics if "water" in wa["name"].lower()), 0)
+        focus_total = next((wa["total_progress"] for wa in dynamic_widget_analytics if "focus" in wa["name"].lower() or "pomodoro" in wa["name"].lower()), 0)
+        study_total = next((wa["total_progress"] for wa in dynamic_widget_analytics if "study" in wa["name"].lower() or "read" in wa["name"].lower()), 0)
+        workout_total = next((wa["total_progress"] for wa in dynamic_widget_analytics if "workout" in wa["name"].lower() or "exercise" in wa["name"].lower()), 0)
 
         # ── Discipline Grade & Executive Summary ──
-        has_no_activity = (len(logs) == 0 and not os_metrics)
+        has_no_activity = (len(logs) == 0 and len(widget_logs) == 0)
         is_initializing = has_no_activity
         discipline_grade = "-" if is_initializing else ReportEngine._calculate_grade(avg_rate, current_streak)
         monthly_growth_pct = ReportEngine._calculate_growth_pct(user, local_date)
-        water_consistency_pct = round(min(100.0, (water_total / max(1, os_goals.water_goal_ml * max(1, len(os_metrics)))) * 100), 1)
-        study_consistency_pct = round(min(100.0, (study_total / max(1, os_goals.study_goal_mins * max(1, len(os_metrics)))) * 100), 1)
-        workout_consistency_pct = round(min(100.0, (workout_total / max(1, os_goals.workout_goal_exercises * max(1, len(os_metrics)))) * 100), 1)
-        pomodoro_consistency_pct = round(min(100.0, (pomo_total / max(1, 4 * max(1, len(os_metrics)))) * 100), 1)
         sleep_consistency_pct = 0.0 if is_initializing else 85.0
         productivity_rating = "No Activity" if is_initializing else ReportEngine._get_productivity_rating(current_life_score, avg_rate)
 
@@ -119,13 +142,6 @@ class ReportEngine:
             "habits_completed": total_completed,
             "completion_percentage": avg_rate,
             "monthly_growth_percentage": monthly_growth_pct,
-            "focus_hours": round(focus_total / 60.0, 1),
-            "workout_hours": round(workout_total * 0.25, 1),
-            "study_hours": round(study_total / 60.0, 1),
-            "water_consistency": water_consistency_pct,
-            "study_consistency": study_consistency_pct,
-            "workout_consistency": workout_consistency_pct,
-            "pomodoro_consistency": pomodoro_consistency_pct,
             "sleep_consistency": sleep_consistency_pct,
             "productivity_rating": productivity_rating,
             "is_initializing": False,
@@ -135,7 +151,8 @@ class ReportEngine:
                 f"During this {timeframe} cycle, you achieved a Discipline Grade of {discipline_grade} with "
                 f"{avg_rate}% execution consistency. Your Life Score sits at {current_life_score}/100, driven by "
                 f"{total_completed} completed habits and +{total_xp:,} XP generated."
-            )
+            ),
+            "dynamic_widget_analytics": dynamic_widget_analytics
         }
 
         # ── 1. Life Score Timeline (30, 90, 365 days) ──
@@ -211,52 +228,6 @@ class ReportEngine:
             for log in logs[-7:]
         ]
 
-        # ── 9. Focus Analytics ──
-        focus_analytics = [
-            {
-                "date": m.date.isoformat(),
-                "pomodoro_sessions": m.pomodoro_sessions,
-                "focus_time": m.focus_mins,
-                "deep_work": m.focus_mins,
-                "interruptions": max(0, m.pomodoro_sessions // 4)
-            }
-            for m in os_metrics[-14:]
-        ]
-
-        # ── 10. Deep Study Analytics ──
-        study_analytics = [
-            {
-                "date": m.date.isoformat(),
-                "daily_study": round(m.study_mins / 60.0, 2),
-                "weekly_avg": round(study_total / 60.0 / max(1, len(os_metrics)), 2),
-                "monthly_avg": round(study_total / 60.0 / max(1, len(os_metrics)), 2),
-                "goal_line": round(os_goals.study_goal_mins / 60.0, 2)
-            }
-            for m in os_metrics[-14:]
-        ]
-
-        # ── 11. Workout Analytics ──
-        workout_analytics = [
-            {
-                "date": m.date.isoformat(),
-                "exercises_completed": m.workout_exercises,
-                "goal": os_goals.workout_goal_exercises,
-                "intensity": min(100, int((m.workout_exercises / max(1, os_goals.workout_goal_exercises)) * 100))
-            }
-            for m in os_metrics[-14:]
-        ]
-
-        # ── 12. Hydration Analytics ──
-        hydration_analytics = [
-            {
-                "date": m.date.isoformat(),
-                "water_intake": m.water_ml,
-                "goal": os_goals.water_goal_ml,
-                "daily_avg": int(water_total / max(1, len(os_metrics))),
-                "monthly_avg": int(water_total / max(1, len(os_metrics)))
-            }
-            for m in os_metrics[-14:]
-        ]
 
         # ── 13. Streak Timeline (Milestones) ──
         streak_milestones = [
@@ -459,10 +430,6 @@ class ReportEngine:
                 "radar_balance": radar_balance,
                 "heatmap_365": heatmap_365,
                 "weekly_calendar_heatmap": weekly_calendar_heatmap,
-                "focus_analytics": focus_analytics,
-                "study_analytics": study_analytics,
-                "workout_analytics": workout_analytics,
-                "hydration_analytics": hydration_analytics,
                 "streak_milestones": streak_milestones,
                 "achievements_timeline": achievements_timeline,
                 "habit_distribution": habit_distribution,

@@ -68,14 +68,7 @@ def on_completion_saved(sender, instance, created, **kwargs):
 
         # 3. Send milestone notification
         if milestone:
-            from apps.notifications.models import Notification
-            Notification.objects.create(
-                user=user,
-                title=f"🔥 {milestone}-Day Streak!",
-                body=f"You've kept your streak alive for {milestone} days in a row. This is who you are.",
-                notif_type=Notification.NotifType.STREAK,
-                action_url="/analytics",
-            )
+                        pass
 
         # 4. Async badge evaluation
         from workers.tasks.reward_evaluator import evaluate_badges

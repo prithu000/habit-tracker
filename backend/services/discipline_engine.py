@@ -78,8 +78,12 @@ class DisciplineEngine:
                 user=user, log_date__range=[window_7_prev_start, window_7_prev_end]
             ).aggregate(a=Avg("completion_rate"))["a"] or 0
         )
-        if prev_avg == 0:
-            momentum_factor = 0.5  # Neutral if no prior data
+        
+        # FIX: For new users with no data, momentum should be 0, not 50%
+        if prev_avg == 0 and recent_avg == 0:
+            momentum_factor = 0  # No data = 0 momentum
+        elif prev_avg == 0:
+            momentum_factor = 0.5  # Neutral if no prior data but have recent
         else:
             momentum_factor = min(max(recent_avg / prev_avg, 0), 1.5) / 1.5
         momentum_score = momentum_factor * SCORE_WEIGHTS["momentum"] * 10
@@ -90,9 +94,10 @@ class DisciplineEngine:
 
         # ── Composite ──
         total = consistency_score + streak_score + frequency_score + momentum_score + perfect_score
-        composite = round(min(total, 1000), 1)
+        # Convert from 0-1000 scale to 0-100 scale for frontend compatibility
+        composite = round(min(total / 10, 100), 1)
 
-        grade, grade_label = DisciplineEngine._get_grade(composite)
+        grade, grade_label = DisciplineEngine._get_grade(composite * 10)  # Use 1000-scale for grading
 
         trend = "improving" if recent_avg > prev_avg + 5 else (
             "declining" if recent_avg < prev_avg - 5 else "stable"

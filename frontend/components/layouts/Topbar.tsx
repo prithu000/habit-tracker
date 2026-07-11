@@ -1,22 +1,23 @@
 "use client";
 
-import { Bell, Search, LogOut, PanelRight, Sparkles, User as UserIcon, Menu } from "lucide-react";
+import { LogOut, PanelRight, Sparkles, User as UserIcon, Menu } from "lucide-react";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { useCustomizationStore } from "@/lib/stores/customizationStore";
 import { useUiStore } from "@/lib/stores/uiStore";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, memo } from "react";
 import Link from "next/link";
-import api from "@/lib/api";
 import { toast } from "react-hot-toast";
 import { cn } from "@/lib/utils/cn";
-import { getSubscriptionCountdown } from "@/lib/utils/subscriptionCountdown";
+import { useSubscription } from "@/lib/hooks/useSubscription";
+import { useLogout } from "@/lib/utils/logout";
 
 export const Topbar = memo(function Topbar() {
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
   const { isRightSidebarOpen, toggleRightSidebar } = useCustomizationStore();
   const { toggleMobileDrawer } = useUiStore();
   const router = useRouter();
+  const performLogout = useLogout();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [nowTs, setNowTs] = useState(() => Date.now());
@@ -29,16 +30,13 @@ export const Topbar = memo(function Topbar() {
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
-      const refresh = useAuthStore.getState().tokens?.refresh;
-      if (refresh) {
-        await api.post("/auth/logout/", { refresh });
-      }
-    } catch (e) {
-      console.error("Logout error", e);
-    } finally {
-      logout();
+      await performLogout();
       toast.success("Logged out successfully");
       router.push("/login");
+    } catch (e) {
+      console.error("Logout error", e);
+      toast.error("Logout failed");
+    } finally {
       setIsLoggingOut(false);
     }
   };
@@ -48,111 +46,84 @@ export const Topbar = memo(function Topbar() {
     || "U";
   const displayName = user?.display_name || user?.email?.split("@")[0] || "Operator";
 
-  const countdown = getSubscriptionCountdown(user?.trial_end, user?.subscription_status, nowTs);
+  const { countdown } = useSubscription();
 
   return (
-    <header className="h-[64px] min-h-[64px] border-b border-white/[0.08] bg-[#0a0a0c]/80 backdrop-blur-xl relative z-30 flex items-center justify-between px-4 lg:px-6 shrink-0 w-full gap-3">
+    <header 
+      className="h-[60px] min-h-[60px] border-b border-white/[0.08] bg-[#0a0a0c]/80 backdrop-blur-xl fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-3 lg:px-6 shrink-0 w-full gap-2"
+      style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}
+    >
 
-      {/* ── Left: Hamburger (mobile/tablet) + Logo (mobile only) ── */}
-      <div className="flex items-center gap-3 shrink-0">
+      {/* ── Left: Hamburger + Compact Logo ── */}
+      <div className="flex items-center gap-2 shrink-0 min-w-0">
         {/* Hamburger — visible only on < lg */}
         <button
           onClick={toggleMobileDrawer}
-          className="lg:hidden p-2 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] text-muted-foreground hover:text-foreground transition-colors"
+          className="lg:hidden p-2 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] text-muted-foreground hover:text-foreground transition-opacity active:scale-95"
           aria-label="Open navigation menu"
         >
           <Menu className="w-5 h-5" />
         </button>
 
-        {/* Logo — visible only on mobile (< md), hidden on tablet/desktop where sidebar shows brand */}
+        {/* Compact Logo — visible only on mobile (< lg) */}
         <Link
           href="/dashboard"
-          className="md:hidden flex items-center gap-2 font-black text-base tracking-tighter text-white shrink-0"
+          className="lg:hidden flex items-center gap-2 font-black text-sm tracking-tighter text-white shrink-0 min-w-0 max-w-[140px]"
         >
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-forge-500 to-purple-700 flex items-center justify-center text-white text-xs font-bold shadow-[0_0_12px_rgba(139,92,246,0.3)]">
+          <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-forge-500 to-purple-700 flex items-center justify-center text-white text-[10px] font-bold shadow-[0_0_12px_rgba(139,92,246,0.3)] shrink-0">
             Y
           </div>
-          <span>YOU VS YOU</span>
+          <span className="truncate">YOU VS YOU</span>
         </Link>
       </div>
 
-      {/* ── Center: Search bar ── */}
-      {/* Desktop: full width search; Mobile: icon-only search button */}
-      <div className="flex-1 max-w-md hidden sm:block">
-        <div
-          onClick={() => {
-            const input = document.getElementById("topbar-search-input") as HTMLInputElement;
-            if (input) input.focus();
-          }}
-          className="group relative flex items-center bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] hover:border-forge-500/40 rounded-xl px-3.5 py-1.5 transition-all cursor-pointer shadow-[0_2px_10px_rgba(0,0,0,0.3)]"
-        >
-          <Search className="w-4 h-4 text-muted-foreground group-hover:text-forge-400 transition-colors mr-2.5 shrink-0" />
-          <input
-            id="topbar-search-input"
-            type="text"
-            placeholder="Search tasks, routines, insights..."
-            className="w-full bg-transparent border-none text-xs text-foreground placeholder:text-muted-foreground focus:outline-none cursor-text"
-          />
-          <div className="hidden sm:flex items-center gap-1 px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-mono text-muted-foreground shrink-0">
-            <span>⌘</span>
-            <span>K</span>
-          </div>
-        </div>
-      </div>
+      {/* ── Center: Spacer (flex-1) ── */}
+      <div className="flex-1 hidden lg:block" />
 
-      {/* ── Right: Actions & Subscription Badge ── */}
+      {/* ── Desktop Search Removed ── */}
+
+      {/* ── Right: Actions (Responsive Priority) ── */}
       <div className="flex items-center gap-2 shrink-0">
 
-        {/* Premium Subscription / Trial Badge */}
+        {/* Premium Badge — Compact Pill (Max 72px) */}
         <Link
           href="/pricing"
           className={cn(
-            "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold tracking-tight transition-all shadow-sm shrink-0 border",
+            "flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold tracking-tight transition-opacity active:scale-95 shrink-0 border max-w-[72px]",
             countdown.badgeClass
           )}
           title="Click to view plans and subscription status"
         >
           {countdown.isActivePaid && (
             <>
-              <span className="text-sm">👑</span>
-              <span className="hidden sm:inline">PRO Active</span>
+              <span className="text-xs shrink-0">👑</span>
+              <span className="truncate hidden min-[401px]:inline">PRO</span>
             </>
           )}
           {countdown.isExpired && (
             <>
-              <span className="text-sm">⚠</span>
-              <span className="hidden sm:inline">Trial Expired | Upgrade</span>
-              <span className="sm:hidden">Upgrade</span>
+              <span className="text-xs shrink-0">⚠</span>
+              <span className="truncate">Trial</span>
             </>
           )}
           {!countdown.isActivePaid && !countdown.isExpired && (
             <>
-              <span className="text-sm">{countdown.endsToday ? "⚠" : "👑"}</span>
-              <span className="hidden sm:inline">Premium Trial</span>
-              <span className="hidden sm:inline text-white/40">|</span>
-              <span className="hidden sm:inline">{countdown.label}</span>
-              <span className="sm:hidden">{countdown.shortLabel}</span>
+              <span className="text-xs shrink-0">👑</span>
+              <span className="truncate">
+                {countdown.endsToday ? "Today" : `${countdown.daysRemaining}d`}
+              </span>
             </>
           )}
         </Link>
 
-        {/* Search icon — mobile only (< sm) */}
-        <button
-          className="sm:hidden p-2 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] text-muted-foreground hover:text-foreground transition-colors"
-          aria-label="Search"
-          onClick={() => {
-            const input = document.getElementById("topbar-search-input") as HTMLInputElement;
-            if (input) input.focus();
-          }}
-        >
-          <Search className="w-4 h-4" />
-        </button>
+        {/* Search Mobile Removed */}
 
-        {/* Studio toggle — visible across all screen sizes (Mobile, Tablet, Desktop) */}
+        {/* Studio — Icon only on <1024px, "Studio" text on ≥1024px */}
+        {/* Hide on <380px (iPhone SE) */}
         <button
           onClick={toggleRightSidebar}
           className={cn(
-            "relative flex p-2 sm:px-3 rounded-xl border transition-all items-center gap-1 sm:gap-1.5 text-xs font-semibold shrink-0 min-h-[44px]",
+            "hidden min-[380px]:flex p-2 lg:px-3 rounded-xl border transition-opacity active:scale-95 items-center gap-1.5 text-xs font-semibold shrink-0 h-10",
             isRightSidebarOpen
               ? "bg-forge-500/20 text-forge-300 border-forge-500/40 shadow-[0_0_15px_rgba(139,92,246,0.2)]"
               : "bg-white/[0.03] text-muted-foreground border-white/[0.08] hover:text-foreground hover:bg-white/[0.06] hover:border-white/20"
@@ -161,39 +132,26 @@ export const Topbar = memo(function Topbar() {
           aria-label="Toggle Studio Wallpaper & Customization"
         >
           <PanelRight className="w-4 h-4 shrink-0" />
-          <span className="hidden lg:inline">Studio</span>
-          <Sparkles className="w-3 h-3 text-forge-400 animate-pulse shrink-0" />
+          <span className="hidden lg:inline whitespace-nowrap">Studio</span>
+          <Sparkles className="hidden lg:inline w-3 h-3 text-forge-400 animate-pulse shrink-0" />
         </button>
 
-        <div className="w-px h-6 bg-white/[0.08]" />
+        {/* Notifications Removed */}
 
-        {/* Notifications */}
-        <button
-          className="relative p-2 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] text-muted-foreground hover:text-foreground transition-all"
-          aria-label="Notifications"
-        >
-          <Bell className="w-4 h-4" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-forge-500 rounded-full border border-[#0a0a0c] shadow-[0_0_8px_#8b5cf6]" />
-        </button>
-
-        {/* Profile Dropdown */}
+        {/* Avatar — Fixed 36x36, Always Visible */}
         <div className="relative">
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="flex items-center gap-2 p-1 rounded-xl hover:bg-white/[0.05] transition-all focus:outline-none group border border-transparent hover:border-white/[0.08]"
+            className="flex items-center gap-2 p-1 rounded-xl hover:bg-white/[0.05] transition-opacity active:scale-95 focus:outline-none group border border-transparent hover:border-white/[0.08] w-9 h-9 shrink-0"
             aria-label="Profile menu"
             aria-haspopup="true"
             aria-expanded={showProfileMenu}
           >
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-forge-500 to-purple-600 p-[1px] shadow-[0_0_15px_rgba(139,92,246,0.3)]">
+            <div className="w-full h-full rounded-lg bg-gradient-to-br from-forge-500 to-purple-600 p-[1px] shadow-[0_0_15px_rgba(139,92,246,0.3)]">
               <div className="w-full h-full bg-[#0a0a0c] rounded-[7px] flex items-center justify-center text-forge-300 font-bold text-xs group-hover:bg-transparent group-hover:text-white transition-all">
                 {userInitial}
               </div>
             </div>
-            {/* Name — hidden on mobile, visible on sm+ */}
-            <span className="hidden sm:inline-block text-xs font-semibold text-foreground max-w-[100px] truncate">
-              {displayName}
-            </span>
           </button>
 
           {showProfileMenu && (

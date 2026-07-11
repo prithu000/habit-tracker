@@ -18,7 +18,15 @@ User = get_user_model()
 
 
 def get_enriched_user_dict(user):
+    """
+    Get user dict with fresh computed properties.
+    CRITICAL: Always expire trial first to ensure is_premium_active is correct.
+    """
     user.expire_trial_if_needed()
+    
+    # Recompute premium status after expiry check
+    is_premium = user.is_premium_active()
+    
     return {
         "id": str(user.id),
         "email": user.email,
@@ -45,7 +53,7 @@ def get_enriched_user_dict(user):
         "renewal_date": user.renewal_date.isoformat() if user.renewal_date else (user.trial_end.isoformat() if user.trial_end else None),
         "trial_days_remaining": user.get_trial_days_remaining(),
         "trial_hours_remaining": user.get_trial_hours_remaining(),
-        "is_premium_active": user.is_premium_active(),
+        "is_premium_active": is_premium,  # Fresh computed value
     }
 
 

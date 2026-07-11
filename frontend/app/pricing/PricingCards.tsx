@@ -7,6 +7,10 @@ import { Check, Sparkles, Shield, Zap, ArrowRight, Loader2, Award } from "lucide
 import { cn } from "@/lib/utils/cn";
 import api from "@/lib/api";
 import { toast } from "react-hot-toast";
+import { useLogout } from "@/lib/utils/logout";
+import { useQueryClient } from "@tanstack/react-query";
+import { USER_QUERY_KEY } from "@/lib/queries/useUser";
+import { useSubscription } from "@/lib/hooks/useSubscription";
 
 declare global {
   interface Window {
@@ -90,6 +94,8 @@ const PLANS: Plan[] = [
 export function PricingCards() {
   const { user, updateUser } = useAuthStore();
   const router = useRouter();
+  const performLogout = useLogout();
+  const queryClient = useQueryClient();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
   const loadRazorpayScript = () => {
@@ -119,14 +125,42 @@ export function PricingCards() {
       const res = await api.post("/subscriptions/create-order/", {
         plan_type: plan.id,
       });
-      const orderData = res.data;
+      
+      // Handle both wrapped and unwrapped responses
+      const orderData = res.data?.data || res.data;
 
-      // 2. Check if mock order / local testing or real Razorpay
-      const isMock = orderData.is_mock || orderData.order_id.startsWith("order_mock_") || orderData.key_id === "rzp_test_mock_key";
+      // Validate response
+      if (!orderData.order_id) {
+        console.error("Invalid response from create-order:", orderData);
+        console.error("Full response structure:", res);
+        toast.error("Invalid response from server. Please try again.");
+        setLoadingPlan(null);
+        return;
+      }
+
+      // 2. Load Razorpay SDK regardless of mock/real (checkout.js always works)
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        toast.error("Failed to load secure payment window. Please check your network or pop-up blocker.");
+        setLoadingPlan(null);
+        return;
+      }
+
+      // Check if mock order (API keys invalid / dev mode)
+      const isMock = orderData.is_mock || orderData.order_id?.startsWith("order_mock_");
 
       if (isMock) {
-        toast("⚡ Simulating secure checkout (Development Mode)...", { icon: "⚡" });
-        // Simulate immediate verification for local testing & QA
+        // In dev/test mode with invalid API keys — open a custom confirmation modal
+        // instead of silently auto-succeeding or requiring real Razorpay order ID
+        const confirmed = window.confirm(
+          `[DEV MODE — Razorpay test keys expired]\n\nSimulate payment for:\n• Plan: ${plan.name}\n• Amount: ₹${plan.price}\n\nClick OK to simulate a successful payment.`
+        );
+        if (!confirmed) {
+          setLoadingPlan(null);
+          return;
+        }
+
+        toast.loading("Simulating payment verification...", { duration: 1500 });
         const verifyRes = await api.post("/subscriptions/verify-payment/", {
           razorpay_order_id: orderData.order_id,
           razorpay_payment_id: `pay_mock_${Date.now()}`,
@@ -135,27 +169,19 @@ export function PricingCards() {
         });
 
         if (updateUser) {
-          updateUser({
-            subscription_status: "active",
-            plan_type: plan.id,
-          });
+          updateUser({ subscription_status: "active", plan_type: plan.id });
         }
-        toast.success(`🎉 ${plan.name} activated successfully! Invoice #${verifyRes.data.invoice_number}`);
+        queryClient.invalidateQueries({ queryKey: USER_QUERY_KEY });
+        queryClient.invalidateQueries({ queryKey: ["subscription", user.id] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard", user.id] });
+        toast.success(`🎉 ${plan.name} activated! Invoice #${verifyRes.data.invoice_number}`);
         router.push("/settings?tab=subscription");
-        return;
-      }
-
-      // 3. Load Razorpay SDK
-      const scriptLoaded = await loadRazorpayScript();
-      if (!scriptLoaded) {
-        toast.error("Failed to load secure payment window. Please check your network or pop-up blocker.");
-        setLoadingPlan(null);
         return;
       }
 
       // 4. Open Razorpay Checkout Modal
       const options = {
-        key: orderData.key_id || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_TBOYWCc7N5kLXe",
+        key: orderData.key_id || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "",
         amount: orderData.amount,
         currency: orderData.currency,
         name: "YOU VS YOU",
@@ -175,6 +201,10 @@ export function PricingCards() {
                 plan_type: plan.id,
               });
             }
+            queryClient.invalidateQueries({ queryKey: USER_QUERY_KEY });
+            queryClient.invalidateQueries({ queryKey: ["subscription", user.id] });
+            queryClient.invalidateQueries({ queryKey: ["dashboard", user.id] });
+            
             toast.success(`🎉 Subscription activated! Invoice #${verifyRes.data.invoice_number}`);
             router.push("/settings?tab=subscription");
           } catch (err: any) {
@@ -197,19 +227,24 @@ export function PricingCards() {
       rzp.open();
     } catch (error: any) {
       console.error("Order creation failed:", error);
+      
       if (error.response?.status === 401) {
-        toast.error("Your session expired. Please sign in to continue.");
-        router.push("/login?redirect=/pricing");
+        toast.error("Your session expired. Please log out and log back in.");
+        setTimeout(async () => {
+          await performLogout();
+          router.push("/login?redirect=/pricing");
+        }, 2000);
       } else {
-        toast.error(error.response?.data?.detail || error.response?.data?.message || "Could not initiate checkout. Please try again.");
+        const errorMsg = error.response?.data?.detail || error.response?.data?.message || "Could not initiate checkout. Please try again.";
+        toast.error(errorMsg);
       }
     } finally {
       setLoadingPlan(null);
     }
   };
 
-  const currentPlanType = user?.plan_type;
-  const isSubscriber = user?.subscription_status === "active";
+  const { isPaidActive: isSubscriber, subscription } = useSubscription();
+  const currentPlanType = subscription?.plan_type || user?.plan_type;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto items-stretch">

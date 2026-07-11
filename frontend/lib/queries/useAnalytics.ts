@@ -1,12 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import api from "../api";
 import { ApiResponse } from "../../types/api";
+import { useAuthStore } from "../stores/authStore";
 
-export const ANALYTICS_QUERY_KEY = ["analytics"];
+export const ANALYTICS_QUERY_KEY = (userId: string) => ["analytics", userId];
 
 export function useWeeklyAnalytics(enabled = true) {
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
+
   return useQuery({
-    queryKey: [...ANALYTICS_QUERY_KEY, "weekly"],
+    queryKey: [...ANALYTICS_QUERY_KEY(userId), "weekly"],
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnMount: false,
@@ -21,8 +25,11 @@ export function useWeeklyAnalytics(enabled = true) {
 }
 
 export function useMonthlyAnalytics(enabled = true) {
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
+
   return useQuery({
-    queryKey: [...ANALYTICS_QUERY_KEY, "monthly"],
+    queryKey: [...ANALYTICS_QUERY_KEY(userId), "monthly"],
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnMount: false,
@@ -37,8 +44,11 @@ export function useMonthlyAnalytics(enabled = true) {
 }
 
 export function useHeatmapAnalytics(enabled = true) {
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
+
   return useQuery({
-    queryKey: [...ANALYTICS_QUERY_KEY, "heatmap"],
+    queryKey: [...ANALYTICS_QUERY_KEY(userId), "heatmap"],
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnMount: false,
@@ -53,8 +63,11 @@ export function useHeatmapAnalytics(enabled = true) {
 }
 
 export function useDisciplineScore(enabled = true) {
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || "anonymous";
+
   return useQuery({
-    queryKey: [...ANALYTICS_QUERY_KEY, "discipline-score"],
+    queryKey: [...ANALYTICS_QUERY_KEY(userId), "discipline-score"],
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnMount: false,

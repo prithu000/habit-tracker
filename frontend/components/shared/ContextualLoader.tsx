@@ -5,6 +5,7 @@ import { Sparkles, Loader2, Cpu, ShieldCheck, Activity, AlertTriangle, RotateCcw
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { cn } from "@/lib/utils/cn";
+import { useLogout } from "@/lib/utils/logout";
 
 export type LoaderContext =
   | "dashboard"
@@ -109,6 +110,7 @@ export function ContextualLoader({
   fullScreen = false,
 }: ContextualLoaderProps) {
   const router = useRouter();
+  const performLogout = useLogout();
   const [msgIndex, setMsgIndex] = useState(0);
   const [isTimedOut, setIsTimedOut] = useState(false);
   const messages = MESSAGES[context] || MESSAGES.default;
@@ -161,8 +163,8 @@ export function ContextualLoader({
               <span>Go to Dashboard</span>
             </button>
             <button
-              onClick={() => {
-                useAuthStore.getState().logout();
+              onClick={async () => {
+                await performLogout();
                 window.location.href = "/login";
               }}
               className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-xs font-semibold flex items-center justify-center gap-2 transition-all"

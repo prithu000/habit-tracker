@@ -137,6 +137,10 @@ class CacheService:
                 CacheService._key(user_id, "radar_diagnostic", d),
                 CacheService._key(user_id, "dimensional_breakdown", d),
                 CacheService._key(user_id, "smart_reports", d),
+                CacheService._key(user_id, "reports", f"daily_{d}"),
+                CacheService._key(user_id, "reports", f"weekly_{d}"),
+                CacheService._key(user_id, "reports", f"monthly_{d}"),
+                CacheService._key(user_id, "reports", f"yearly_{d}"),
             ])
         cache.delete_many(keys)
 
@@ -177,6 +181,15 @@ class CacheService:
             CacheService._key(user_id, "dimensional_breakdown"),
             CacheService._key(user_id, "smart_reports"),
         ])
+        
+        for d in dates:
+            keys_to_delete.extend([
+                CacheService._key(user_id, "reports", f"daily_{d}"),
+                CacheService._key(user_id, "reports", f"weekly_{d}"),
+                CacheService._key(user_id, "reports", f"monthly_{d}"),
+                CacheService._key(user_id, "reports", f"yearly_{d}"),
+            ])
+            
         cache.delete_many(keys_to_delete)
 
     @staticmethod

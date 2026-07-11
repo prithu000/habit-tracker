@@ -166,18 +166,7 @@ class XPService:
     @staticmethod
     def _on_level_up(user, old_level: int, new_level: int):
         """Handles level-up side effects: notification, bonus XP."""
-        from apps.notifications.models import Notification
-        title = LEVEL_TITLES.get(new_level, f"Level {new_level}")
-        Notification.objects.create(
-            user=user,
-            title=f"⚡ Level Up! You're now {title}",
-            body=(
-                f"You reached Level {new_level}. "
-                f"Every task you complete builds the person you promised yourself you'd be."
-            ),
-            notif_type=Notification.NotifType.MILESTONE,
-            action_url="/achievements",
-        )
+        pass
 
     @staticmethod
     def calculate_level(total_xp: int) -> int:

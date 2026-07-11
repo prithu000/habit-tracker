@@ -12,7 +12,6 @@ import {
   Save,
   Palette,
   LayoutGrid,
-  Bell,
   Download,
   Shield,
   Sparkles,
@@ -59,8 +58,8 @@ export default function SettingsPage() {
   } = useCustomizationStore();
 
   const [activeTab, setActiveTab] = useState<
-    "profile" | "subscription" | "appearance" | "widgets" | "security" | "notifications" | "data"
-  >(tabQuery && ["profile", "subscription", "appearance", "widgets", "security", "notifications", "data"].includes(tabQuery) ? tabQuery : "profile");
+    "profile" | "subscription" | "appearance" | "widgets" | "security" | "data"
+  >(tabQuery && ["profile", "subscription", "appearance", "widgets", "security", "data"].includes(tabQuery) ? tabQuery : "profile");
 
   const [profileData, setProfileData] = useState({
     display_name: "",
@@ -74,13 +73,7 @@ export default function SettingsPage() {
     new_password_confirm: "",
   });
 
-  // Local notification toggles
-  const [notifState, setNotifState] = useState({
-    dailyBriefing: true,
-    streakReminders: true,
-    aiInsights: true,
-    weeklyReport: false,
-  });
+  // Local notification toggles removed
 
   useEffect(() => {
     if (user) {
@@ -134,7 +127,6 @@ export default function SettingsPage() {
     { id: "appearance", label: "Studio & Appearance", icon: Palette },
     { id: "widgets", label: "Modules & Widgets", icon: LayoutGrid },
     { id: "security", label: "Security & Auth", icon: Lock },
-    { id: "notifications", label: "Notifications", icon: Bell },
     { id: "data", label: "Data & Privacy", icon: Shield },
   ] as const;
 
@@ -562,48 +554,7 @@ export default function SettingsPage() {
               </div>
             )}
 
-            {/* 5. NOTIFICATIONS TAB */}
-            {activeTab === "notifications" && (
-              <div className="p-6 rounded-[24px] bg-[#0a0a0c]/80 backdrop-blur-xl border border-white/[0.08] shadow-[0_10px_40px_rgba(0,0,0,0.5)] space-y-6">
-                <div className="pb-4 border-b border-white/[0.08] flex items-center gap-3">
-                  <div className="p-2.5 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20">
-                    <Bell className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h2 className="text-base font-display font-bold text-white">Notifications & Telemetry</h2>
-                    <p className="text-xs text-muted-foreground">Configure daily reminders and Neural Coach insights.</p>
-                  </div>
-                </div>
 
-                <div className="space-y-4">
-                  {[
-                    { key: "dailyBriefing", label: "Daily Morning Briefing", desc: "Receive a summary of today's scheduled routines at 08:00 AM." },
-                    { key: "streakReminders", label: "Streak Preservation Alert", desc: "Notify when an active streak is within 4 hours of expiration." },
-                    { key: "aiInsights", label: "Neural Coach Recommendations", desc: "Real-time motivational synthesis on your dashboard." },
-                    { key: "weeklyReport", label: "Weekly Performance Digest", desc: "Receive an exhaustive analytics summary every Sunday evening." },
-                  ].map((item) => {
-                    const isChecked = (notifState as any)[item.key];
-                    return (
-                      <div key={item.key} className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-                        <div>
-                          <p className="text-xs font-bold text-white">{item.label}</p>
-                          <p className="text-[11px] text-muted-foreground mt-0.5">{item.desc}</p>
-                        </div>
-                        <button
-                          onClick={() => {
-                            setNotifState({ ...notifState, [item.key]: !isChecked });
-                            toast.success("Notification preference updated");
-                          }}
-                          className={cn("w-11 h-6 rounded-full transition-colors relative p-1", isChecked ? "bg-forge-500" : "bg-white/10")}
-                        >
-                          <div className={cn("w-4 h-4 rounded-full bg-white transition-transform", isChecked ? "translate-x-5" : "translate-x-0")} />
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
 
             {/* 6. DATA & PRIVACY TAB */}
             {activeTab === "data" && (
