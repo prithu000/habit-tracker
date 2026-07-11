@@ -101,7 +101,7 @@ DATABASES = {
         "CONN_HEALTH_CHECKS": True,
         "OPTIONS": {
             "connect_timeout": 10,
-            "options": r"-c default_transaction_isolation=read\ committed",
+            
         },
         "TEST": {
             "NAME": "test_forge_db",
@@ -141,7 +141,7 @@ CACHES = {
 }
 
 # Use Redis for sessions (not cookies)
-SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
 SESSION_CACHE_ALIAS = "session"
 
 # Custom User Model
@@ -272,27 +272,6 @@ CELERY_BEAT_SCHEDULE = {
     "leaderboard-cache-refresh": {
         "task": "workers.tasks.cache_management.refresh_leaderboard_cache",
         "schedule": 60 * 3,  # every 3 minutes
-    },
-    # Planner & Email Schedules
-    "process-email-reminders": {
-        "task": "workers.tasks.os_tasks.send_scheduled_reminders_task",
-        "schedule": 60,  # every 1 minute
-    },
-    "daily-motivation-emails": {
-        "task": "workers.tasks.email_tasks.send_daily_motivation_emails",
-        "schedule": 60 * 60 * 24, # daily
-    },
-    "trial-reminders": {
-        "task": "workers.tasks.email_tasks.send_trial_reminders",
-        "schedule": 60 * 60 * 24, # daily
-    },
-    "weekly-summaries": {
-        "task": "workers.tasks.email_tasks.send_weekly_summaries",
-        "schedule": 60 * 60 * 24 * 7, # weekly
-    },
-    "monthly-reports": {
-        "task": "workers.tasks.email_tasks.send_monthly_reports",
-        "schedule": 60 * 60 * 24 * 30, # approx monthly
     },
 }
 
