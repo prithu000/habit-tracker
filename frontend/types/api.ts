@@ -23,6 +23,7 @@ export interface User {
   trial_days_remaining?: number;
   trial_hours_remaining?: number;
   is_premium_active?: boolean;
+  current_streak?: number;
 }
 
 export interface PaymentHistoryItem {
