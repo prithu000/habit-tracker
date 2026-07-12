@@ -1,0 +1,13 @@
+Hello {{ user_name }},
+
+Your account has been created successfully.
+
+To get started, visit your dashboard:
+{{ dashboard_url }}
+
+If you need any help, check out our help center:
+{{ help_url }}
+
+Thank you,
+
+YOU VS YOU Team

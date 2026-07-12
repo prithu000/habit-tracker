@@ -26,7 +26,7 @@ def daily_auto_reset_task(self, user_id: str = None):
         from apps.routines.models import RoutineSchedule, Task
         from apps.completions.models import DayLog, Completion
         from apps.streaks.models import StreakRecord
-        from apps.rewards.models import StreakFreeze, ForgeCoinTransaction
+        from apps.rewards.models import StreakFreeze
         from apps.core.utils import get_user_local_date
         from services.cache_service import CacheService
 
@@ -51,13 +51,6 @@ def daily_auto_reset_task(self, user_id: str = None):
                     freeze.total_used += 1
                     freeze.save()
 
-                    # Record transaction log
-                    ForgeCoinTransaction.objects.create(
-                        user=user,
-                        amount=0,
-                        reason=ForgeCoinTransaction.Reason.STREAK_FREEZE_USE,
-                        metadata={"saved_streak": overall_streak.current_streak, "date": yesterday.isoformat()}
-                    )
                     logger.info(f"Streak Freeze consumed for user {user.email} saving {overall_streak.current_streak}-day streak.")
                 elif overall_streak and overall_streak.current_streak > 0:
                     # Break streak if no freeze available

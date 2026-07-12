@@ -8,7 +8,7 @@ export function Footer() {
   return (
     <footer className="mt-10 md:mt-20 pt-8 md:pt-12 pb-8 md:pb-12 border-t border-white/[0.08] bg-gradient-to-b from-transparent to-[#0a0a0c]/80 text-muted-foreground print:hidden">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8 mb-6 md:mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-8 mb-6 md:mb-12">
           <div className="md:col-span-2 space-y-3">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-forge-500 to-purple-600 p-[1px] flex items-center justify-center font-black text-white text-xs shadow-[0_0_15px_rgba(139,92,246,0.5)]">
@@ -42,6 +42,16 @@ export function Footer() {
               <p className="flex items-center gap-1.5"><span className="text-cyan-400">•</span> Improve.</p>
               <p className="flex items-center gap-1.5"><span className="text-purple-400">•</span> Repeat.</p>
             </div>
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-white">Legal</h4>
+            <ul className="space-y-2 text-xs">
+              <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/terms" className="hover:text-white transition-colors">Terms & Conditions</Link></li>
+              <li><Link href="/refund" className="hover:text-white transition-colors">Refund Policy</Link></li>
+              <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
+            </ul>
           </div>
         </div>
 

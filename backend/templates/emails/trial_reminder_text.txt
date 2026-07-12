@@ -1,0 +1,13 @@
+Hello {{ user_name }},
+
+Your Premium Trial ends in {{ days_left }} days.
+
+Expiry Date:
+{{ trial_end_date }}
+
+To upgrade your account, visit your settings:
+{{ settings_url }}
+
+Thank you,
+
+YOU VS YOU Team

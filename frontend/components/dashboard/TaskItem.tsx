@@ -54,7 +54,7 @@ export function TaskItem({ task }: TaskItemProps) {
             className="absolute -top-6 left-4 z-50 flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500 to-purple-600 text-zinc-950 font-black text-[11px] shadow-lg shadow-purple-500/50 whitespace-nowrap pointer-events-none border border-amber-300"
           >
             <Sparkles className="w-3 h-3 fill-current" />
-            <span>+25 XP • +15 Coins!</span>
+            <span>+25 XP</span>
           </motion.div>
         )}
       </AnimatePresence>

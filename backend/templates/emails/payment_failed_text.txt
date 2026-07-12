@@ -1,0 +1,12 @@
+Hello {{ user_name }},
+
+Your recent payment attempt has failed.
+
+Please update your payment method to ensure uninterrupted access to premium features.
+
+To update your payment method, visit your settings:
+{{ settings_url }}
+
+Thank you,
+
+YOU VS YOU Team

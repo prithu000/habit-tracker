@@ -1,0 +1,16 @@
+Hello {{ user_name }},
+
+Your Premium Trial has started.
+
+Trial Duration:
+{{ trial_days }} days
+
+Expiry Date:
+{{ trial_end_date }}
+
+To manage your trial, visit your settings:
+{{ settings_url }}
+
+Thank you,
+
+YOU VS YOU Team

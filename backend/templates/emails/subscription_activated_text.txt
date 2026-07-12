@@ -1,0 +1,16 @@
+Hello {{ user_name }},
+
+Your subscription has been activated.
+
+Plan:
+{{ plan_type }}
+
+Expiry Date:
+{{ subscription_end }}
+
+To manage your subscription, visit your settings:
+{{ settings_url }}
+
+Thank you,
+
+YOU VS YOU Team

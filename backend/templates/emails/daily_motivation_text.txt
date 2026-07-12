@@ -1,0 +1,22 @@
+Hello {{ user_name }},
+
+Daily Focus: 
+{{ date }}
+
+"{{ quote }}"
+
+Productivity Tip:
+{{ tip }}
+
+Current Streak:
+{{ current_streak }} days
+
+Life Score:
+{{ life_score }}
+
+To view your dashboard, visit:
+{{ app_url }}/dashboard
+
+Thank you,
+
+YOU VS YOU Team

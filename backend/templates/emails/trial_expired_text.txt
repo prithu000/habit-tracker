@@ -1,0 +1,12 @@
+Hello {{ user_name }},
+
+Your Premium Trial has ended.
+
+Your account has been moved to the free plan. To regain access to all premium features, please upgrade your subscription.
+
+To upgrade your account, visit your settings:
+{{ settings_url }}
+
+Thank you,
+
+YOU VS YOU Team

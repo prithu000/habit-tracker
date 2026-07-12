@@ -1,0 +1,28 @@
+Hello {{ user_name }},
+
+Your Weekly Progress Summary for {{ week_start }} to {{ week_end }}
+
+Life Score:
+{{ life_score }}
+
+Discipline Score:
+{{ discipline_score }}
+
+Tasks Completed:
+{{ tasks_completed }}
+
+Workouts:
+{{ workouts }}
+
+Hydration Target Met:
+{{ hydration }} days
+
+Best Achievement:
+{{ best_achievement }}
+
+To view your full analytics, visit:
+{{ app_url }}/analytics
+
+Thank you,
+
+YOU VS YOU Team

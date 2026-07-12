@@ -42,7 +42,7 @@ class EmailService:
         Returns:
             bool: True if sent successfully, False otherwise
         """
-        logger.info(f"📧 Sending email: {subject} to {to_email}")
+        logger.info(f"Sending email: {subject} to {to_email}")
         
         try:
             # Add brand context
@@ -62,42 +62,33 @@ class EmailService:
             # Render HTML template
             html_content = render_to_string(f'emails/{template_name}.html', context)
             
-            # Generate plain text fallback
-            plain_text = f"""
-{cls.BRAND_NAME} - {cls.BRAND_TAGLINE}
-
-Hi {context.get('user_name', 'there')},
-
-This email was sent from {cls.BRAND_NAME}. If you cannot view the HTML version, please visit {cls.WEBSITE_URL}
-
----
-
-You are receiving this email because you created an account with {cls.BRAND_NAME}.
-
-Manage your email preferences: {cls.WEBSITE_URL}/settings
-Privacy Policy: {cls.WEBSITE_URL}/privacy
-Terms of Service: {cls.WEBSITE_URL}/terms
-
-© {context.get('current_year')} {cls.BRAND_NAME}. All rights reserved.
-            """.strip()
+            # Render Plain Text fallback
+            try:
+                plain_text = render_to_string(f'emails/{template_name}_text.txt', context)
+            except Exception:
+                # Absolute fallback if txt template is missing
+                from django.utils.html import strip_tags
+                plain_text = strip_tags(html_content)
+                plain_text = f"{plain_text}\n\nPrivacy Policy: {cls.WEBSITE_URL}/privacy\nTerms of Service: {cls.WEBSITE_URL}/terms\n"
             
             # Create email with multipart/alternative
             email = EmailMultiAlternatives(
                 subject=subject,
                 body=plain_text,
                 from_email=from_email or settings.DEFAULT_FROM_EMAIL,
-                to=[to_email]
+                to=[to_email],
+                reply_to=[settings.DEFAULT_FROM_EMAIL]
             )
             email.attach_alternative(html_content, "text/html")
             
             # Send email
             result = email.send(fail_silently=False)
             
-            logger.info(f"✅ Email sent successfully: {subject} to {to_email} (result={result})")
+            logger.info(f"Email sent successfully: {subject} to {to_email} (result={result})")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to send email to {to_email}: {type(e).__name__}: {str(e)}")
+            logger.error(f"Failed to send email to {to_email}: {type(e).__name__}: {str(e)}")
             return False
     
     # =====================================================
@@ -109,7 +100,7 @@ Terms of Service: {cls.WEBSITE_URL}/terms
         """Send premium welcome email after registration"""
         return cls.send_email(
             to_email=user.email,
-            subject="Welcome to YOU VS YOU. Today your old identity ends.",
+            subject="Welcome to YOU VS YOU",
             template_name='welcome',
             context={
                 'user_name': user.display_name or user.email.split('@')[0],
@@ -127,7 +118,7 @@ Terms of Service: {cls.WEBSITE_URL}/terms
         """Send email when trial starts"""
         return cls.send_email(
             to_email=user.email,
-            subject=f"Welcome to {cls.BRAND_NAME} Premium Trial! 🚀",
+            subject="Your Premium Trial has started",
             template_name='trial_started',
             context={
                 'user_name': user.display_name or user.email.split('@')[0],
@@ -140,14 +131,14 @@ Terms of Service: {cls.WEBSITE_URL}/terms
     def send_trial_reminder(cls, user, days_left: int):
         """Send reminder email before trial expires"""
         subject_map = {
-            3: "Your Premium Trial Ends in 3 Days ⏰",
-            1: "Your Premium Trial Ends Tomorrow! 🔔",
-            0: "Your Premium Trial Ends Today! ⚡"
+            3: "Your Premium Trial ends in 3 days",
+            1: "Your Premium Trial ends tomorrow",
+            0: "Your Premium Trial ends today"
         }
         
         return cls.send_email(
             to_email=user.email,
-            subject=subject_map.get(days_left, f"Your Trial Ends in {days_left} Days"),
+            subject=subject_map.get(days_left, f"Your trial ends in {days_left} days"),
             template_name='trial_reminder',
             context={
                 'user_name': user.display_name or user.email.split('@')[0],
@@ -161,7 +152,7 @@ Terms of Service: {cls.WEBSITE_URL}/terms
         """Send email when trial expires"""
         return cls.send_email(
             to_email=user.email,
-            subject="Your Premium Trial Has Ended 💎",
+            subject="Your Premium Trial has ended",
             template_name='trial_expired',
             context={
                 'user_name': user.display_name or user.email.split('@')[0],
@@ -179,7 +170,7 @@ Terms of Service: {cls.WEBSITE_URL}/terms
         
         return cls.send_email(
             to_email=user.email,
-            subject="Payment Successful - Thank You! 🎉",
+            subject="Payment received successfully",
             template_name='payment_success',
             context={
                 'user_name': user.display_name or user.email.split('@')[0],
@@ -197,7 +188,7 @@ Terms of Service: {cls.WEBSITE_URL}/terms
         """Send email when subscription is activated"""
         return cls.send_email(
             to_email=user.email,
-            subject="Your Premium Subscription is Now Active! ✨",
+            subject="Your subscription has been activated",
             template_name='subscription_activated',
             context={
                 'user_name': user.display_name or user.email.split('@')[0],
@@ -215,7 +206,7 @@ Terms of Service: {cls.WEBSITE_URL}/terms
         """Send daily morning motivation email"""
         return cls.send_email(
             to_email=user.email,
-            subject=f"Good Morning! Your Daily Focus for {timezone.now().strftime('%B %d')} ☀️",
+            subject=f"Daily Focus: {timezone.now().strftime('%B %d')}",
             template_name='daily_motivation',
             context={
                 'user_name': user.display_name or user.email.split('@')[0],
@@ -232,7 +223,7 @@ Terms of Service: {cls.WEBSITE_URL}/terms
         """Send weekly progress summary"""
         return cls.send_email(
             to_email=user.email,
-            subject="Your Weekly Progress Summary 📊",
+            subject="Your Weekly Progress Summary",
             template_name='weekly_summary',
             context={
                 'user_name': user.display_name or user.email.split('@')[0],
@@ -252,7 +243,7 @@ Terms of Service: {cls.WEBSITE_URL}/terms
         """Send monthly growth report"""
         return cls.send_email(
             to_email=user.email,
-            subject="Your Monthly Growth Report 🚀",
+            subject="Your Monthly Growth Report",
             template_name='monthly_report',
             context={
                 'user_name': user.display_name or user.email.split('@')[0],

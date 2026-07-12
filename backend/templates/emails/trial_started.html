@@ -1,129 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="color-scheme" content="dark">
-    <title>Your Trial Has Started</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #000000; color: #ffffff; }
-        
-        .wrapper { width: 100%; background-color: #000000; padding: 40px 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: #0a0a0a; }
-        
-        .header { text-align: center; padding: 32px 20px; }
-        .logo { font-size: 28px; font-weight: 900; background: linear-gradient(135deg, #ffffff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        
-        .content { padding: 20px; }
-        
-        .hero { text-align: center; padding: 40px 0; }
-        .hero-icon { font-size: 64px; margin-bottom: 24px; }
-        .hero-title { font-size: 38px; font-weight: 900; color: #ffffff; margin: 0 0 12px; letter-spacing: -0.03em; }
-        .hero-subtitle { font-size: 18px; color: #a78bfa; font-weight: 600; }
-        
-        .trial-card { background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.08)); border: 2px solid rgba(139, 92, 246, 0.3); border-radius: 20px; padding: 40px; text-align: center; margin: 32px 0; }
-        .trial-days { font-size: 72px; font-weight: 900; color: #8b5cf6; line-height: 1; margin-bottom: 12px; }
-        .trial-label { font-size: 16px; text-transform: uppercase; color: #e5e7eb; letter-spacing: 0.15em; font-weight: 700; }
-        .trial-date { font-size: 14px; color: #9ca3af; margin-top: 16px; }
-        
-        .features { margin: 32px 0; }
-        .feature { background: rgba(255, 255, 255, 0.02); padding: 20px; margin: 12px 0; border-radius: 12px; text-align: left; }
-        .feature-icon { display: inline-block; width: 32px; height: 32px; background: linear-gradient(135deg, #8b5cf6, #6366f1); border-radius: 8px; text-align: center; line-height: 32px; font-size: 18px; margin-right: 12px; vertical-align: middle; }
-        .feature-text { display: inline-block; vertical-align: middle; width: calc(100% - 50px); }
-        .feature-title { font-size: 16px; font-weight: 700; color: #ffffff; margin-bottom: 4px; }
-        .feature-desc { font-size: 14px; color: #9ca3af; }
-        
-        .cta { text-align: center; margin: 48px 0; }
-        .cta-button { display: inline-block; padding: 20px 56px; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: #ffffff !important; text-decoration: none; border-radius: 14px; font-weight: 800; font-size: 17px; box-shadow: 0 10px 40px rgba(139, 92, 246, 0.5); }
-        
-        .footer { padding: 32px 20px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.05); }
-        .footer-text { font-size: 12px; color: #6b7280; }
-        
-        @media only screen and (max-width: 600px) {
-            .hero-title { font-size: 32px !important; }
-            .trial-days { font-size: 60px !important; }
-        }
-    </style>
-</head>
-<body>
-    <div class="wrapper">
-        <table class="container">
-            <tr>
-                <td>
-                    <div class="header">
-                        <div class="logo">YOU VS YOU</div>
-                    </div>
-                    
-                    <div class="content">
-                        <div class="hero">
-                            <div class="hero-icon">🚀</div>
-                            <h1 class="hero-title">Trial Activated</h1>
-                            <p class="hero-subtitle">Full premium access unlocked</p>
-                        </div>
-                        
-                        <div class="trial-card">
-                            <div class="trial-days">{{ trial_days }}</div>
-                            <div class="trial-label">Days Premium Trial</div>
-                            <div class="trial-date">Ends {{ trial_end_date }}</div>
-                        </div>
-                        
-                        <p style="text-align: center; font-size: 17px; color: #d1d5db; margin: 32px 0; line-height: 1.7;">
-                            Welcome to <strong style="color: #ffffff;">YOU VS YOU Premium</strong>.<br>
-                            Experience the full operating system.
-                        </p>
-                        
-                        <div class="features">
-                            <div class="feature">
-                                <span class="feature-icon">📊</span>
-                                <div class="feature-text">
-                                    <div class="feature-title">Advanced Analytics</div>
-                                    <div class="feature-desc">Deep insights into your discipline and growth patterns</div>
-                                </div>
-                            </div>
-                            
-                            <div class="feature">
-                                <span class="feature-icon">🤖</span>
-                                <div class="feature-text">
-                                    <div class="feature-title">AI Executive Coach</div>
-                                    <div class="feature-desc">Personalized guidance and strategic recommendations</div>
-                                </div>
-                            </div>
-                            
-                            <div class="feature">
-                                <span class="feature-icon">🎯</span>
-                                <div class="feature-text">
-                                    <div class="feature-title">Focus Mode</div>
-                                    <div class="feature-desc">Pomodoro sessions with intelligent tracking</div>
-                                </div>
-                            </div>
-                            
-                            <div class="feature">
-                                <span class="feature-icon">📈</span>
-                                <div class="feature-text">
-                                    <div class="feature-title">Weekly & Monthly Reports</div>
-                                    <div class="feature-desc">Executive summaries of your transformation</div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="cta">
-                            <a href="{{ dashboard_url }}" class="cta-button">
-                                Explore Premium
-                            </a>
-                        </div>
-                        
-                        <p style="text-align: center; color: #9ca3af; font-size: 14px; margin-top: 32px;">
-                            No credit card required. Cancel anytime.
-                        </p>
-                    </div>
-                    
-                    <div class="footer">
-                        <p class="footer-text">© {{ current_year }} YOU VS YOU</p>
-                    </div>
-                </td>
-            </tr>
-        </table>
-    </div>
-</body>
-</html>
+{% extends "emails/base_email.html" %}
+
+{% block title %}Trial Started{% endblock %}
+
+{% block content %}
+<p>Hello {{ user_name }},</p>
+
+<p>Your Premium Trial has started.</p>
+
+<p><strong>Trial Duration:</strong><br>
+{{ trial_days }} days</p>
+
+<p><strong>Expiry Date:</strong><br>
+{{ trial_end_date }}</p>
+
+<p>To manage your trial, visit your settings:<br>
+<a href="{{ settings_url }}">{{ settings_url }}</a></p>
+
+<p>Thank you,<br><br>
+YOU VS YOU Team</p>
+{% endblock %}

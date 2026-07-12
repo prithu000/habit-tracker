@@ -1,0 +1,22 @@
+Hello {{ user_name }},
+
+Your Monthly Growth Report for {{ month }}
+
+Life Score:
+{{ life_score }}
+
+Best Habit:
+{{ best_habit }}
+
+Improvement:
+{{ improvement }}
+
+Current Streak:
+{{ current_streak }} days
+
+To view your full analytics, visit:
+{{ app_url }}/analytics
+
+Thank you,
+
+YOU VS YOU Team

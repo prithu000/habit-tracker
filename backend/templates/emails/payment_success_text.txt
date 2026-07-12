@@ -1,0 +1,27 @@
+Hello {{ user_name }},
+
+Your payment has been received successfully.
+
+Invoice Number:
+{{ invoice_number }}
+
+Plan:
+{{ plan_name }}
+
+Amount:
+{{ amount }}
+
+Payment Date:
+{{ payment_date }}
+
+Activation Date:
+{{ subscription_start }}
+
+Expiry Date:
+{{ subscription_end }}
+
+If you did not perform this transaction, please contact support immediately.
+
+Thank you,
+
+YOU VS YOU Team

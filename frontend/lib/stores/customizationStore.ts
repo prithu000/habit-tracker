@@ -99,28 +99,18 @@ export const ACCENT_COLORS: { label: string; value: AccentColor; bgClass: string
 ];
 
 export type WidgetId =
-  | "xp"
-  | "level"
   | "calendar"
   | "clock"
   | "quote"
   | "github"
   | "pomodoro"
-  | "ai_coach"
-  | "water_tracker"
-  | "workout_progress"
-  | "study_progress";
+  | "ai_coach";
 
 export const ALL_WIDGETS: { id: WidgetId; label: string; category: "productivity" | "metrics" | "lifestyle" | "integrations"; description: string }[] = [
   { id: "ai_coach", label: "AI Coach & Insight", category: "productivity", description: "Daily AI suggestions and focus tips" },
   { id: "pomodoro", label: "Pomodoro Clock", category: "productivity", description: "25/5 interval productivity clock" },
-  { id: "xp", label: "XP & Level Ring", category: "metrics", description: "Real-time experience points and progress" },
-  { id: "level", label: "Level Status", category: "metrics", description: "Current rank title and mastery tier" },
   { id: "clock", label: "World Clock", category: "lifestyle", description: "Digital time display with date" },
   { id: "quote", label: "Daily Wisdom", category: "lifestyle", description: "Curated philosophical quotes" },
-  { id: "water_tracker", label: "Water Tracker", category: "lifestyle", description: "Daily hydration log and goal" },
-  { id: "workout_progress", label: "Hypertrophy Push", category: "lifestyle", description: "Physical fitness routine tracker" },
-  { id: "study_progress", label: "Deep Study", category: "lifestyle", description: "Learning and deep study goals" },
   { id: "calendar", label: "Mini Calendar", category: "integrations", description: "Monthly date overview" },
   { id: "github", label: "GitHub Activity", category: "integrations", description: "Commit graph & streak sync" },
 ];
@@ -158,12 +148,8 @@ interface CustomizationState {
 
 const DEFAULT_ENABLED_WIDGETS: WidgetId[] = [
   "ai_coach",
-  "xp",
   "pomodoro",
   "quote",
-  "water_tracker",
-  "workout_progress",
-  "study_progress",
 ];
 
 export const useCustomizationStore = create<CustomizationState>()(

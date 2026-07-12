@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { motion } from "framer-motion";
 import {
   Play,
@@ -20,22 +20,21 @@ import {
   Edit2,
 } from "lucide-react";
 import confetti from "canvas-confetti";
-import { useCustomizationStore, WidgetId } from "@/lib/stores/customizationStore";
+import { useCustomizationStore } from "@/lib/stores/customizationStore";
 import { useFocusStore, TIMER_MODES } from "@/lib/stores/focusStore";
 import { DashboardData } from "@/types/api";
 import { cn } from "@/lib/utils/cn";
 import api from "@/lib/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 import { DASHBOARD_QUERY_KEY } from "@/lib/queries/useDashboard";
 import { useAuthStore } from "@/lib/stores/authStore";
+import { WidgetBuilderModal } from "./WidgetBuilderModal";
 
 interface DynamicWidgetsGridProps {
   dashboard: DashboardData;
   isFreeMode?: boolean;
 }
-
-import { memo } from "react";
-import { WidgetBuilderModal } from "./WidgetBuilderModal";
 
 export const DynamicWidgetsGrid = memo(function DynamicWidgetsGrid({ dashboard, isFreeMode = false }: DynamicWidgetsGridProps) {
   const queryClient = useQueryClient();
@@ -47,9 +46,9 @@ export const DynamicWidgetsGrid = memo(function DynamicWidgetsGrid({ dashboard, 
 
   const { enabledWidgets, cardRadius } = useCustomizationStore();
   const activeWidgets = isFreeMode
-    ? enabledWidgets.filter((w) => ["xp", "level", "streak"].includes(w))
+    ? enabledWidgets.filter((w) => ["streak"].includes(w))
     : enabledWidgets;
-  const { xp, streak } = dashboard.widgets;
+  const { streak } = dashboard.widgets;
 
   const {
     mode: focusMode,
@@ -76,11 +75,6 @@ export const DynamicWidgetsGrid = memo(function DynamicWidgetsGrid({ dashboard, 
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Water Tracker State (Strict Server State)
-  
-
-  
-  
   const allWidgets = dashboard.widgets.custom_widgets || [];
   const dashboardWidgets = allWidgets.filter((w: any) => w.show_on_dashboard);
   
@@ -101,7 +95,7 @@ export const DynamicWidgetsGrid = memo(function DynamicWidgetsGrid({ dashboard, 
           <h2 className="text-base font-display font-bold text-foreground flex items-center gap-2">
             Interactive Modular Widgets
             <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/5 text-muted-foreground border border-white/10">
-              {activeWidgets.length + dashboardWidgets.length} ACTIVE
+              {dashboardWidgets.length} ACTIVE
             </span>
           </h2>
           <p className="text-xs text-muted-foreground">
@@ -118,63 +112,7 @@ export const DynamicWidgetsGrid = memo(function DynamicWidgetsGrid({ dashboard, 
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        {/* 1. XP & Level Ring Widget */}
-        {activeWidgets.includes("xp") && (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                <Flame className="w-4 h-4 text-forge-400" />
-                Experience Points
-              </span>
-              <span className="text-xs font-mono text-forge-300 font-bold">LVL {xp.current_level}</span>
-            </div>
-            <div className="my-2 flex items-center justify-between">
-              <div>
-                <span className="text-3xl font-display font-black text-white">{xp.total_xp}</span>
-                <span className="text-xs font-mono text-muted-foreground ml-1">XP</span>
-                <p className="text-[11px] text-muted-foreground mt-0.5">+{xp.xp_earned_today} earned today</p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-forge-500/10 border border-forge-500/30 flex items-center justify-center font-display font-bold text-forge-400 text-sm shadow-[0_0_15px_rgba(139,92,246,0.3)]">
-                {Math.round(xp.level_progress)}%
-              </div>
-            </div>
-            <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden mt-3">
-              <motion.div
-                className="bg-gradient-to-r from-forge-500 to-purple-400 h-full rounded-full shadow-[0_0_8px_#8b5cf6]"
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min(100, xp.level_progress)}%` }}
-              />
-            </div>
-          </motion.div>
-        )}
-
-        {/* 2. Level Status Badge */}
-        {activeWidgets.includes("level") && (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                <Award className="w-4 h-4 text-amber-400" />
-                Mastery Rank
-              </span>
-              <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 uppercase">
-                Tier {Math.floor(xp.current_level / 5) + 1}
-              </span>
-            </div>
-            <div className="my-3">
-              <h3 className="text-xl font-display font-black text-white tracking-wide">
-                {xp.level_title || (xp.current_level >= 10 ? "Neural Architect" : xp.current_level >= 5 ? "Discipline Vanguard" : "Habit Initiate")}
-              </h3>
-              <p className="text-xs text-muted-foreground mt-1">
-                {xp.xp_to_next_level} XP required for next rank promotion.
-              </p>
-            </div>
-            <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between text-xs text-forge-300 font-mono">
-              <span>Current Level: {xp.current_level}</span>
-              <span>Next: {xp.current_level + 1}</span>
-            </div>
-          </motion.div>
-        )}
-
+        
         {/* 3. Pomodoro Clock */}
         {activeWidgets.includes("pomodoro") && (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
@@ -222,7 +160,20 @@ export const DynamicWidgetsGrid = memo(function DynamicWidgetsGrid({ dashboard, 
             </div>
           </motion.div>
         )}
+        
         {/* Dynamic Custom Widgets */}
+        {dashboardWidgets.length === 0 && (
+          <div className="col-span-full p-8 rounded-3xl bg-white/[0.02] border border-white/[0.05] flex flex-col items-center justify-center text-center space-y-4 shadow-inner min-h-[200px]">
+            <div className="w-12 h-12 rounded-full bg-forge-500/10 border border-forge-500/20 text-forge-400 flex items-center justify-center mb-2">
+              <Plus className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-display font-bold text-white">No custom widgets yet.</h3>
+            <p className="text-sm text-muted-foreground max-w-sm">Create your first habit to begin your journey.</p>
+            <button onClick={() => { setWidgetToEdit(null); setIsBuilderOpen(true); }} className="btn-forge text-xs mt-2 inline-flex items-center gap-1.5">
+              <Plus className="w-4 h-4" /> Create First Widget
+            </button>
+          </div>
+        )}
         {dashboardWidgets.map((cw: any) => {
           const colorMap: Record<string, string> = {
             "blue-400": "bg-blue-500 text-blue-300 border-blue-500/40 shadow-[0_0_8px_#3b82f6]",
@@ -286,10 +237,27 @@ export const DynamicWidgetsGrid = memo(function DynamicWidgetsGrid({ dashboard, 
                     <button
                       onClick={async () => {
                         const next = Math.max(0, cw.progress - cw.step_size);
-                        await api.post(`/analytics/widgets/${cw.id}/log/`, { progress: next });
-                        queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY(userId) });
-                        queryClient.invalidateQueries({ queryKey: ["smartReports"] });
-                        queryClient.invalidateQueries({ queryKey: ["analytics"] });
+                        // Optimistic Update
+                        const previousDashboard = queryClient.getQueryData<DashboardData>(DASHBOARD_QUERY_KEY(userId));
+                        if (previousDashboard) {
+                          const updatedDashboard = JSON.parse(JSON.stringify(previousDashboard));
+                          const widgetIdx = updatedDashboard.widgets.custom_widgets.findIndex((w: any) => w.id === cw.id);
+                          if (widgetIdx > -1) {
+                            updatedDashboard.widgets.custom_widgets[widgetIdx].progress = next;
+                            queryClient.setQueryData(DASHBOARD_QUERY_KEY(userId), updatedDashboard);
+                          }
+                        }
+                        try {
+                          await api.post(`/analytics/widgets/${cw.id}/log/`, { progress: next });
+                          // Query invalidation in background
+                          queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY(userId) });
+                          queryClient.invalidateQueries({ queryKey: ["smartReports"] });
+                          queryClient.invalidateQueries({ queryKey: ["analytics"] });
+                        } catch (err) {
+                          // Rollback
+                          if (previousDashboard) queryClient.setQueryData(DASHBOARD_QUERY_KEY(userId), previousDashboard);
+                          toast.error("Unable to update progress. Please try again.");
+                        }
                       }}
                       className={cn(
                         "p-2 rounded-xl border transition-colors flex items-center justify-center",
@@ -305,10 +273,30 @@ export const DynamicWidgetsGrid = memo(function DynamicWidgetsGrid({ dashboard, 
                         if (next >= cw.goal && cw.progress < cw.goal) {
                           confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
                         }
-                        await api.post(`/analytics/widgets/${cw.id}/log/`, { progress: next });
-                        queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY(userId) });
-                        queryClient.invalidateQueries({ queryKey: ["smartReports"] });
-                        queryClient.invalidateQueries({ queryKey: ["analytics"] });
+                        
+                        // Optimistic Update
+                        const previousDashboard = queryClient.getQueryData<DashboardData>(DASHBOARD_QUERY_KEY(userId));
+                        if (previousDashboard) {
+                          const updatedDashboard = JSON.parse(JSON.stringify(previousDashboard));
+                          const widgetIdx = updatedDashboard.widgets.custom_widgets.findIndex((w: any) => w.id === cw.id);
+                          if (widgetIdx > -1) {
+                            updatedDashboard.widgets.custom_widgets[widgetIdx].progress = next;
+                            if (next >= cw.goal && !updatedDashboard.widgets.custom_widgets[widgetIdx].completed_at) {
+                               updatedDashboard.widgets.custom_widgets[widgetIdx].completed_at = new Date().toISOString();
+                            }
+                            queryClient.setQueryData(DASHBOARD_QUERY_KEY(userId), updatedDashboard);
+                          }
+                        }
+
+                        try {
+                          await api.post(`/analytics/widgets/${cw.id}/log/`, { progress: next });
+                          queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY(userId) });
+                          queryClient.invalidateQueries({ queryKey: ["smartReports"] });
+                          queryClient.invalidateQueries({ queryKey: ["analytics"] });
+                        } catch (err) {
+                          if (previousDashboard) queryClient.setQueryData(DASHBOARD_QUERY_KEY(userId), previousDashboard);
+                          toast.error("Unable to update progress. Please try again.");
+                        }
                       }}
                       className={cn(
                         "px-3 py-2 rounded-xl border transition-colors text-xs font-semibold flex items-center gap-1",

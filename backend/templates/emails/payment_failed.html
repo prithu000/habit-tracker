@@ -1,45 +1,17 @@
-{% extends "emails/base.html" %}
+{% extends "emails/base_email.html" %}
+
+{% block title %}Payment Failed{% endblock %}
 
 {% block content %}
-<h1>Payment Failed - Action Required ⚠️</h1>
+<p>Hello {{ user_name }},</p>
 
-<p>Hi {{ user_name }},</p>
+<p>Your recent payment attempt has failed.</p>
 
-<p>We encountered an issue processing your payment for your {{ brand_name }} subscription.</p>
+<p>Please update your payment method to ensure uninterrupted access to premium features.</p>
 
-<div style="background: rgba(239, 68, 68, 0.1); border-left: 4px solid #ef4444; border-radius: 8px; padding: 20px; margin: 30px 0;">
-    <h3 style="color: #ef4444; font-size: 16px; margin-bottom: 8px;">❌ Payment Failed</h3>
-    <p style="color: #fca5a5; margin: 0;">{{ failure_reason }}</p>
-</div>
+<p>To update your payment method, visit your settings:<br>
+<a href="{{ settings_url }}">{{ settings_url }}</a></p>
 
-<div style="background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 24px; margin: 30px 0;">
-    <h3 style="color: {{ brand_color }}; font-size: 16px; margin-bottom: 16px;">What Happens Next?</h3>
-    <ul style="color: #d1d5db; padding-left: 20px; line-height: 2; margin: 0;">
-        <li>Your subscription remains active for now</li>
-        <li>Please update your payment method</li>
-        <li>We'll retry the payment automatically</li>
-        <li>If not resolved, access will be restricted after {{ grace_period_end }}</li>
-    </ul>
-</div>
-
-<div style="text-align: center;">
-    <a href="{{ app_url }}/settings?tab=billing" class="button">Update Payment Method →</a>
-</div>
-
-<p style="margin-top: 30px;"><strong>Common reasons for payment failure:</strong></p>
-<ul style="color: #9ca3af; padding-left: 20px; line-height: 1.8;">
-    <li>Insufficient funds in account</li>
-    <li>Expired credit/debit card</li>
-    <li>Bank security check</li>
-    <li>Incorrect card details</li>
-</ul>
-
-<p style="margin-top: 30px;">
-    <strong>Need assistance?</strong><br>
-    <a href="{{ app_url }}/support" style="color: {{ brand_color }}; text-decoration: none;">Contact our support team</a> - we're here to help!
-</p>
-
-<div class="quote-box">
-    <p class="quote-text">Don't let a small bump in the road stop your progress. Update your payment method and keep moving forward!</p>
-</div>
+<p>Thank you,<br><br>
+YOU VS YOU Team</p>
 {% endblock %}

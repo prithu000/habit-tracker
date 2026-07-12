@@ -69,26 +69,6 @@ class UserBadge(BaseModel):
         return f"{self.user.email} — {self.badge.name}"
 
 
-class ForgeCoinTransaction(BaseModel):
-    class Reason(models.TextChoices):
-        TASK_COMPLETE = "task_complete", "Task Completed"
-        PERFECT_DAY = "perfect_day", "Perfect Day Bonus"
-        STREAK_BONUS = "streak_bonus", "Streak Bonus"
-        ACHIEVEMENT = "achievement", "Achievement Unlocked"
-        STORE_PURCHASE = "store_purchase", "Store Purchase"
-        STREAK_FREEZE_USE = "streak_freeze_use", "Streak Freeze Consumed"
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="coin_transactions")
-    amount = models.IntegerField()  # Positive for earning, negative for spending
-    reason = models.CharField(max_length=30, choices=Reason.choices)
-    metadata = models.JSONField(default=dict, blank=True)
-
-    class Meta:
-        db_table = "rewards_forgecointransaction"
-        indexes = [models.Index(fields=["user", "-created_at"])]
-
-    def __str__(self):
-        return f"{self.user.email} {self.amount:+d} Coins [{self.reason}]"
 
 
 class StreakFreeze(BaseModel):
@@ -148,7 +128,7 @@ class HardcoreAchievement(models.Model):
     category = models.CharField(max_length=50, default="general")
     target_value = models.PositiveIntegerField(default=100)
     xp_reward = models.PositiveIntegerField(default=500)
-    coin_reward = models.PositiveIntegerField(default=100)
+
 
     class Meta:
         db_table = "rewards_hardcoreachievement"

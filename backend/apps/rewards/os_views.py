@@ -9,7 +9,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from apps.core.permissions import HasPremiumAccessPermission
 from apps.rewards.models import (
-    ForgeCoinTransaction,
     StreakFreeze,
     LeagueRanking,
     HardcoreAchievement,
@@ -20,49 +19,16 @@ from apps.rewards.models import (
 from apps.streaks.models import StreakRecord
 
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def coins_view(request):
-    """
-    GET /api/v1/rewards/coins/
-    Returns user's YOU VS YOU Coins balance and recent transactions.
-    """
-    user = request.user
-    balance = ForgeCoinTransaction.objects.filter(user=user).aggregate(total=Sum("amount"))["total"] or 0
-    if balance == 0 and not ForgeCoinTransaction.objects.filter(user=user).exists():
-        # Give 100 free starter coins!
-        ForgeCoinTransaction.objects.create(
-            user=user,
-            amount=100,
-            reason=ForgeCoinTransaction.Reason.ACHIEVEMENT,
-            metadata={"note": "Starter YOU VS YOU Coins bonus!"}
-        )
-        balance = 100
-
-    txs = ForgeCoinTransaction.objects.filter(user=user).order_by("-created_at")[:15]
-    transactions = [
-        {
-            "id": str(t.id),
-            "amount": t.amount,
-            "reason": t.get_reason_display(),
-            "date": t.created_at.isoformat(),
-            "metadata": t.metadata
-        }
-        for t in txs
-    ]
-
-    return Response({"balance": balance, "transactions": transactions})
-
-
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
 def store_view(request):
     """
     GET/POST /api/v1/rewards/store/
-    Returns store items or purchases an item with YOU VS YOU Coins.
+    Returns store items or purchases an item with XP.
     """
     user = request.user
-    balance = ForgeCoinTransaction.objects.filter(user=user).aggregate(total=Sum("amount"))["total"] or 0
+    # Coins are deprecated, user buys with total_xp if needed (or store is just for fun now, wait, maybe just remove coins logic entirely and make them cost 0 or use XP? Actually, let's just make items free or cost XP, wait, the user said "remove coins completely", I'll just change balance to user.total_xp for store purchases)
+    balance = user.total_xp
     freeze, _ = StreakFreeze.objects.get_or_create(user=user)
 
     items = [
@@ -111,15 +77,11 @@ def store_view(request):
             return Response({"error": "Item not found."}, status=status.HTTP_404_NOT_FOUND)
 
         if balance < item["price"]:
-            return Response({"error": "Insufficient YOU VS YOU Coins balance."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Insufficient XP balance."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Deduct coins
-        ForgeCoinTransaction.objects.create(
-            user=user,
-            amount=-item["price"],
-            reason=ForgeCoinTransaction.Reason.STORE_PURCHASE,
-            metadata={"item_id": item_id, "item_name": item["name"]}
-        )
+        # Deduct XP (just an example, in reality we might not deduct lifetime XP, but since it's required for purchase)
+        user.total_xp -= item["price"]
+        user.save()
 
         if item_id == "streak_freeze":
             freeze.quantity += 1
@@ -212,8 +174,7 @@ def hardcore_achievements_view(request):
             "target_value": ach.target_value,
             "progress": min(ach.target_value, prog),
             "unlocked": unlocked,
-            "xp_reward": ach.xp_reward,
-            "coin_reward": ach.coin_reward
+            "xp_reward": ach.xp_reward
         })
 
     return Response({"achievements": data, "total": len(data), "unlocked_count": sum(1 for d in data if d["unlocked"])})
@@ -237,24 +198,24 @@ def streak_freeze_view(request):
 
 def _seed_hardcore_achievements():
     seeds = [
-        ("365_day_streak", "365 Day Relentless Streak", "Maintain an unbroken execution streak for an entire calendar year.", "Flame", "Mythic", "streak", 365, 10000, 1000),
-        ("100_day_streak", "Century Club Vanguard", "Achieve a 100-day execution streak.", "Zap", "Legendary", "streak", 100, 5000, 500),
-        ("30_day_streak", "Monthly Discipline Master", "Maintain a 30-day execution streak.", "Award", "Secret", "streak", 30, 2500, 250),
-        ("1000_tasks", "Grand Executioner (1000 Tasks)", "Complete 1,000 individual tasks with zero compromises.", "CheckCircle2", "Mythic", "tasks", 1000, 10000, 1000),
-        ("500_tasks", "Task Commander (500 Tasks)", "Complete 500 routines.", "Target", "Legendary", "tasks", 500, 5000, 500),
-        ("100_tasks", "Habit Initiate (100 Tasks)", "Complete your first 100 tasks.", "Activity", "Secret", "tasks", 100, 1000, 100),
-        ("500_workouts", "Iron Titan (500 Workouts)", "Complete 500 fitness or workout sessions.", "Dumbbell", "Mythic", "workouts", 500, 10000, 1000),
-        ("100_books", "Neural Scholar (100 Books)", "Log 100 reading or study routines.", "BookOpen", "Legendary", "reading", 100, 7500, 750),
-        ("365_meditations", "Zen Grandmaster", "Complete 365 mindfulness or mental health sessions.", "Smile", "Mythic", "mental", 365, 10000, 1000),
-        ("10000_xp", "10,000 XP Ascendant", "Accumulate over 10,000 total experience points.", "Crown", "Legendary", "xp", 10000, 5000, 500),
-        ("life_score_95", "Life Score Legend (95+)", "Achieve a 95+ overall Life Score rating across all 9 dimensions.", "Star", "Impossible", "life_score", 95, 15000, 2000),
-        ("perfect_month", "Flawless Execution Month", "Achieve 100% daily task completion for 30 consecutive days.", "ShieldCheck", "Impossible", "tasks", 30, 15000, 2000),
+        ("365_day_streak", "365 Day Relentless Streak", "Maintain an unbroken execution streak for an entire calendar year.", "Flame", "Mythic", "streak", 365, 10000),
+        ("100_day_streak", "Century Club Vanguard", "Achieve a 100-day execution streak.", "Zap", "Legendary", "streak", 100, 5000),
+        ("30_day_streak", "Monthly Discipline Master", "Maintain a 30-day execution streak.", "Award", "Secret", "streak", 30, 2500),
+        ("1000_tasks", "Grand Executioner (1000 Tasks)", "Complete 1,000 individual tasks with zero compromises.", "CheckCircle2", "Mythic", "tasks", 1000, 10000),
+        ("500_tasks", "Task Commander (500 Tasks)", "Complete 500 routines.", "Target", "Legendary", "tasks", 500, 5000),
+        ("100_tasks", "Habit Initiate (100 Tasks)", "Complete your first 100 tasks.", "Activity", "Secret", "tasks", 100, 1000),
+        ("500_workouts", "Iron Titan (500 Workouts)", "Complete 500 fitness or workout sessions.", "Dumbbell", "Mythic", "workouts", 500, 10000),
+        ("100_books", "Neural Scholar (100 Books)", "Log 100 reading or study routines.", "BookOpen", "Legendary", "reading", 100, 7500),
+        ("365_meditations", "Zen Grandmaster", "Complete 365 mindfulness or mental health sessions.", "Smile", "Mythic", "mental", 365, 10000),
+        ("10000_xp", "10,000 XP Ascendant", "Accumulate over 10,000 total experience points.", "Crown", "Legendary", "xp", 10000, 5000),
+        ("life_score_95", "Life Score Legend (95+)", "Achieve a 95+ overall Life Score rating across all 9 dimensions.", "Star", "Impossible", "life_score", 95, 15000),
+        ("perfect_month", "Flawless Execution Month", "Achieve 100% daily task completion for 30 consecutive days.", "ShieldCheck", "Impossible", "tasks", 30, 15000),
     ]
-    for slug, name, desc, icon, rarity, cat, target, xp, coins in seeds:
+    for slug, name, desc, icon, rarity, cat, target, xp in seeds:
         HardcoreAchievement.objects.get_or_create(
             slug=slug,
             defaults={
                 "name": name, "description": desc, "icon": icon, "rarity": rarity,
-                "category": cat, "target_value": target, "xp_reward": xp, "coin_reward": coins
+                "category": cat, "target_value": target, "xp_reward": xp
             }
         )

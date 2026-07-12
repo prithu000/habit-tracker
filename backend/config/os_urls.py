@@ -16,8 +16,7 @@ urlpatterns = [
     path("analytics/goals/", analytics_os.goals_view, name="os-goals"),
     path("analytics/metrics/", analytics_os.metrics_view, name="os-metrics"),
 
-    # Rewards, Coins, Store, Leagues, Achievements, Freezes
-    path("rewards/coins/", rewards_os.coins_view, name="os-coins"),
+    # Rewards, Store, Leagues, Achievements, Freezes
     path("rewards/store/", rewards_os.store_view, name="os-store"),
     path("rewards/leagues/", rewards_os.leagues_view, name="os-leagues"),
     path("rewards/achievements-list/", rewards_os.hardcore_achievements_view, name="os-achievements-list"),

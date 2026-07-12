@@ -1,44 +1,50 @@
 "use client";
 
 import React, { useState } from "react";
-import { useLeagues } from "@/lib/queries/useOS";
+import { useAuthStore } from "@/lib/stores/authStore";
 import { Skeleton } from "@/components/shared/Skeleton";
 import { PageTransition } from "@/components/layouts/PageTransition";
 import {
-  Trophy,
   Crown,
-  Medal,
-  Award,
-  Globe,
-  Users,
-  MapPin,
-  GraduationCap,
   Flame,
+  Award,
+  Swords,
+  ChevronRight,
   TrendingUp,
-  ShieldAlert,
-  Sparkles,
+  Target
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils/cn";
 
-const DIVISIONS = [
-  { name: "Bronze", color: "text-amber-700 bg-amber-950/40 border-amber-800/50" },
-  { name: "Silver", color: "text-zinc-400 bg-zinc-800/40 border-zinc-600/50" },
-  { name: "Gold", color: "text-amber-400 bg-amber-500/10 border-amber-500/40" },
-  { name: "Platinum", color: "text-cyan-400 bg-cyan-500/10 border-cyan-500/40" },
-  { name: "Diamond", color: "text-blue-400 bg-blue-500/10 border-blue-500/40" },
-  { name: "Master", color: "text-purple-400 bg-purple-500/10 border-purple-500/40" },
-  { name: "Grandmaster", color: "text-rose-400 bg-rose-500/10 border-rose-500/40" },
-  { name: "Legend", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/40" },
-  { name: "Mythic", color: "text-pink-400 bg-pink-500/10 border-pink-500/40" },
-  { name: "Immortal", color: "text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-purple-300 to-pink-300 border-purple-500/60 bg-purple-900/30" },
+const TIERS = [
+  { name: "Bronze I", xp: 0, color: "text-amber-700 bg-amber-950/40 border-amber-800/50" },
+  { name: "Bronze II", xp: 500, color: "text-amber-700 bg-amber-950/40 border-amber-800/50" },
+  { name: "Bronze III", xp: 1000, color: "text-amber-700 bg-amber-950/40 border-amber-800/50" },
+  { name: "Silver I", xp: 2500, color: "text-zinc-400 bg-zinc-800/40 border-zinc-600/50" },
+  { name: "Silver II", xp: 5000, color: "text-zinc-400 bg-zinc-800/40 border-zinc-600/50" },
+  { name: "Silver III", xp: 7500, color: "text-zinc-400 bg-zinc-800/40 border-zinc-600/50" },
+  { name: "Gold I", xp: 10000, color: "text-amber-400 bg-amber-500/10 border-amber-500/40" },
+  { name: "Gold II", xp: 15000, color: "text-amber-400 bg-amber-500/10 border-amber-500/40" },
+  { name: "Gold III", xp: 25000, color: "text-amber-400 bg-amber-500/10 border-amber-500/40" },
+  { name: "Platinum I", xp: 35000, color: "text-cyan-400 bg-cyan-500/10 border-cyan-500/40" },
+  { name: "Platinum II", xp: 50000, color: "text-cyan-400 bg-cyan-500/10 border-cyan-500/40" },
+  { name: "Platinum III", xp: 75000, color: "text-cyan-400 bg-cyan-500/10 border-cyan-500/40" },
+  { name: "Diamond I", xp: 100000, color: "text-blue-400 bg-blue-500/10 border-blue-500/40" },
+  { name: "Diamond II", xp: 150000, color: "text-blue-400 bg-blue-500/10 border-blue-500/40" },
+  { name: "Diamond III", xp: 200000, color: "text-blue-400 bg-blue-500/10 border-blue-500/40" },
+  { name: "Master I", xp: 300000, color: "text-purple-400 bg-purple-500/10 border-purple-500/40" },
+  { name: "Master II", xp: 400000, color: "text-purple-400 bg-purple-500/10 border-purple-500/40" },
+  { name: "Master III", xp: 500000, color: "text-purple-400 bg-purple-500/10 border-purple-500/40" },
+  { name: "Grandmaster", xp: 750000, color: "text-rose-400 bg-rose-500/10 border-rose-500/40" },
+  { name: "Legend", xp: 1000000, color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/40" },
+  { name: "Mythic", xp: 1250000, color: "text-pink-400 bg-pink-500/10 border-pink-500/40" },
+  { name: "Godlike", xp: 1500000, color: "text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-purple-300 to-pink-300 border-purple-500/60 bg-purple-900/30" },
 ];
 
-export default function LeaguesPage() {
-  const [scope, setScope] = useState("global");
-  const { data, isLoading, isError } = useLeagues(scope);
+export default function ArenaPage() {
+  const user = useAuthStore((state) => state.user);
 
-  if (isLoading) {
+  if (!user) {
     return (
       <div className="space-y-8 animate-in fade-in duration-500">
         <Skeleton className="h-12 w-64 rounded-xl" />
@@ -48,203 +54,186 @@ export default function LeaguesPage() {
     );
   }
 
-  if (isError || !data) {
-    return (
-      <div className="p-12 text-center bg-zinc-900/50 border border-zinc-800 rounded-3xl">
-        <ShieldAlert className="w-12 h-12 text-rose-500 mx-auto mb-4" />
-        <h3 className="text-xl font-bold text-white mb-2">Arena Telemetry Offline</h3>
-        <p className="text-zinc-400">Unable to synchronize leaderboard rankings.</p>
-      </div>
-    );
+  const currentXp = user.total_xp || 0;
+  
+  // Find current tier
+  let currentTierIndex = 0;
+  for (let i = 0; i < TIERS.length; i++) {
+    if (currentXp >= TIERS[i].xp) {
+      currentTierIndex = i;
+    } else {
+      break;
+    }
   }
 
-  const { user_league, leaderboard } = data;
+  const currentTier = TIERS[currentTierIndex];
+  const nextTier = currentTierIndex < TIERS.length - 1 ? TIERS[currentTierIndex + 1] : null;
+  
+  const xpIntoTier = currentXp - currentTier.xp;
+  const xpNeededForNext = nextTier ? nextTier.xp - currentTier.xp : 0;
+  const progressPercent = nextTier ? Math.min(100, Math.max(0, (xpIntoTier / xpNeededForNext) * 100)) : 100;
 
   return (
-    <PageTransition className="space-y-8 max-w-7xl mx-auto pb-16">
+    <PageTransition className="space-y-8 max-w-5xl mx-auto pb-16">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-purple-900/30 via-zinc-900/60 to-zinc-900/40 p-8 rounded-3xl border border-purple-500/20 backdrop-blur-xl shadow-2xl">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-forge-900/40 via-zinc-900/60 to-zinc-900/40 p-8 rounded-3xl border border-forge-500/20 backdrop-blur-xl shadow-2xl">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-300 text-xs font-semibold uppercase tracking-wider">
-            <Trophy className="w-3.5 h-3.5 animate-pulse" />
-            Competitive Discipline Arena
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-forge-500/20 border border-forge-500/30 text-forge-300 text-xs font-semibold uppercase tracking-wider">
+            <Swords className="w-3.5 h-3.5 animate-pulse" />
+            Lifetime Progression
           </div>
           <h1 className="text-3xl md:text-4xl font-black tracking-tight text-white">
-            DISCIPLINE <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">LEAGUES</span>
+            THE <span className="text-transparent bg-clip-text bg-gradient-to-r from-forge-400 to-purple-400">ARENA</span>
           </h1>
           <p className="text-zinc-400 text-sm md:text-base max-w-2xl">
-            Real-time global division standings, peer execution telemetry, and competitive leaderboard rankings.
+            Your cumulative lifetime execution tier. Prove your discipline daily and rise through the ranks to Godlike status.
           </p>
         </div>
 
         {/* Current User Division Badge */}
-        <div className="flex items-center gap-4 bg-zinc-950/80 p-5 rounded-2xl border border-purple-500/30 shadow-inner">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white shadow-lg shadow-purple-500/30">
+        <div className="flex items-center gap-4 bg-zinc-950/80 p-5 rounded-2xl border border-forge-500/30 shadow-inner">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-forge-600 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-forge-500/30">
             <Crown className="w-8 h-8" />
           </div>
           <div>
-            <div className="text-xs font-medium text-zinc-500 uppercase tracking-widest">Your Division</div>
+            <div className="text-xs font-medium text-zinc-500 uppercase tracking-widest">Current Rank</div>
             <div className="text-xl font-black text-white uppercase tracking-wider">
-              {user_league?.division || "Gold"} Division
+              {currentTier.name}
             </div>
-            <div className="text-xs text-purple-400 font-semibold mt-0.5">
-              Rank #{user_league?.rank || 6} • {user_league?.score || 4500} Rating
+            <div className="text-xs text-forge-400 font-semibold mt-0.5">
+              {currentXp.toLocaleString()} Lifetime XP
             </div>
           </div>
         </div>
       </div>
 
-      {/* Division Progression Tier Bar */}
-      <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-3xl p-6 backdrop-blur-md shadow-xl overflow-x-auto">
-        <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-purple-400" />
-          Division Hierarchy (Bronze to Immortal)
-        </h3>
-        <div className="flex items-center gap-2 min-w-[800px]">
-          {DIVISIONS.map((div, i) => {
-            const isCurrent = user_league?.division === div.name;
-            return (
-              <div
-                key={div.name}
-                className={cn(
-                  "flex-1 p-3 rounded-2xl border text-center transition-all relative overflow-hidden",
-                  div.color,
-                  isCurrent && "ring-2 ring-purple-400 shadow-lg scale-105 bg-purple-500/20"
-                )}
-              >
-                <div className="text-xs font-black uppercase tracking-wider">{div.name}</div>
-                {isCurrent && (
-                  <span className="text-[9px] font-bold text-purple-300 bg-purple-950 px-1.5 py-0.5 rounded-full block mt-1">
-                    YOU
-                  </span>
-                )}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column: Progress to Next Rank */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-3xl p-8 backdrop-blur-md shadow-xl relative overflow-hidden">
+            {/* Background Glow */}
+            <div className="absolute -top-32 -right-32 w-64 h-64 bg-forge-500/10 rounded-full blur-3xl pointer-events-none" />
+            
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-forge-400" />
+                Rank Progression
+              </h3>
+              {nextTier && (
+                <div className="text-xs font-mono bg-white/5 border border-white/10 px-3 py-1.5 rounded-full text-muted-foreground">
+                  {xpIntoTier.toLocaleString()} / {xpNeededForNext.toLocaleString()} XP
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-col">
+                <span className="text-xs text-zinc-500 font-bold uppercase tracking-widest mb-1">Current Tier</span>
+                <span className={cn("text-2xl font-black uppercase", currentTier.color.split(' ')[0])}>
+                  {currentTier.name}
+                </span>
               </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Scope Selector Tabs */}
-      <div className="w-full relative">
-        <div className="flex items-center gap-2 bg-zinc-900/80 p-1.5 rounded-2xl border border-zinc-800 overflow-x-auto scrollbar-hide snap-x w-full">
-          {[
-            { key: "global", label: "Global", icon: Globe },
-            { key: "friends", label: "Friends", icon: Users },
-            { key: "city", label: `City (${user_league?.city || "SF"})`, icon: MapPin },
-            { key: "country", label: `Country (${user_league?.country || "USA"})`, icon: MapPin },
-            { key: "university", label: "University", icon: GraduationCap },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isSelected = scope === tab.key;
-            return (
-              <button
-                key={tab.key}
-                onClick={() => setScope(tab.key)}
-                className={cn(
-                  "px-4 py-2 min-h-[44px] rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap snap-center shrink-0",
-                  isSelected
-                    ? "bg-purple-600 text-white shadow-md shadow-purple-500/20"
-                    : "text-zinc-400 hover:text-white hover:bg-zinc-800/60"
-                )}
-              >
-                <Icon className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
-        <div className="text-xs text-zinc-500 font-medium">
-          Standings refresh automatically every 3 minutes.
-        </div>
-      </div>
-
-      {/* Leaderboard Table or Under Construction Message */}
-      {scope !== "global" ? (
-        <div className="bg-zinc-900/40 border border-purple-500/30 rounded-3xl p-16 text-center backdrop-blur-md shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-300">
-          <div className="w-16 h-16 rounded-2xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-3xl mx-auto mb-2 shadow-lg shadow-purple-500/20">
-            🚧
-          </div>
-          <h3 className="text-2xl font-black text-white tracking-tight">We&apos;re working on it</h3>
-          <p className="text-zinc-400 max-w-md mx-auto text-sm leading-relaxed">
-            This division is currently under active development. Standings and telemetry for <span className="text-purple-400 font-bold capitalize">{scope}</span> leagues will be deploying in the next system update.
-          </p>
-        </div>
-      ) : (
-        <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-3xl overflow-hidden backdrop-blur-md shadow-2xl">
-          <div className="p-6 border-b border-zinc-800/80 flex items-center justify-between">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <Award className="w-5 h-5 text-purple-400" />
-              GLOBAL LEADERBOARD STANDINGS
-            </h3>
-            <span className="text-xs font-semibold text-purple-300 bg-purple-500/20 px-3 py-1 rounded-full border border-purple-500/30">
-              Season 14 Active
-            </span>
-          </div>
-
-          <div className="divide-y divide-zinc-800/60">
-            {leaderboard?.map((entry: any) => {
-              const isUser = entry.is_user;
-              return (
-                <motion.div
-                  key={entry.rank}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: entry.rank * 0.03 }}
-                  className={cn(
-                    "p-4 sm:p-5 flex items-center justify-between gap-4 transition-all hover:bg-zinc-800/30",
-                    isUser && "bg-purple-500/10 border-l-4 border-l-purple-500 shadow-inner"
-                  )}
-                >
-                  <div className="flex items-center gap-4 min-w-0">
-                    {/* Rank Badge */}
-                    <div className={cn(
-                      "w-8 h-8 rounded-xl flex items-center justify-center font-black text-sm shrink-0",
-                      entry.rank === 1 ? "bg-amber-500 text-zinc-950 shadow-lg shadow-amber-500/30" :
-                      entry.rank === 2 ? "bg-zinc-300 text-zinc-950 shadow-md" :
-                      entry.rank === 3 ? "bg-amber-700 text-white shadow-md" :
-                      "bg-zinc-800 text-zinc-400 border border-zinc-700/50"
-                    )}>
-                      {entry.rank === 1 ? <Crown className="w-4 h-4 fill-current" /> : entry.rank}
-                    </div>
-
-                    {/* Avatar & Name */}
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h4 className={cn("text-sm sm:text-base font-bold truncate", isUser ? "text-purple-300" : "text-white")}>
-                          {entry.name}
-                        </h4>
-                        {isUser && (
-                          <span className="text-[10px] font-black bg-purple-600 text-white px-1.5 py-0.5 rounded uppercase tracking-wider">
-                            YOU
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-zinc-400 mt-0.5">
-                        <span className="text-zinc-300 font-semibold">{entry.division}</span>
-                        <span>•</span>
-                        <div className="flex items-center gap-1 text-amber-400 font-medium">
-                          <Flame className="w-3.5 h-3.5 fill-current" />
-                          <span>{entry.streak}d streak</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Score */}
-                  <div className="text-right shrink-0">
-                    <div className="text-base sm:text-lg font-black text-white font-mono">
-                      {entry.score.toLocaleString()}
-                    </div>
-                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-                      Rating PTS
+              
+              {nextTier && (
+                <>
+                  <ChevronRight className="w-8 h-8 text-zinc-700 mx-4" />
+                  <div className="flex flex-col items-end">
+                    <span className="text-xs text-zinc-500 font-bold uppercase tracking-widest mb-1">Next Tier</span>
+                    <span className={cn("text-2xl font-black uppercase", nextTier.color.split(' ')[0])}>
+                      {nextTier.name}
                     </span>
                   </div>
-                </motion.div>
+                </>
+              )}
+            </div>
+
+            <div className="relative w-full bg-zinc-950 h-6 rounded-full overflow-hidden border border-white/10 mt-6 shadow-inner">
+              <motion.div
+                className="absolute top-0 left-0 h-full bg-gradient-to-r from-forge-600 to-purple-400 rounded-full shadow-[0_0_15px_rgba(139,92,246,0.5)]"
+                initial={{ width: 0 }}
+                animate={{ width: `${progressPercent}%` }}
+                transition={{ duration: 1, ease: "easeOut" }}
+              />
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none mix-blend-overlay">
+                 <span className="text-[10px] font-black text-white/80 tracking-widest">
+                   {nextTier ? `${Math.floor(progressPercent)}% TO NEXT RANK` : "MAXIMUM RANK ACHIEVED"}
+                 </span>
+              </div>
+            </div>
+            
+            {nextTier && (
+              <p className="text-sm text-zinc-400 mt-4 text-center">
+                Earn <strong className="text-white">{(nextTier.xp - currentXp).toLocaleString()} more XP</strong> to unlock the next rank.
+              </p>
+            )}
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+             <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-3xl p-6 backdrop-blur-md shadow-lg flex flex-col items-center justify-center text-center">
+               <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-3">
+                 <Flame className="w-6 h-6 text-amber-500" />
+               </div>
+               <div className="text-3xl font-black text-white font-mono">{user.current_streak}</div>
+               <div className="text-xs text-zinc-500 uppercase tracking-widest mt-1 font-bold">Day Streak</div>
+             </div>
+             
+             <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-3xl p-6 backdrop-blur-md shadow-lg flex flex-col items-center justify-center text-center">
+               <div className="w-12 h-12 rounded-full bg-forge-500/10 border border-forge-500/20 flex items-center justify-center mb-3">
+                 <Award className="w-6 h-6 text-forge-400" />
+               </div>
+               <div className="text-3xl font-black text-white font-mono">{currentXp.toLocaleString()}</div>
+               <div className="text-xs text-zinc-500 uppercase tracking-widest mt-1 font-bold">Lifetime XP</div>
+             </div>
+          </div>
+        </div>
+
+        {/* Right Column: All Tiers List */}
+        <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-3xl p-6 backdrop-blur-md shadow-xl h-[600px] overflow-y-auto custom-scrollbar">
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-6 sticky top-0 bg-zinc-900/90 py-2 backdrop-blur-md z-10 flex items-center gap-2 border-b border-zinc-800">
+            <Target className="w-4 h-4 text-forge-400" />
+            Tier System
+          </h3>
+          <div className="space-y-2 relative pb-8">
+            {TIERS.map((tier, idx) => {
+              const isUnlocked = currentXp >= tier.xp;
+              const isCurrent = currentTierIndex === idx;
+              
+              return (
+                <div 
+                  key={tier.name}
+                  className={cn(
+                    "p-3 rounded-xl border transition-all flex items-center justify-between",
+                    isCurrent ? "bg-forge-500/20 border-forge-500/50 shadow-[0_0_15px_rgba(139,92,246,0.2)]" :
+                    isUnlocked ? "bg-white/5 border-white/10" : "bg-zinc-950/50 border-zinc-900 opacity-50"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={cn(
+                      "w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0",
+                      tier.color
+                    )}>
+                      {idx + 1}
+                    </div>
+                    <div>
+                      <div className={cn("text-sm font-black uppercase tracking-wider", isUnlocked ? "text-white" : "text-zinc-600")}>
+                        {tier.name}
+                      </div>
+                      <div className="text-[10px] text-zinc-500 font-mono">
+                        {tier.xp.toLocaleString()} XP
+                      </div>
+                    </div>
+                  </div>
+                  {isCurrent && (
+                    <span className="text-[9px] font-black uppercase tracking-widest text-forge-300 bg-forge-950 px-2 py-1 rounded-full">
+                      Current
+                    </span>
+                  )}
+                </div>
               );
             })}
           </div>
         </div>
-      )}
+      </div>
     </PageTransition>
   );
 }
