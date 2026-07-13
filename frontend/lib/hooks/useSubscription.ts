@@ -43,7 +43,7 @@ export function useSubscription() {
   // so components don't break if they read detailed dates directly.
   const subscription: SubscriptionInfo | null = user ? {
     plan_type: user.plan_type || "trial",
-    plan_name: user.plan_name || (user.plan_type === "trial" ? "8-Day Free Trial" : "Free Trial"),
+    plan_name: user.plan_name || (user.plan_type === "trial" ? "14-Day Free Trial" : "Free Trial"),
     subscription_status: user.subscription_status || "trial",
     trial_used: user.trial_used || false,
     trial_start: user.trial_start || null,

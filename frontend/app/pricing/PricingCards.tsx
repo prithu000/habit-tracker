@@ -246,10 +246,36 @@ export function PricingCards() {
   const { isPaidActive: isSubscriber, subscription } = useSubscription();
   const currentPlanType = subscription?.plan_type || user?.plan_type;
 
+  const getButtonState = (planId: string, planName: string) => {
+    if (!user) return { text: "Start 14-Day Free Trial", disabled: false };
+
+    const hasUsedTrial = subscription?.trial_used || subscription?.trial_start != null;
+    const isCurrentlyInTrial = subscription?.subscription_status === "trial" || currentPlanType === "trial";
+    const hasActivePaidSub = isSubscriber && currentPlanType !== "trial";
+    const isCurrentPlan = planId === currentPlanType;
+
+    if (!hasUsedTrial && !isCurrentlyInTrial && !hasActivePaidSub) {
+      return { text: "Start 14-Day Free Trial", disabled: false };
+    }
+
+    if (isCurrentlyInTrial) {
+      return { text: "Upgrade after Trial", disabled: false };
+    }
+
+    if (hasActivePaidSub) {
+      if (isCurrentPlan) return { text: "Current Plan ✓", disabled: true, isCurrent: true };
+      if (planId === "12_month") return { text: "Upgrade to 12 Months", disabled: false };
+      if (planId === "6_month") return { text: "Upgrade to 6 Months", disabled: false };
+      return { text: "Switch Plan", disabled: false };
+    }
+
+    return { text: `Upgrade to ${planName}`, disabled: false };
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto items-stretch">
       {PLANS.map((plan) => {
-        const isCurrent = isSubscriber && currentPlanType === plan.id;
+        const buttonState = getButtonState(plan.id, plan.name);
         const isLoading = loadingPlan === plan.id;
 
         return (
@@ -340,22 +366,23 @@ export function PricingCards() {
 
             {/* Button */}
             <div>
-              {isCurrent ? (
+              {buttonState.isCurrent ? (
                 <div className="w-full py-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-xs flex items-center justify-center gap-2">
                   <Award className="w-4 h-4" />
-                  <span>Current Active Plan</span>
+                  <span>{buttonState.text}</span>
                 </div>
               ) : (
                 <button
                   onClick={() => handleSelectPlan(plan)}
-                  disabled={isLoading}
+                  disabled={isLoading || buttonState.disabled}
                   className={cn(
                     "w-full py-4 px-6 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 group",
                     plan.bestValue
                       ? "bg-gradient-to-r from-forge-500 to-purple-600 hover:from-forge-600 hover:to-purple-700 text-white shadow-[0_0_25px_rgba(139,92,246,0.4)] hover:shadow-[0_0_35px_rgba(139,92,246,0.6)]"
                       : plan.popular
                       ? "bg-white text-black hover:bg-white/90 shadow-[0_0_20px_rgba(255,255,255,0.2)]"
-                      : "bg-white/[0.06] hover:bg-white/[0.1] text-white border border-white/10"
+                      : "bg-white/[0.06] hover:bg-white/[0.1] text-white border border-white/10",
+                    (isLoading || buttonState.disabled) && "opacity-70 cursor-not-allowed"
                   )}
                 >
                   {isLoading ? (
@@ -365,7 +392,7 @@ export function PricingCards() {
                     </>
                   ) : (
                     <>
-                      <span>Upgrade to {plan.name}</span>
+                      <span>{buttonState.text}</span>
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </>
                   )}

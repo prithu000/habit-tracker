@@ -2,12 +2,12 @@
 
 import dynamic from "next/dynamic";
 import { useDashboard } from "@/lib/queries/useDashboard";
-import { GreetingHeader } from "@/components/dashboard/GreetingHeader";
 import { StatsBar } from "@/components/dashboard/StatsBar";
 import { RoutineCard } from "@/components/dashboard/RoutineCard";
-import { AICoachWidget } from "@/components/dashboard/AICoachWidget";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Skeleton } from "@/components/shared/Skeleton";
+import { ProUpgradeBanner } from "@/components/dashboard/ProUpgradeBanner";
+import { DashboardHero } from "@/components/dashboard/DashboardHero";
 import { CheckCircle2, AlertCircle, Plus, Sparkles, Sliders } from "lucide-react";
 import Link from "next/link";
 import { PageTransition } from "@/components/layouts/PageTransition";
@@ -70,27 +70,28 @@ export default function DashboardPage() {
   return (
     <PageTransition>
       <div className={cn("pb-12", gapCls)}>
-        {/* Top Section: Greeting & Quick Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/[0.08]">
-          <GreetingHeader 
-            displayName={dashboard.user.display_name} 
-            identityStatement={dashboard.user.identity_statement} 
-          />
-          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 self-start sm:self-auto shrink-0">
+        {/* Top Section: Dashboard Hero */}
+        <div className="pb-2 border-b border-white/[0.08]">
+          <DashboardHero />
+        </div>
+        
+        {/* Quick Actions & Stats */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
             <Link
               href="/routines"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-forge-500 to-purple-600 hover:from-forge-400 hover:to-purple-500 text-white font-semibold text-xs transition-all shadow-[0_0_20px_rgba(139,92,246,0.4)] hover:scale-105 active:scale-95 min-h-[44px] shrink-0"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-forge-500 to-purple-600 hover:from-forge-400 hover:to-purple-500 text-white font-semibold text-xs transition-all shadow-[0_0_20px_rgba(139,92,246,0.4)] hover:scale-105 active:scale-95 min-h-[44px]"
             >
-              <Plus className="w-4 h-4 stroke-[3] shrink-0" />
+              <Plus className="w-4 h-4 stroke-[3]" />
               <span>Quick Add Routine</span>
             </Link>
             <button
               onClick={toggleRightSidebar}
-              className="px-3 py-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] text-muted-foreground hover:text-white transition-all flex items-center gap-1.5 text-xs font-semibold min-h-[44px] shrink-0"
+              className="px-3 py-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] text-muted-foreground hover:text-white transition-all flex items-center gap-1.5 text-xs font-semibold min-h-[44px]"
               title="Customize Studio Layout"
               aria-label="Customize Studio Layout"
             >
-              <Sliders className="w-4 h-4 text-forge-400 shrink-0" />
+              <Sliders className="w-4 h-4 text-forge-400" />
               <span>Layout</span>
             </button>
           </div>
@@ -124,8 +125,7 @@ export default function DashboardPage() {
               </div>
               <h3 className="text-base font-display font-bold text-white">Nothing here... yet.</h3>
               <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
-                Every remarkable transformation begins with a single completed task.<br />
-                <span className="text-forge-400 font-semibold mt-1 block">Today is Day One.</span>
+                Every remarkable transformation begins with a single completed task.
               </p>
               <div className="pt-2">
                 <Link href="/routines" className="btn-forge text-xs inline-flex items-center gap-1.5">
@@ -161,17 +161,16 @@ export default function DashboardPage() {
           <DynamicWidgetsGrid dashboard={dashboard} isFreeMode={isFreeMode} />
         </section>
 
-        {/* 4. Neural Coach Section */}
-        {!isFreeMode && enabledWidgets.includes("ai_coach") && (
-          <section id="ai-coach-section" className="scroll-mt-20 pt-0 md:pt-4">
-            <AICoachWidget dashboard={dashboard} />
-          </section>
-        )}
 
-        {/* 4. Performance & Analytics Studio */}
-        {!isFreeMode && (
+
+        {/* 4. Performance & Analytics Studio or Upgrade Banner */}
+        {dashboard.today.routines.length > 0 && (
           <section id="analytics-studio-section" className="scroll-mt-20 pt-0 md:pt-4">
-            <DashboardAnalytics dashboard={dashboard} />
+            {!isFreeMode ? (
+              <DashboardAnalytics dashboard={dashboard} />
+            ) : (
+              <ProUpgradeBanner />
+            )}
           </section>
         )}
       </div>

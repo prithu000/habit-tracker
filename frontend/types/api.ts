@@ -15,7 +15,7 @@ export interface User {
   trial_used?: boolean;
   trial_start?: string | null;
   trial_end?: string | null;
-  plan_type?: 'trial' | 'monthly' | '6_month' | '12_month';
+  plan_type?: 'free' | 'trial' | 'monthly' | '6_month' | '12_month';
   subscription_status?: 'trial' | 'active' | 'expired' | 'cancelled';
   subscription_start?: string | null;
   subscription_end?: string | null;

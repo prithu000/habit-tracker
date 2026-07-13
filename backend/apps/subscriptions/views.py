@@ -353,7 +353,7 @@ class SubscriptionInfoView(APIView):
         return Response({
             "plan_type": user.plan_type,
             "subscription_plan": user.plan_type,
-            "plan_name": user.plan_name or ("8-Day Free Trial" if user.plan_type == "trial" else user.plan_type),
+            "plan_name": user.plan_name or ("14-Day Free Trial" if user.plan_type == "trial" else user.plan_type),
             "subscription_status": user.subscription_status,
             "trial_used": user.trial_used,
             "trial_start": user.trial_start.isoformat() if user.trial_start else None,

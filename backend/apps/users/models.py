@@ -39,7 +39,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         FLEXIBLE = "flexible", "Flexible"
 
     class PlanType(models.TextChoices):
-        TRIAL = "trial", "8-Day Free Trial"
+        TRIAL = "trial", "14-Day Free Trial"
         MONTHLY = "monthly", "Monthly Plan (₹99)"
         SIX_MONTH = "6_month", "6-Month Plan (₹399)"
         TWELVE_MONTH = "12_month", "12-Month Plan (₹699)"
@@ -81,7 +81,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         choices=PlanType.choices,
         default=PlanType.TRIAL,
     )
-    plan_name = models.CharField(max_length=50, blank=True, default="7-Day Free Trial")
+    plan_name = models.CharField(max_length=50, blank=True, default="14-Day Free Trial")
     subscription_status = models.CharField(
         max_length=20,
         choices=SubscriptionStatus.choices,

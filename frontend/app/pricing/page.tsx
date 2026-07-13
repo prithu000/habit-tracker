@@ -38,7 +38,7 @@ export default function PricingPage() {
             <div className="mt-6 flex flex-wrap items-center justify-center gap-6 text-xs text-muted-foreground font-medium">
               <div className="flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>7-Day Free Trial Included</span>
+                <span>14-Day Free Trial Included</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Zap className="w-4 h-4 text-amber-400" />
@@ -140,14 +140,14 @@ export default function PricingPage() {
               </h2>
             </div>
             <p className="text-xs sm:text-sm text-muted-foreground text-center mb-10">
-              Everything you need to know about subscriptions, billing, and the 7-day trial.
+              Everything you need to know about subscriptions, billing, and the 14-day trial.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-[#111116] border border-white/10 rounded-2xl p-5 sm:p-6 space-y-2">
-                <h3 className="text-sm font-bold text-white">How does the 7-Day Free Trial work?</h3>
+                <h3 className="text-sm font-bold text-white">How does the 14-Day Free Trial work?</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Every new user receives 7 full days of unrestricted access to every feature in the YOU VS YOU operating system. No credit card is required upfront to start your trial.
+                  Every new user receives 14 full days of unrestricted access to every feature in the YOU VS YOU operating system. No credit card is required upfront to start your trial.
                 </p>
               </div>
 

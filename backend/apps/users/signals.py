@@ -31,13 +31,13 @@ def on_user_created(sender, instance, created, **kwargs):
     # Import here to avoid circular imports
     from apps.streaks.models import StreakRecord
     
-    # Initialize 8-Day Full Featured Free Trial
+    # Initialize 14-Day Full Featured Free Trial
     from django.utils import timezone as django_timezone
     from datetime import timedelta
     now = django_timezone.now()
     if not instance.trial_start:
         instance.trial_start = now
-        instance.trial_end = now + timedelta(days=8)
+        instance.trial_end = now + timedelta(days=14)
         instance.subscription_status = instance.SubscriptionStatus.TRIAL
         instance.plan_type = instance.PlanType.TRIAL
         instance.save(update_fields=["trial_start", "trial_end", "subscription_status", "plan_type"])

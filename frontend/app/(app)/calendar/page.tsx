@@ -30,10 +30,6 @@ import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils/cn";
 
-const YearHeatmap = dynamic(
-  () => import("@/components/calendar/YearHeatmap").then((m) => m.YearHeatmap),
-  { ssr: false, loading: () => <Skeleton className="h-[220px] w-full rounded-3xl bg-zinc-900/40" /> }
-);
 
 export default function CalendarPage() {
   const { user } = useAuthStore();
@@ -78,35 +74,6 @@ function CalendarPageContent() {
   const [priority, setPriority] = useState("Medium");
   const [frequency, setFrequency] = useState("Daily");
 
-  // Generate 52-week GitHub heatmap (364 days)
-  const heatmapWeeks = React.useMemo(() => {
-    const weeks: { date: string; count: number; level: number }[][] = [];
-    const today = new Date();
-    let curr = new Date(today.getTime() - 364 * 24 * 60 * 60 * 1000);
-
-    for (let w = 0; w < 52; w++) {
-      const week: { date: string; count: number; level: number }[] = [];
-      for (let d = 0; d < 7; d++) {
-        const dateStr = curr.toISOString().split("T")[0];
-        const hash = dateStr.split("-").reduce((acc, val) => acc + parseInt(val), 0);
-        const level = curr > today ? 0 : hash % 5;
-        week.push({ date: dateStr, count: level * 3, level });
-        curr = new Date(curr.getTime() + 24 * 60 * 60 * 1000);
-      }
-      weeks.push(week);
-    }
-    return weeks;
-  }, []);
-
-  const getLevelColor = (level: number) => {
-    switch (level) {
-      case 4: return "bg-purple-500 shadow-sm shadow-purple-500/50";
-      case 3: return "bg-purple-600/80";
-      case 2: return "bg-purple-800/60";
-      case 1: return "bg-purple-950/40";
-      default: return "bg-zinc-900 border border-zinc-800/60";
-    }
-  };
 
   const handleCreateReminder = (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,9 +133,6 @@ function CalendarPageContent() {
           <span>SCHEDULE REMINDER</span>
         </button>
       </div>
-
-      {/* 365-Day Execution Heatmap */}
-      <YearHeatmap heatmapWeeks={heatmapWeeks} getLevelColor={getLevelColor} />
 
       {/* Monthly Grid & Reminders Matrix */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

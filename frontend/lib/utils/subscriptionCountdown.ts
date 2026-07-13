@@ -28,13 +28,10 @@ export interface SubscriptionCountdown {
 import { User } from "@/types/api";
 
 export function getSubscriptionCountdown(
-  user: Partial<User> | null | undefined,
-  nowTs?: number
+  user: Partial<User> | null | undefined
 ): SubscriptionCountdown {
   const currentStatus = (user?.subscription_status || "trial").toLowerCase();
   const isPremiumActive = user?.is_premium_active;
-  const trialEnd = user?.trial_end;
-  const now = nowTs ?? Date.now();
 
   // PRIORITY 1: Handle active paid subscriptions by status (or if plan is not trial)
   // If premium is active, NEVER show trial countdown
@@ -56,7 +53,7 @@ export function getSubscriptionCountdown(
   }
 
   // Handle missing end date or explicitly expired status
-  if (!trialEnd || currentStatus === "expired" || currentStatus === "cancelled") {
+  if (!user?.trial_end || currentStatus === "expired" || currentStatus === "cancelled") {
     return {
       isExpired: true,
       isTrial: currentStatus === "trial",
@@ -73,12 +70,12 @@ export function getSubscriptionCountdown(
     };
   }
 
-  // Calculate exact difference from single source of truth server timestamp
-  const endMs = typeof trialEnd === "string" ? new Date(trialEnd).getTime() : (trialEnd as Date).getTime();
-  const diffSec = Math.floor((endMs - now) / 1000);
+  // Use the backend as the single source of truth
+  const totalDays = user.trial_days_remaining || 0;
+  const totalHours = user.trial_hours_remaining || 0;
 
-  // Expired
-  if (diffSec <= 0 || isNaN(diffSec)) {
+  // Expired dynamically via remaining values
+  if (totalDays <= 0 && totalHours <= 0) {
     return {
       isExpired: true,
       isTrial: true,
@@ -95,36 +92,31 @@ export function getSubscriptionCountdown(
     };
   }
 
-  const totalDays = Math.floor(diffSec / 86400);
-  const totalHours = Math.floor(diffSec / 3600);
-  const totalMinutes = Math.floor(diffSec / 60);
-  const endsToday = totalHours < 24;
+  const endsToday = totalHours < 24 && totalHours > 0;
 
   let label = "";
   let shortLabel = "";
   let badgeClass = "bg-gradient-to-r from-amber-500/15 via-forge-500/15 to-purple-500/15 border-amber-500/30 text-amber-200 hover:border-amber-400/50";
 
-  if (totalHours >= 48) {
-    // If more than 48 hours remain: "2 Days Left", "3 Days Left", etc.
+  if (totalDays >= 2) {
+    // 2 or more days left
     label = `${totalDays} Days Left`;
     shortLabel = `${totalDays} Days Left`;
-  } else if (totalHours >= 24 && totalHours < 48) {
-    // 24 to 48 hours remaining: exactly 1 Day Left
+  } else if (totalDays === 1) {
+    // 1 day left
     label = "1 Day Left";
     shortLabel = "1 Day Left";
     badgeClass = "bg-amber-500/15 border-amber-500/40 text-amber-300 hover:bg-amber-500/25 animate-pulse";
   } else if (totalHours >= 1 && totalHours < 24) {
     // Less than 24 hours remaining: "Ends in X Hours" / "Ends Today"
-    // Matches: 19 hours left -> Ends in 19 Hours, 8 hours left -> Ends in 8 Hours, 2 hours left -> Ends in 2 Hours
     label = `Ends in ${totalHours} ${totalHours === 1 ? "Hour" : "Hours"}`;
     shortLabel = totalHours < 12 ? `Ends in ${totalHours}h` : "Ends Today";
     badgeClass = "bg-amber-500/20 border-amber-500/50 text-amber-300 hover:bg-amber-500/30 animate-pulse font-semibold";
   } else {
-    // Less than 1 hour remaining (< 60 minutes): "Ends in X Minutes"
-    // Matches: 30 minutes left -> Ends in 30 Minutes
-    const m = Math.max(1, totalMinutes);
-    label = `Ends in ${m} ${m === 1 ? "Minute" : "Minutes"}`;
-    shortLabel = `Ends in ${m}m`;
+    // Less than 1 hour remaining (< 60 minutes)
+    // The backend only provides hours right now, so if hours == 0 but it's not expired, just show < 1 hour
+    label = `Ends in < 1 Hour`;
+    shortLabel = `< 1h`;
     badgeClass = "bg-red-500/20 border-red-500/50 text-red-300 hover:bg-red-500/30 animate-pulse font-bold";
   }
 
@@ -137,8 +129,8 @@ export function getSubscriptionCountdown(
     shortLabel,
     daysRemaining: totalDays,
     hoursRemaining: totalHours,
-    minutesRemaining: totalMinutes,
-    totalSecondsRemaining: diffSec,
+    minutesRemaining: totalHours * 60, // Approximate
+    totalSecondsRemaining: totalHours * 3600, // Approximate
     endsToday,
     badgeClass,
   };

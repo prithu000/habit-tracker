@@ -55,7 +55,7 @@ class SubscriptionOrderAdmin(admin.ModelAdmin):
             "12_month": "#10b981",
         }
         plan_labels = {
-            "trial": "8-Day Free Trial",
+            "trial": "14-Day Free Trial",
             "monthly": "Monthly Plan (₹99)",
             "6_month": "6-Month Plan (₹399)",
             "12_month": "12-Month Plan (₹699)",

@@ -79,9 +79,10 @@ def forge_exception_handler(exc, context):
         if str(code) == "SUBSCRIPTION_REQUIRED" or response.status_code == 403 and "Premium Trial has ended" in message:
             response.status_code = status.HTTP_403_FORBIDDEN
             response.data["code"] = "SUBSCRIPTION_REQUIRED"
-            response.data["message"] = "Your 7-day Premium Trial has ended. Upgrade to continue."
-            response.data["error"]["code"] = "SUBSCRIPTION_REQUIRED"
-            response.data["error"]["message"] = "Your 7-day Premium Trial has ended. Upgrade to continue."
+            response.data["message"] = "Your 14-day Premium Trial has ended. Upgrade to continue."
+            if "error" in response.data:
+                response.data["error"]["code"] = "SUBSCRIPTION_REQUIRED"
+                response.data["error"]["message"] = "Your 14-day Premium Trial has ended. Upgrade to continue."
         return response
 
     # Unhandled exception — log and return generic 500

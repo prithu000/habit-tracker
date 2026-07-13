@@ -87,29 +87,7 @@ export default function LifeScorePage() {
     { subject: "Growth", today: isInitializing ? 0 : categories.personal, weekly: isInitializing ? 0 : categories.personal - 3, monthly: isInitializing ? 0 : categories.personal - 5, fullMark: 100, explanation: "XP generation, level progression, and achievement unlocks." },
   ];
 
-  // Dimensional metrics fallback
-  const dimData = dimensions || [
-    { id: "discipline", title: "Discipline Mastery", score: categories.discipline, trend: "+4.2%", weekly_avg: categories.discipline - 3, monthly_avg: categories.discipline - 6, improvement_pct: 5.1, ai_insight: "High execution consistency during morning routines.", recommendation: "Lock in evening routines 30 mins earlier." },
-    { id: "focus", title: "Focus Mastery", score: categories.mental_health, trend: "+3.8%", weekly_avg: categories.mental_health - 2, monthly_avg: categories.mental_health - 5, improvement_pct: 4.2, ai_insight: "Pomodoro completion rate increased significantly.", recommendation: "Eliminate desktop notifications during sprints." },
-    { id: "workout", title: "Workout Mastery", score: categories.fitness, trend: "+5.0%", weekly_avg: categories.fitness - 4, monthly_avg: categories.fitness - 7, improvement_pct: 6.0, ai_insight: "Hypertrophy push goals met consistently.", recommendation: "Add 15-min mobility session post-workout." },
-    { id: "study", title: "Deep Study Mastery", score: categories.learning, trend: "+2.5%", weekly_avg: categories.learning - 3, monthly_avg: categories.learning - 5, improvement_pct: 3.1, ai_insight: "Reading velocity pacing ahead of targets.", recommendation: "Dedicate 45 mins to technical docs review." },
-    { id: "hydration", title: "Hydration Mastery", score: categories.health, trend: "0.0%", weekly_avg: categories.health - 1, monthly_avg: categories.health - 3, improvement_pct: 1.0, ai_insight: "Water consistency reached optimal adherence.", recommendation: "Keep 1500ml water bottle at workstation." },
-    { id: "execution", title: "Execution Mastery", score: categories.work, trend: "+4.1%", weekly_avg: categories.work - 3, monthly_avg: categories.work - 6, improvement_pct: 4.8, ai_insight: "High completion velocity across tasks.", recommendation: "Tackle urgent priority tasks first thing." },
-    { id: "recovery", title: "Recovery Mastery", score: categories.sleep, trend: "+1.8%", weekly_avg: categories.sleep - 2, monthly_avg: categories.sleep - 4, improvement_pct: 2.2, ai_insight: "Restorative sleep index indicates solid recovery.", recommendation: "Maintain strict 11:00 PM digital sunset." },
-    { id: "growth", title: "Growth Mastery", score: categories.personal, trend: "+3.5%", weekly_avg: categories.personal - 3, monthly_avg: categories.personal - 5, improvement_pct: 3.9, ai_insight: "XP accumulation rate pacing well for promotion.", recommendation: "Unlock 2 pending achievements in League arena." },
-  ];
 
-  const categoryConfigs = [
-    { key: "fitness", label: "Fitness", val: categories.fitness, icon: Activity, color: "text-emerald-400", bg: "bg-emerald-500/10", bar: "bg-emerald-500" },
-    { key: "learning", label: "Learning", val: categories.learning, icon: BookOpen, color: "text-blue-400", bg: "bg-blue-500/10", bar: "bg-blue-500" },
-    { key: "work", label: "Work", val: categories.work, icon: Briefcase, color: "text-indigo-400", bg: "bg-indigo-500/10", bar: "bg-indigo-500" },
-    { key: "mental_health", label: "Mental Health", val: categories.mental_health, icon: Smile, color: "text-purple-400", bg: "bg-purple-500/10", bar: "bg-purple-500" },
-    { key: "health", label: "Health", val: categories.health, icon: Heart, color: "text-rose-400", bg: "bg-rose-500/10", bar: "bg-rose-500" },
-    { key: "sleep", label: "Sleep", val: categories.sleep, icon: Moon, color: "text-cyan-400", bg: "bg-cyan-500/10", bar: "bg-cyan-500" },
-    { key: "finance", label: "Finance", val: categories.finance, icon: DollarSign, color: "text-amber-400", bg: "bg-amber-500/10", bar: "bg-amber-500" },
-    { key: "personal", label: "Personal", val: categories.personal, icon: User, color: "text-pink-400", bg: "bg-pink-500/10", bar: "bg-pink-500" },
-    { key: "discipline", label: "Discipline", val: categories.discipline, icon: TrendingUp, color: "text-purple-500", bg: "bg-purple-500/10", bar: "bg-purple-500" },
-  ];
 
   return (
     <PageTransition className="space-y-8 max-w-7xl mx-auto pb-16">
@@ -343,97 +321,7 @@ export default function LifeScorePage() {
         </div>
       </div>
 
-      {/* Expandable Dimensional Metrics Breakdown */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <h3 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-purple-400" />
-            Dimensional Metrics Breakdown
-          </h3>
-          <p className="text-xs text-zinc-400">Click any card to expand multi-period averages and AI coaching recommendations.</p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {dimData.map((dim: any) => {
-            const isExpanded = expandedDimension === dim.id;
-            return (
-              <motion.div
-                key={dim.id}
-                layout
-                onClick={() => setExpandedDimension(isExpanded ? null : dim.id)}
-                className={cn(
-                  "bg-zinc-900/40 border rounded-2xl p-5 backdrop-blur-sm cursor-pointer transition-all shadow-md flex flex-col justify-between",
-                  isExpanded ? "border-purple-500/60 bg-zinc-900/80 ring-1 ring-purple-500/30" : "border-zinc-800/80 hover:border-zinc-700"
-                )}
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-400">
-                        <Activity className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-white">{dim.title}</h4>
-                        <span className="text-xs text-zinc-500">System Index</span>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-xl font-black text-white">{dim.score}</span>
-                      <div className="text-[10px] font-semibold text-emerald-400">{dim.trend}</div>
-                    </div>
-                  </div>
-                  
-                  <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden mb-3">
-                    <motion.div
-                      className="h-full rounded-full bg-gradient-to-r from-purple-500 to-indigo-500"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${dim.score}%` }}
-                      transition={{ duration: 1, ease: "easeOut" }}
-                    />
-                  </div>
-                </div>
 
-                <AnimatePresence>
-                  {isExpanded && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="pt-4 mt-2 border-t border-zinc-800 space-y-3 text-xs"
-                    >
-                      <div className="grid grid-cols-2 gap-2 bg-zinc-950/60 p-2.5 rounded-xl border border-zinc-800/80">
-                        <div>
-                          <span className="text-zinc-500 block text-[10px] uppercase">Weekly Avg</span>
-                          <span className="font-bold text-white">{dim.weekly_avg} / 100</span>
-                        </div>
-                        <div>
-                          <span className="text-zinc-500 block text-[10px] uppercase">Monthly Avg</span>
-                          <span className="font-bold text-white">{dim.monthly_avg} / 100</span>
-                        </div>
-                      </div>
-
-                      <div className="bg-purple-950/20 p-3 rounded-xl border border-purple-500/20 space-y-1">
-                        <span className="text-[10px] font-bold text-purple-300 uppercase tracking-wider block">AI Neural Insight</span>
-                        <p className="text-zinc-300 leading-relaxed">{dim.ai_insight}</p>
-                      </div>
-
-                      <div className="bg-zinc-950 p-3 rounded-xl border border-zinc-800 space-y-1">
-                        <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">Actionable Recommendation</span>
-                        <p className="text-zinc-400 leading-relaxed">{dim.recommendation}</p>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <div className="flex items-center justify-center pt-2 text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors">
-                  {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                  <span className="ml-1">{isExpanded ? "Show Less" : "Expand Diagnostics"}</span>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      </div>
 
       {/* Historical Trend */}
       <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-3xl p-6 backdrop-blur-md shadow-xl">

@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
             name="plan_type",
             field=models.CharField(
                 choices=[
-                    ("trial", "7-Day Free Trial"),
+                    ("trial", "14-Day Free Trial"),
                     ("monthly", "Monthly Plan (₹99)"),
                     ("6_month", "6-Month Plan (₹399)"),
                     ("12_month", "12-Month Plan (₹699)"),

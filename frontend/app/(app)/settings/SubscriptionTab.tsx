@@ -45,7 +45,7 @@ export const SubscriptionTab: React.FC = () => {
     if (planType === "monthly") return "Monthly Pro Plan (₹99)";
     if (planType === "6_month") return "6-Month Pro Plan (₹399)";
     if (planType === "12_month") return "12-Month VIP Plan (₹699)";
-    return "7-Day Full Featured Trial";
+    return "14-Day Full Featured Trial";
   };
 
   const handleDownloadInvoice = (item: PaymentHistoryItem) => {
@@ -104,7 +104,7 @@ Thank you for investing in yourself. Keep showing up.
 
               {subStatus === "trial" && (
                 <span className="text-xs text-muted-foreground font-medium">
-                  {countdown.label}
+                  {countdown.endsToday ? "Ends Today" : `${countdown.daysRemaining} Days Left`}
                 </span>
               )}
             </div>

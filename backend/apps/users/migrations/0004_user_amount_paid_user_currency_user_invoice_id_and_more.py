@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
             model_name="user",
             name="plan_name",
             field=models.CharField(
-                blank=True, default="7-Day Free Trial", max_length=50
+                blank=True, default="14-Day Free Trial", max_length=50
             ),
         ),
         migrations.AddField(

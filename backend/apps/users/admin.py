@@ -47,7 +47,7 @@ class UserAdmin(BaseUserAdmin):
     list_per_page = 50
     
     actions = [
-        "grant_8_day_trial",
+        "grant_trial",
         "grant_1_month_premium",
         "grant_6_month_premium",
         "grant_12_month_premium",
@@ -123,10 +123,10 @@ class UserAdmin(BaseUserAdmin):
                 
                 if obj.subscription_status == User.SubscriptionStatus.TRIAL:
                     obj.plan_type = User.PlanType.TRIAL
-                    obj.plan_name = "8-Day Free Trial"
+                    obj.plan_name = "14-Day Free Trial"
                     # Enforce fresh trial dates
                     obj.trial_start = now
-                    obj.trial_end = now + timedelta(days=8)
+                    obj.trial_end = now + timedelta(days=14)
                     
                     # Clear ALL premium fields to prevent leaks
                     obj.subscription_start = None
@@ -374,22 +374,21 @@ class UserAdmin(BaseUserAdmin):
             )
         else:
             return format_html('<span style="color: #9ca3af;">Not set</span>')
-    
     # ═══════════════════════════════════════════════════════════════
     # ADMIN ACTIONS
     # ═══════════════════════════════════════════════════════════════
     
-    @admin.action(description="✨ Grant 8-Day Trial")
-    def grant_8_day_trial(self, request, queryset):
-        """Grant 8-day trial to selected users"""
+    @admin.action(description="✨ Grant 14-Day Trial")
+    def grant_trial(self, request, queryset):
+        """Grant 14-day trial to selected users"""
         count = 0
         for user in queryset:
             now = timezone.now()
-            trial_end = now + timedelta(days=8)
+            trial_end = now + timedelta(days=14)
             
             user.subscription_status = User.SubscriptionStatus.TRIAL
             user.plan_type = User.PlanType.TRIAL
-            user.plan_name = "8-Day Free Trial"
+            user.plan_name = "14-Day Free Trial"
             user.trial_start = now
             user.trial_end = trial_end
             user.trial_used = True
@@ -406,7 +405,7 @@ class UserAdmin(BaseUserAdmin):
         
         self.message_user(
             request,
-            f"✅ Successfully granted 8-day trial to {count} user(s). Trial expires in 8 days.",
+            f"✅ Successfully granted 14-day trial to {count} user(s). Trial expires in 14 days.",
             messages.SUCCESS
         )
     

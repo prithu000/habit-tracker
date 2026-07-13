@@ -185,23 +185,45 @@ function ReportsPageContent() {
   return (
     <PageTransition className="space-y-6 md:space-y-8 lg:space-y-12 max-w-6xl mx-auto pb-16 md:pb-28 p-4 sm:p-8">
       {/* ── TOP HEADING & BADGE ── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 pb-4 border-b border-white/[0.08]">
-        <div className="space-y-2">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white uppercase">
-            PERFORMANCE{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-indigo-400 to-purple-400">
-              REPORTS
-            </span>
-          </h1>
-          <p className="text-sm sm:text-base text-zinc-400 leading-relaxed max-w-xl font-medium">
-            Real data. Real progress. No estimates.
-            <br />
-            Track your journey and download your executive performance reports.
-          </p>
+      <div className="flex flex-col md:flex-row justify-between gap-6 pb-6 border-b border-white/[0.08]">
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white uppercase">
+              PERFORMANCE{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-indigo-400 to-purple-400">
+                REPORTS
+              </span>
+            </h1>
+            <p className="text-sm sm:text-base text-zinc-400 leading-relaxed max-w-xl font-medium">
+              Understand your consistency through daily, weekly and monthly analytics. Generate beautiful printable reports and customize which habits appear in your Habit Breakdown using Report Settings.
+            </p>
+          </div>
+
+          {/* Info Card */}
+          <div className="bg-zinc-900/60 border border-zinc-800/80 p-4 rounded-2xl max-w-xl shadow-inner">
+            <h3 className="text-xs font-bold text-white mb-2 uppercase tracking-wider flex items-center gap-1.5">
+              <Settings className="w-4 h-4 text-purple-400" />
+              Report Settings allows you to:
+            </h3>
+            <ul className="space-y-1.5">
+              <li className="flex items-start gap-2 text-xs text-zinc-400">
+                <div className="w-1.5 h-1.5 rounded-full bg-purple-500/50 mt-1.5 shrink-0" />
+                Choose up to 4 custom habits
+              </li>
+              <li className="flex items-start gap-2 text-xs text-zinc-400">
+                <div className="w-1.5 h-1.5 rounded-full bg-purple-500/50 mt-1.5 shrink-0" />
+                Reorder habit priority
+              </li>
+              <li className="flex items-start gap-2 text-xs text-zinc-400">
+                <div className="w-1.5 h-1.5 rounded-full bg-purple-500/50 mt-1.5 shrink-0" />
+                Personalize your PDF reports
+              </li>
+            </ul>
+          </div>
         </div>
 
         {/* RIGHT ACTION CLUSTER */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 self-start md:self-auto">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 self-start md:self-auto shrink-0">
           {/* Report Settings Button */}
           <button 
             onClick={() => setIsSettingsOpen(true)}

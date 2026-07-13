@@ -20,11 +20,20 @@ export const Topbar = memo(function Topbar() {
   const performLogout = useLogout();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [nowTs, setNowTs] = useState(() => Date.now());
+  const [taglineIndex, setTaglineIndex] = useState(0);
+
+  const TAGLINES = [
+    "Discipline equals freedom.",
+    "Every action you complete today shapes tomorrow's version of you.",
+    "Engineer Your Best Self.",
+    "Consistency is the ultimate competitive advantage."
+  ];
 
   useEffect(() => {
-    const interval = setInterval(() => setNowTs(Date.now()), 60000);
-    return () => clearInterval(interval);
+    const taglineInterval = setInterval(() => {
+      setTaglineIndex((prev) => (prev + 1) % TAGLINES.length);
+    }, 12000); // 12 second rotation
+    return () => clearInterval(taglineInterval);
   }, []);
 
   const handleLogout = async () => {
@@ -77,42 +86,52 @@ export const Topbar = memo(function Topbar() {
         </Link>
       </div>
 
-      {/* ── Center: Spacer (flex-1) ── */}
-      <div className="flex-1 hidden lg:block" />
+      {/* ── Center: Rotating Taglines (flex-1) ── */}
+      <div className="flex-1 hidden lg:flex items-center justify-center">
+        <div className="relative h-6 w-full max-w-md flex items-center justify-center overflow-hidden">
+          {TAGLINES.map((tagline, idx) => (
+            <div
+              key={idx}
+              className={cn(
+                "absolute text-xs font-medium tracking-wide text-zinc-400 transition-all duration-1000",
+                idx === taglineIndex ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+              )}
+            >
+              {tagline}
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* ── Desktop Search Removed ── */}
 
       {/* ── Right: Actions (Responsive Priority) ── */}
       <div className="flex items-center gap-2 shrink-0">
 
-        {/* Premium Badge — Compact Pill (Max 72px) */}
+        {/* Subscription Badge */}
         <Link
           href="/pricing"
           className={cn(
-            "flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold tracking-tight transition-opacity active:scale-95 shrink-0 border max-w-[72px]",
-            countdown.badgeClass
+            "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-tight transition-opacity active:scale-95 shrink-0 border whitespace-nowrap",
+            countdown.isActivePaid
+              ? "bg-forge-500/20 border-forge-500/30 text-forge-300 shadow-[0_0_10px_rgba(139,92,246,0.2)]"
+              : countdown.isExpired
+              ? "bg-white/5 border-white/10 text-muted-foreground"
+              : "bg-white/5 border-white/20 text-white"
           )}
           title="Click to view plans and subscription status"
         >
-          {countdown.isActivePaid && (
+          {countdown.isActivePaid ? (
             <>
               <span className="text-xs shrink-0">👑</span>
-              <span className="truncate hidden min-[401px]:inline">PRO</span>
+              <span className="uppercase tracking-widest font-bold">PRO MEMBER</span>
             </>
-          )}
-          {countdown.isExpired && (
-            <>
-              <span className="text-xs shrink-0">⚠</span>
-              <span className="truncate">Trial</span>
-            </>
-          )}
-          {!countdown.isActivePaid && !countdown.isExpired && (
-            <>
-              <span className="text-xs shrink-0">👑</span>
-              <span className="truncate">
-                {countdown.endsToday ? "Today" : `${countdown.daysRemaining}d`}
-              </span>
-            </>
+          ) : user?.plan_type === "free" ? (
+            <span className="uppercase tracking-widest font-bold text-muted-foreground">FREE</span>
+          ) : countdown.isExpired ? (
+            <span>Trial Expired</span>
+          ) : (
+            <span>Trial • {countdown.endsToday ? "Ends Today" : `${countdown.daysRemaining} Days Left`}</span>
           )}
         </Link>
 
@@ -163,8 +182,13 @@ export const Topbar = memo(function Topbar() {
                 <p className="text-xs font-bold text-foreground truncate">{displayName}</p>
                 <p className="text-[10px] text-muted-foreground truncate font-mono mt-0.5">{user?.email}</p>
                 <div className="mt-2 flex items-center gap-1.5">
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-forge-500/20 text-forge-300 border border-forge-500/30 uppercase tracking-widest">
-                    PRO MEMBER
+                  <span className={cn(
+                    "inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest border",
+                    countdown.isActivePaid 
+                      ? "bg-forge-500/20 text-forge-300 border-forge-500/30" 
+                      : "bg-white/5 text-muted-foreground border-white/10"
+                  )}>
+                    {countdown.isActivePaid ? "PRO MEMBER" : user?.plan_type === "free" ? "FREE" : countdown.isExpired ? "TRIAL EXPIRED" : "FREE TRIAL"}
                   </span>
                 </div>
               </div>
