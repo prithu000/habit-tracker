@@ -165,8 +165,8 @@ export function useUndoCompletion() {
             const task = routine.tasks.find(t => t.completion_id === completionId);
             if (task && task.is_completed) {
               task.is_completed = false;
-              task.completed_at = undefined;
-              task.completion_id = undefined;
+              task.completed_at = null;
+              task.completion_id = null;
               routine.completed_count = Math.max(0, routine.completed_count - 1);
               routine.completion_rate = Math.round((routine.completed_count / routine.task_count) * 100 * 10) / 10;
               routine.is_complete = false;
