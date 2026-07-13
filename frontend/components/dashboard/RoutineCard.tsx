@@ -12,6 +12,8 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { DeleteRoutineModal } from "../routines/DeleteRoutineModal";
 import { useArchiveRoutine, useDuplicateRoutine, useCreateTask } from "@/lib/queries/useRoutines";
 import { useRouter } from "next/navigation";
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
+import { MobileAddTaskSheet } from "./MobileAddTaskSheet";
 
 interface RoutineCardProps {
   routine: RoutineBlock;
@@ -25,6 +27,8 @@ export const RoutineCard = memo(function RoutineCard({ routine }: RoutineCardPro
   const [newTaskDuration, setNewTaskDuration] = useState("");
   const [newTaskPriority, setNewTaskPriority] = useState("Medium");
   const [newTaskRepeat, setNewTaskRepeat] = useState("None");
+  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
+  const isMobile = useMediaQuery("(max-width: 767px)");
 
   const { cardRadius, animationsEnabled } = useCustomizationStore();
   const router = useRouter();
@@ -60,6 +64,27 @@ export const RoutineCard = memo(function RoutineCard({ routine }: RoutineCardPro
     }
   };
 
+  const handleAddTaskClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isMobile) {
+      setIsMobileSheetOpen(true);
+    } else {
+      setIsExpanded(true);
+      setIsAddingTask(true);
+    }
+  };
+
+  const handleMobileAddTask = (name: string, duration: number, priority: string, repeat: string) => {
+    createTask({
+      routineId: routine.id,
+      taskData: {
+        name,
+        duration_minutes: duration,
+      }
+    });
+    setIsMobileSheetOpen(false);
+  };
+
   const radiusClasses = {
     "16px": "rounded-[16px]",
     "20px": "rounded-[20px]",
@@ -87,10 +112,10 @@ export const RoutineCard = memo(function RoutineCard({ routine }: RoutineCardPro
 
       {/* Header */}
       <div
-        className="p-5 flex items-center justify-between cursor-pointer select-none relative z-10"
+        className="p-4 sm:p-5 flex items-center justify-between cursor-pointer select-none relative z-10"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0 pr-2">
           <div
             className="flex h-12 w-12 items-center justify-center rounded-2xl text-2xl shadow-[0_0_20px_rgba(0,0,0,0.4)] border transition-transform group-hover:scale-105 duration-300"
             style={{
@@ -101,9 +126,9 @@ export const RoutineCard = memo(function RoutineCard({ routine }: RoutineCardPro
           >
             {routine.icon}
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-display font-bold text-base sm:text-lg text-white tracking-wide">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="font-display font-bold text-base sm:text-lg text-white tracking-wide truncate max-w-full">
                 {routine.name}
               </h3>
               {routine.is_complete && (
@@ -125,7 +150,7 @@ export const RoutineCard = memo(function RoutineCard({ routine }: RoutineCardPro
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           <div className="hidden sm:flex flex-col items-end gap-1.5 w-36">
             <div className="flex items-center justify-between w-full text-xs font-mono">
               <span className="text-muted-foreground">Progress</span>
@@ -143,12 +168,8 @@ export const RoutineCard = memo(function RoutineCard({ routine }: RoutineCardPro
           </div>
           
           <button
-            className="px-3 py-1.5 rounded-lg bg-forge-500/20 text-forge-400 hover:bg-forge-500/30 transition-colors text-xs font-bold shrink-0"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsExpanded(true);
-              setIsAddingTask(true);
-            }}
+            className="px-2 sm:px-3 py-1.5 rounded-lg bg-forge-500/20 text-forge-400 hover:bg-forge-500/30 transition-colors text-xs font-bold shrink-0"
+            onClick={handleAddTaskClick}
           >
             + Add Task
           </button>
@@ -330,6 +351,14 @@ export const RoutineCard = memo(function RoutineCard({ routine }: RoutineCardPro
         routine={routine}
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
+      />
+
+      <MobileAddTaskSheet 
+        isOpen={isMobileSheetOpen}
+        onClose={() => setIsMobileSheetOpen(false)}
+        routineName={routine.name}
+        onAddTask={handleMobileAddTask}
+        isCreating={isCreatingTask}
       />
     </motion.div>
   );
