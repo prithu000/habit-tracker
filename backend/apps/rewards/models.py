@@ -19,10 +19,12 @@ class XPTransaction(BaseModel):
         PERFECT_DAY = "perfect_day", "Perfect Day"
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="xp_transactions")
+    task = models.ForeignKey('routines.Task', on_delete=models.SET_NULL, null=True, blank=True, related_name="xp_transactions")
     amount = models.IntegerField()  # Can support negative in future
     reason = models.CharField(max_length=30, choices=Reason.choices)
     reference_id = models.UUIDField(null=True, blank=True)
     metadata = models.JSONField(default=dict, blank=True)
+    reverted = models.BooleanField(default=False)
 
     class Meta:
         db_table = "rewards_xptransaction"

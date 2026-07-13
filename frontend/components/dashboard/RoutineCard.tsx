@@ -10,7 +10,7 @@ import { useState, memo } from "react";
 import { useCustomizationStore } from "@/lib/stores/customizationStore";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { DeleteRoutineModal } from "../routines/DeleteRoutineModal";
-import { useArchiveRoutine, useDuplicateRoutine } from "@/lib/queries/useRoutines";
+import { useArchiveRoutine, useDuplicateRoutine, useCreateTask } from "@/lib/queries/useRoutines";
 import { useRouter } from "next/navigation";
 
 interface RoutineCardProps {
@@ -20,11 +20,45 @@ interface RoutineCardProps {
 export const RoutineCard = memo(function RoutineCard({ routine }: RoutineCardProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isAddingTask, setIsAddingTask] = useState(false);
+  const [newTaskName, setNewTaskName] = useState("");
+  const [newTaskDuration, setNewTaskDuration] = useState("");
+  const [newTaskPriority, setNewTaskPriority] = useState("Medium");
+  const [newTaskRepeat, setNewTaskRepeat] = useState("None");
+
   const { cardRadius, animationsEnabled } = useCustomizationStore();
   const router = useRouter();
   
   const { mutate: archiveRoutine } = useArchiveRoutine();
   const { mutate: duplicateRoutine } = useDuplicateRoutine();
+  const { mutate: createTask, isPending: isCreatingTask } = useCreateTask();
+
+  const handleAddTask = () => {
+    if (!newTaskName.trim()) return;
+    
+    createTask({
+      routineId: routine.id,
+      taskData: {
+        name: newTaskName,
+        duration_minutes: newTaskDuration ? parseInt(newTaskDuration, 10) : 0,
+      }
+    });
+
+    setNewTaskName("");
+    setNewTaskDuration("");
+    setNewTaskPriority("Medium");
+    setNewTaskRepeat("None");
+    setIsAddingTask(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddTask();
+    } else if (e.key === "Escape") {
+      setIsAddingTask(false);
+    }
+  };
 
   const radiusClasses = {
     "16px": "rounded-[16px]",
@@ -107,8 +141,20 @@ export const RoutineCard = memo(function RoutineCard({ routine }: RoutineCardPro
               />
             </div>
           </div>
+          
           <button
-            className="w-8 h-8 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] text-muted-foreground hover:text-white transition-all flex items-center justify-center"
+            className="px-3 py-1.5 rounded-lg bg-forge-500/20 text-forge-400 hover:bg-forge-500/30 transition-colors text-xs font-bold shrink-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsExpanded(true);
+              setIsAddingTask(true);
+            }}
+          >
+            + Add Task
+          </button>
+
+          <button
+            className="w-8 h-8 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] text-muted-foreground hover:text-white transition-all flex items-center justify-center shrink-0"
             title={isExpanded ? "Collapse Routine" : "Expand Routine"}
           >
             {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -184,14 +230,91 @@ export const RoutineCard = memo(function RoutineCard({ routine }: RoutineCardPro
             className="border-t border-white/[0.06]"
           >
             <div className="p-4 bg-black/40 space-y-2">
-              {routine.tasks.length === 0 ? (
+              {isAddingTask && (
+                <div 
+                  className="p-4 bg-white/[0.02] border border-white/[0.1] rounded-xl mb-4 space-y-4"
+                  onClick={(e) => e.stopPropagation()} // Prevent card collapse
+                >
+                  <div className="flex gap-2">
+                    <input
+                      autoFocus
+                      type="text"
+                      placeholder="Task Name"
+                      value={newTaskName}
+                      onChange={(e) => setNewTaskName(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      className="flex-1 bg-white/[0.05] border border-white/[0.1] rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-forge-500/50 transition-colors"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Optional Time (HH:MM)"
+                      value={newTaskDuration}
+                      onChange={(e) => setNewTaskDuration(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      className="w-40 bg-white/[0.05] border border-white/[0.1] rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-forge-500/50 transition-colors"
+                    />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] text-white/50 uppercase font-bold tracking-wider">Priority</label>
+                      <select 
+                        value={newTaskPriority}
+                        onChange={(e) => setNewTaskPriority(e.target.value)}
+                        className="bg-white/[0.05] border border-white/[0.1] rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-forge-500/50"
+                      >
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                      </select>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] text-white/50 uppercase font-bold tracking-wider">Repeat</label>
+                      <select 
+                        value={newTaskRepeat}
+                        onChange={(e) => setNewTaskRepeat(e.target.value)}
+                        className="bg-white/[0.05] border border-white/[0.1] rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-forge-500/50"
+                      >
+                        <option value="None">None</option>
+                        <option value="Daily">Daily</option>
+                        <option value="Weekly">Weekly</option>
+                        <option value="Monthly">Monthly</option>
+                      </select>
+                    </div>
+                    <div className="flex-1" />
+                    <div className="flex items-center gap-2 mt-4 sm:mt-0">
+                      <button 
+                        onClick={() => setIsAddingTask(false)}
+                        className="px-4 py-1.5 rounded-lg border border-white/[0.1] text-xs font-bold text-white/70 hover:bg-white/[0.05] transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        onClick={handleAddTask}
+                        disabled={!newTaskName.trim() || isCreatingTask}
+                        className="px-4 py-1.5 rounded-lg bg-forge-500 text-white text-xs font-bold hover:bg-forge-600 disabled:opacity-50 transition-colors"
+                      >
+                        Add Task
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {routine.tasks.length === 0 && !isAddingTask ? (
                 <div className="py-6 text-center">
                   <p className="text-xs text-muted-foreground font-medium">
-                    No tasks assigned to this routine yet.
+                    This routine is empty.
                   </p>
-                  <span className="text-[10px] text-forge-400 font-mono mt-1 block">
-                    Use Quick Add or Manage Routines to add tasks.
-                  </span>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsExpanded(true);
+                      setIsAddingTask(true);
+                    }}
+                    className="text-[10px] text-forge-400 font-mono mt-1 hover:text-forge-300 transition-colors"
+                  >
+                    + Add your first task
+                  </button>
                 </div>
               ) : (
                 routine.tasks.map((task) => (

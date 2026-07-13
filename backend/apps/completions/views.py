@@ -216,13 +216,14 @@ class CompleteTaskView(APIView):
 
         # Award XP
         xp_amount = XPService.get_task_xp()
-        _, leveled_up = XPService.award_xp(
+        new_total_xp, leveled_up = XPService.award_xp(
             user=user,
             amount=xp_amount,
             reason="task_complete",
             reference_id=completion.id,
             metadata={"task_id": str(task.id), "task_name": task.name},
             local_date=local_date,
+            task=task,
         )
         user.refresh_from_db(fields=["total_xp", "current_level"])
 
@@ -301,19 +302,15 @@ def undo_completion(request, completion_id):
     local_date = get_user_local_date(user)
 
     try:
-        completion = Completion.objects.only("id", "task_id", "local_date").get(
+        completion = Completion.objects.select_related("task").only("id", "task_id", "local_date", "task__id").get(
             id=completion_id, user=user, local_date=local_date
         )
     except Completion.DoesNotExist:
         raise NotFoundError("Completion not found or cannot be undone (different day).")
 
-    xp_amount = XPService.get_task_xp()
-    XPService.award_xp(
+    XPService.rollback_xp(
         user=user,
-        amount=-xp_amount,
-        reason="task_complete",
-        reference_id=completion.id,
-        metadata={"undone": True, "task_id": str(completion.task_id)},
+        task=completion.task,
         local_date=local_date,
     )
     completion.delete()

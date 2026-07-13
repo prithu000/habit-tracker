@@ -16,6 +16,7 @@ export function TaskItem({ task }: TaskItemProps) {
   const completeMutation = useCompleteTask();
   const undoMutation = useUndoCompletion();
   const [showPopup, setShowPopup] = useState(false);
+  const [xpEarned, setXpEarned] = useState(25); // Centralized XP default for optimistic rendering
 
   const toggleTask = () => {
     if (task.is_completed) {
@@ -25,9 +26,19 @@ export function TaskItem({ task }: TaskItemProps) {
         toast.error("Cannot undo task right now.");
       }
     } else {
+      setXpEarned(25); // Optimistically assume 25 XP
       setShowPopup(true);
       setTimeout(() => setShowPopup(false), 2500);
-      completeMutation.mutate({ taskId: task.id });
+      completeMutation.mutate(
+        { taskId: task.id },
+        {
+          onSuccess: (data) => {
+            if (data && typeof data.xp_earned === 'number') {
+              setXpEarned(data.xp_earned);
+            }
+          }
+        }
+      );
     }
   };
 
@@ -54,7 +65,7 @@ export function TaskItem({ task }: TaskItemProps) {
             className="absolute -top-6 left-4 z-50 flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500 to-purple-600 text-zinc-950 font-black text-[11px] shadow-lg shadow-purple-500/50 whitespace-nowrap pointer-events-none border border-amber-300"
           >
             <Sparkles className="w-3 h-3 fill-current" />
-            <span>+25 XP</span>
+            <span>+{xpEarned} XP</span>
           </motion.div>
         )}
       </AnimatePresence>

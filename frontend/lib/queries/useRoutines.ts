@@ -192,14 +192,94 @@ export function useCreateTask() {
       const { data } = await api.post<ApiResponse<Task>>(`/routines/${routineId}/tasks/`, taskData);
       return data.data;
     },
-    onSuccess: (data, variables) => {
+    onMutate: async ({ routineId, taskData }) => {
+      await queryClient.cancelQueries({ queryKey: [...ROUTINES_QUERY_KEY(userId), routineId] });
+      await queryClient.cancelQueries({ queryKey: [...ROUTINES_QUERY_KEY(userId), routineId, "tasks"] });
+      await queryClient.cancelQueries({ queryKey: DASHBOARD_QUERY_KEY(userId) });
+
+      const previousRoutine = queryClient.getQueryData([...ROUTINES_QUERY_KEY(userId), routineId]);
+      const previousTasks = queryClient.getQueryData([...ROUTINES_QUERY_KEY(userId), routineId, "tasks"]);
+      const previousDashboard = queryClient.getQueryData(DASHBOARD_QUERY_KEY(userId));
+
+      const tempId = `temp-${Date.now()}`;
+      const optimisticTask: Task = {
+        id: tempId,
+        name: taskData.name || "",
+        description: taskData.description || "",
+        duration_minutes: taskData.duration_minutes || 0,
+        sort_order: 999,
+        is_completed: false,
+        completed_at: null,
+        note: "",
+        mood: null,
+        completion_id: null,
+      };
+
+      if (previousTasks) {
+        queryClient.setQueryData([...ROUTINES_QUERY_KEY(userId), routineId, "tasks"], (old: any) => {
+          return old ? [...old, optimisticTask] : [optimisticTask];
+        });
+      }
+
+      if (previousRoutine) {
+        queryClient.setQueryData([...ROUTINES_QUERY_KEY(userId), routineId], (old: any) => {
+          if (!old) return old;
+          return {
+            ...old,
+            tasks: old.tasks ? [...old.tasks, optimisticTask] : [optimisticTask],
+            task_count: (old.task_count || 0) + 1,
+          };
+        });
+      }
+
+      if (previousDashboard) {
+        queryClient.setQueryData(DASHBOARD_QUERY_KEY(userId), (old: any) => {
+          if (!old || !old.today || !old.today.routines) return old;
+          return {
+            ...old,
+            today: {
+              ...old.today,
+              routines: old.today.routines.map((r: any) => {
+                if (r.id === routineId) {
+                  const newTasks = r.tasks ? [...r.tasks, optimisticTask] : [optimisticTask];
+                  const newCount = (r.task_count || 0) + 1;
+                  const newRate = Math.round(((r.completed_count || 0) / newCount) * 100) || 0;
+                  return {
+                    ...r,
+                    tasks: newTasks,
+                    task_count: newCount,
+                    completion_rate: newRate,
+                    is_complete: newRate === 100 && newCount > 0
+                  };
+                }
+                return r;
+              })
+            }
+          };
+        });
+      }
+
+      return { previousRoutine, previousTasks, previousDashboard, routineId };
+    },
+    onError: (err, variables, context: any) => {
+      if (context?.previousRoutine) {
+        queryClient.setQueryData([...ROUTINES_QUERY_KEY(userId), context.routineId], context.previousRoutine);
+      }
+      if (context?.previousTasks) {
+        queryClient.setQueryData([...ROUTINES_QUERY_KEY(userId), context.routineId, "tasks"], context.previousTasks);
+      }
+      if (context?.previousDashboard) {
+        queryClient.setQueryData(DASHBOARD_QUERY_KEY(userId), context.previousDashboard);
+      }
+      toast.error("Failed to add task.");
+    },
+    onSettled: (data, error, variables) => {
       queryClient.invalidateQueries({ queryKey: [...ROUTINES_QUERY_KEY(userId), variables.routineId] });
       queryClient.invalidateQueries({ queryKey: [...ROUTINES_QUERY_KEY(userId), variables.routineId, "tasks"] });
       queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY(userId) });
-      toast.success("Task added.");
     },
-    onError: () => {
-      toast.error("Failed to add task.");
+    onSuccess: () => {
+      toast.success("Task added.");
     }
   });
 }

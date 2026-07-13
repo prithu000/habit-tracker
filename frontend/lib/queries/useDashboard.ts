@@ -76,13 +76,13 @@ export function useCompleteTask() {
             if (newDashboard.today.stats.completed_tasks === newDashboard.today.stats.total_tasks) {
               newDashboard.today.stats.is_perfect_day = true;
             }
-            // Optimistic XP increment
+            // Optimistic XP increment (using centralized base value of 25)
             if (newDashboard.widgets && newDashboard.widgets.xp) {
-              newDashboard.widgets.xp.xp_earned_today += 10;
-              newDashboard.widgets.xp.total_xp += 10;
+              newDashboard.widgets.xp.xp_earned_today += 25;
+              newDashboard.widgets.xp.total_xp += 25;
             }
             if (newDashboard.today.stats) {
-              newDashboard.today.stats.xp_earned_today += 10;
+              newDashboard.today.stats.xp_earned_today += 25;
             }
           }
 
@@ -150,11 +150,63 @@ export function useUndoCompletion() {
       const { data } = await api.delete<ApiResponse<any>>(`/today/complete/${completionId}/`);
       return data.data;
     },
+    onMutate: async (completionId) => {
+      await queryClient.cancelQueries({ queryKey: DASHBOARD_QUERY_KEY(userId) });
+      const previousDashboard = queryClient.getQueryData<DashboardData>(DASHBOARD_QUERY_KEY(userId));
+
+      if (previousDashboard) {
+        queryClient.setQueryData<DashboardData>(DASHBOARD_QUERY_KEY(userId), (old) => {
+          if (!old) return old;
+          const newDashboard = JSON.parse(JSON.stringify(old)) as DashboardData;
+          
+          let taskFound = false;
+          // Optimistically un-complete the task
+          for (const routine of newDashboard.today.routines) {
+            const task = routine.tasks.find(t => t.completion_id === completionId);
+            if (task && task.is_completed) {
+              task.is_completed = false;
+              task.completed_at = undefined;
+              task.completion_id = undefined;
+              routine.completed_count = Math.max(0, routine.completed_count - 1);
+              routine.completion_rate = Math.round((routine.completed_count / routine.task_count) * 100 * 10) / 10;
+              routine.is_complete = false;
+              taskFound = true;
+              break;
+            }
+          }
+
+          if (taskFound) {
+            newDashboard.today.stats.completed_tasks = Math.max(0, newDashboard.today.stats.completed_tasks - 1);
+            newDashboard.today.stats.completion_rate = Math.round((newDashboard.today.stats.completed_tasks / newDashboard.today.stats.total_tasks) * 100 * 10) / 10;
+            newDashboard.today.stats.is_perfect_day = false;
+            
+            // Optimistic XP rollback (using centralized base value of 25)
+            if (newDashboard.widgets && newDashboard.widgets.xp) {
+              newDashboard.widgets.xp.xp_earned_today = Math.max(0, newDashboard.widgets.xp.xp_earned_today - 25);
+              newDashboard.widgets.xp.total_xp = Math.max(0, newDashboard.widgets.xp.total_xp - 25);
+            }
+            if (newDashboard.today.stats) {
+              newDashboard.today.stats.xp_earned_today = Math.max(0, newDashboard.today.stats.xp_earned_today - 25);
+            }
+          }
+
+          return newDashboard;
+        });
+      }
+
+      return { previousDashboard };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY(userId) });
     },
-    onError: () => {
+    onError: (err, variables, context) => {
+      if (context?.previousDashboard) {
+        queryClient.setQueryData(DASHBOARD_QUERY_KEY(userId), context.previousDashboard);
+      }
       toast.error("Failed to undo task.");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY(userId) });
     }
   });
 }

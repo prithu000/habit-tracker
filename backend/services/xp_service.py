@@ -45,8 +45,12 @@ LEVEL_TITLES = {
 }
 
 XP_REWARDS = {
-    "task_complete":     10,
-    "perfect_day":       50,
+    "task_easy":         10,
+    "task_complete":     25,   # Medium (default)
+    "task_hard":         50,
+    "routine_complete": 100,
+    "perfect_day":      250,
+    "weekly_perfect":   500,
     "streak_7":         100,
     "streak_14":        200,
     "streak_30":        300,
@@ -67,18 +71,18 @@ class XPService:
     def get_xp_earned_for_date(user, local_date) -> int:
         """
         Single source of truth for total XP earned by a user on a given local date.
-        Queries candidates across +- 2 UTC days and performs exact metadata / local timestamp checking.
-        Database-agnostic (works flawlessly on SQLite and PostgreSQL).
+        Uses exact metadata date matches across non-reverted transactions.
         """
         from apps.rewards.models import XPTransaction
         from apps.core.utils import localize_date
         from datetime import timedelta
+        from django.db.models import Sum
 
         date_str = str(local_date)
-
         candidate_txs = XPTransaction.objects.filter(
             user=user,
             amount__gt=0,
+            reverted=False,
             created_at__date__gte=local_date - timedelta(days=2),
             created_at__date__lte=local_date + timedelta(days=2),
         )
@@ -95,8 +99,35 @@ class XPService:
                 except Exception:
                     if tx.created_at.date() == local_date:
                         total += tx.amount
-
         return total
+
+    @staticmethod
+    def _sync_user_total_xp(user) -> Tuple[int, bool]:
+        """
+        Calculates the true total XP from the ledger, updates the User model,
+        and handles leveling up.
+        """
+        from apps.rewards.models import XPTransaction
+        from django.db.models import Sum
+
+        total_xp_dict = XPTransaction.objects.filter(user=user, reverted=False).aggregate(total=Sum('amount'))
+        true_total = total_xp_dict['total'] or 0
+
+        old_level = user.current_level
+        user.total_xp = max(0, true_total)
+        new_level = XPService.calculate_level(user.total_xp)
+        user.current_level = new_level
+        user.save(update_fields=["total_xp", "current_level", "updated_at"])
+
+        leveled_up = new_level > old_level
+        if leveled_up:
+            logger.info(
+                "User %s leveled up: %d → %d (Total XP: %d)",
+                user.id, old_level, new_level, user.total_xp,
+            )
+            XPService._on_level_up(user, old_level, new_level)
+            
+        return user.total_xp, leveled_up
 
 
     @staticmethod
@@ -107,9 +138,10 @@ class XPService:
         reference_id=None,
         metadata: Optional[dict] = None,
         local_date=None,
+        task=None,
     ) -> Tuple[int, bool]:
         """
-        Awards XP to a user. Records the transaction and synchronizes daily metrics.
+        Awards XP to a user. Enforces anti-duplication if task & local_date exist.
         Returns (new_total_xp, leveled_up).
         """
         from apps.rewards.models import XPTransaction
@@ -124,20 +156,32 @@ class XPService:
         meta = dict(metadata or {})
         if "local_date" not in meta and local_date:
             meta["local_date"] = str(local_date)
+            
+        # Anti-duplication check for tasks
+        if task and local_date:
+            # Check if this exact task was already awarded today and not reverted
+            existing = XPTransaction.objects.filter(
+                user=user, 
+                task=task, 
+                reverted=False,
+                metadata__local_date=str(local_date)
+            ).exists()
+            if existing:
+                # Already awarded, ignore
+                return user.total_xp, False
 
         XPTransaction.objects.create(
             user=user,
+            task=task,
             amount=amount,
             reason=reason,
             reference_id=reference_id,
             metadata=meta,
+            reverted=False,
         )
 
-        old_level = user.current_level
-        user.total_xp = max(0, user.total_xp + amount)  # Never go below 0
-        new_level = XPService.calculate_level(user.total_xp)
-        user.current_level = new_level
-        user.save(update_fields=["total_xp", "current_level", "updated_at"])
+        # Synchronize User Model with Ledger
+        new_total_xp, leveled_up = XPService._sync_user_total_xp(user)
 
         # Synchronize DayLog and DailyOSMetrics with single source of truth
         if local_date:
@@ -153,15 +197,54 @@ class XPService:
             except Exception:
                 pass
 
-        leveled_up = new_level > old_level
-        if leveled_up:
-            logger.info(
-                "User %s leveled up: %d → %d (Total XP: %d)",
-                user.id, old_level, new_level, user.total_xp,
-            )
-            XPService._on_level_up(user, old_level, new_level)
+        return new_total_xp, leveled_up
 
-        return user.total_xp, leveled_up
+    @staticmethod
+    def rollback_xp(user, task, local_date) -> Tuple[int, bool]:
+        """
+        Rolls back the XPTransaction for a given task on a given date by marking it reverted.
+        Re-syncs user total XP and day log.
+        """
+        from apps.rewards.models import XPTransaction
+        
+        # Find active transactions for this task/day
+        transactions = XPTransaction.objects.filter(
+            user=user,
+            task=task,
+            reverted=False,
+        )
+        
+        # Filter by local_date in metadata (SQLite JSON filtering workaround if needed, 
+        # but Django 4+ handles it fine. We'll do it safely).
+        date_str = str(local_date)
+        updated_count = 0
+        for tx in transactions:
+            if tx.metadata.get("local_date") == date_str:
+                tx.reverted = True
+                tx.save(update_fields=["reverted"])
+                updated_count += 1
+                
+        if updated_count == 0:
+            return user.total_xp, False
+
+        # Synchronize User Model with Ledger
+        new_total_xp, leveled_up = XPService._sync_user_total_xp(user)
+
+        # Synchronize DayLog and DailyOSMetrics
+        if local_date:
+            today_xp = XPService.get_xp_earned_for_date(user, local_date)
+            try:
+                from apps.completions.models import DayLog
+                DayLog.objects.filter(user=user, log_date=local_date).update(xp_earned=today_xp)
+            except Exception:
+                pass
+            try:
+                from apps.analytics.models import DailyOSMetrics
+                DailyOSMetrics.objects.filter(user=user, date=local_date).update(daily_xp=today_xp)
+            except Exception:
+                pass
+
+        return new_total_xp, leveled_up
 
     @staticmethod
     def _on_level_up(user, old_level: int, new_level: int):
