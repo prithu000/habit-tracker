@@ -34,7 +34,7 @@ export const Topbar = memo(function Topbar() {
       setTaglineIndex((prev) => (prev + 1) % TAGLINES.length);
     }, 12000); // 12 second rotation
     return () => clearInterval(taglineInterval);
-  }, []);
+  }, [TAGLINES.length]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);

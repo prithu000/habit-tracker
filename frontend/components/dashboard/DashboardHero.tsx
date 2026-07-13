@@ -60,7 +60,7 @@ export function DashboardHero() {
           <div className="p-6 sm:p-8 rounded-[24px] bg-gradient-to-br from-white/[0.05] to-transparent border border-white/[0.1] max-w-[320px] mx-auto md:mx-0 shadow-inner text-center md:text-left relative overflow-hidden group">
             <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-forge-500 to-purple-600" />
             <p className="text-sm font-medium leading-relaxed italic text-zinc-300">
-              "Every action you complete today shapes tomorrow&apos;s version of you."
+              &quot;Every action you complete today shapes tomorrow&apos;s version of you.&quot;
             </p>
             <div className="mt-4 text-[10px] uppercase tracking-widest font-bold text-forge-400">
               Day One begins now.
