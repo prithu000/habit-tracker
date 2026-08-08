@@ -1,6 +1,7 @@
 import logging
 from celery import shared_task
 from django.utils import timezone
+from django.conf import settings
 from zoneinfo import ZoneInfo
 from django.contrib.auth import get_user_model
 from datetime import timedelta
@@ -112,30 +113,62 @@ def schedule_evening_reflection():
 
 @shared_task(name="apps.emails.scheduler.schedule_inactive_reminders")
 def schedule_inactive_reminders():
-    """Runs daily at midnight UTC to trigger retention drips."""
+    """
+    Runs daily at midnight UTC to trigger retention drips.
+
+    Uses DayLog (populated by analytics_rollup) to identify last activity.
+    This is correct because UPDATE_LAST_LOGIN=False in JWT settings, so
+    last_login is never updated and cannot be used as an inactivity signal.
+    """
     from apps.streaks.models import StreakRecord
+    from apps.completions.models import DayLog
+    from apps.notifications.models import NotificationPreference
+
     now = timezone.now()
-    
+
     drip_config = {
-        1: {"template": "retention/missed_1_day", "subject": "We noticed you missed today."},
-        2: {"template": "retention/missed_2_days", "subject": "Your future self is waiting."},
-        3: {"template": "retention/missed_3_days", "subject": "Return to the Arena."},
-        5: {"template": "retention/missed_5_days", "subject": "Your streak can still be rebuilt."},
-        7: {"template": "retention/missed_7_days", "subject": "Don't let your identity disappear."},
+        1:  {"template": "retention/missed_1_day",   "subject": "We noticed you missed today."},
+        2:  {"template": "retention/missed_2_days",  "subject": "Your future self is waiting."},
+        3:  {"template": "retention/missed_3_days",  "subject": "Return to the Arena."},
+        5:  {"template": "retention/missed_5_days",  "subject": "Your streak can still be rebuilt."},
+        7:  {"template": "retention/missed_7_days",  "subject": "Don't let your identity disappear."},
         14: {"template": "retention/missed_14_days", "subject": "You started for a reason."},
-        30: {"template": "retention/missed_30_days", "subject": "Come back. Start again."}
+        30: {"template": "retention/missed_30_days", "subject": "Come back. Start again."},
     }
-    
+
     for days, config in drip_config.items():
-        # Using date_joined or last_login based on system architecture. Assuming last_login for inactivity.
+        # Find the date we're targeting (e.g. "who was last active exactly N days ago")
         target_date = (now - timedelta(days=days)).date()
-        users = User.objects.filter(last_login__date=target_date, is_active=True)
-        
+
+        # Find users whose most recent DayLog entry is exactly `days` days ago.
+        # This means: they had activity on target_date but NOT on any subsequent day.
+        users_with_activity_on_target = User.objects.filter(
+            is_active=True,
+            day_logs__log_date=target_date,
+            day_logs__tasks_scheduled__gt=0,
+        )
+        # Exclude users who have activity more recently than target_date
+        users_active_since = User.objects.filter(
+            is_active=True,
+            day_logs__log_date__gt=target_date,
+            day_logs__tasks_scheduled__gt=0,
+        )
+        users = users_with_activity_on_target.exclude(
+            id__in=users_active_since.values_list("id", flat=True)
+        ).distinct()
+
         for user in users:
-            # Query their highest streak for personalization and "loss aversion"
+            # Respect user's notification preference
+            try:
+                prefs = NotificationPreference.objects.get(user=user)
+                if not prefs.recovery_mail_enabled:
+                    continue
+            except NotificationPreference.DoesNotExist:
+                pass  # No preference set → send by default
+
             overall_streak = StreakRecord.objects.filter(user=user, routine__isnull=True).first()
             longest = overall_streak.longest_streak if overall_streak else 0
-            
+
             key = f"inactive_{days}_{user.id}_{target_date}"
             context = {
                 "user_name": user.display_name or "User",
@@ -143,7 +176,7 @@ def schedule_inactive_reminders():
                 "longest_streak": longest,
                 "app_url": getattr(settings, "FRONTEND_URL", "https://youvsyou.site"),
             }
-            
+
             EmailService.send_email_async(
                 recipient=user.email,
                 subject=config["subject"],
@@ -152,3 +185,5 @@ def schedule_inactive_reminders():
                 idempotency_key=key,
                 segment=f"missed_{days}_days"
             )
+
+        logger.info(f"Inactive reminder ({days} days): queued for {users.count()} users.")

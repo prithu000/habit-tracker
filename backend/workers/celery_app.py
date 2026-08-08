@@ -4,7 +4,9 @@ FORGE — Celery Application
 import os
 from celery import Celery
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.development")
+# Respect whatever DJANGO_SETTINGS_MODULE is set in the environment.
+# Default to production to be safe — devs should set it to development explicitly.
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.production")
 
 app = Celery("forge")
 app.config_from_object("django.conf:settings", namespace="CELERY")

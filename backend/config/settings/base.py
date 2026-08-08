@@ -249,9 +249,11 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "UTC"
 CELERY_BEAT_SCHEDULE = {
-    "daily-streak-evaluation": {
-        "task": "workers.tasks.streak_engine.evaluate_all_streaks",
-        "schedule": 60 * 60,  # every hour
+    # ── System Tasks ──────────────────────────────────────
+    # NOTE: streak evaluation is handled by daily_auto_reset_task in os_tasks.py
+    "daily-auto-reset": {
+        "task": "workers.tasks.os_tasks.daily_auto_reset_task",
+        "schedule": 60 * 60 * 24,  # every 24 hours at midnight via celery_app.py crontab
     },
     "daily-analytics-rollup": {
         "task": "workers.tasks.analytics_rollup.run_daily_rollup",
@@ -261,10 +263,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "workers.tasks.analytics_rollup.generate_weekly_insights",
         "schedule": 60 * 60 * 24 * 7,  # every week
     },
-    # Cache management
+    # ── Cache Management ──────────────────────────────────
     "midnight-dashboard-cache-invalidation": {
         "task": "workers.tasks.cache_management.invalidate_all_dashboard_caches",
-        "schedule": 60 * 60 * 24,  # midnight UTC
+        "schedule": 60 * 60 * 24,
     },
     "post-rollup-analytics-cache-invalidation": {
         "task": "workers.tasks.cache_management.invalidate_analytics_caches_after_rollup",
@@ -274,7 +276,9 @@ CELERY_BEAT_SCHEDULE = {
         "task": "workers.tasks.cache_management.refresh_leaderboard_cache",
         "schedule": 60 * 3,  # every 3 minutes
     },
-    # Emails
+    # ── Email Tasks (canonical definitions in workers/celery_app.py beat_schedule) ──
+    # These are kept here as fallback for deployments that use CELERY_BEAT_SCHEDULE
+    # from settings instead of celery_app.py. Both point to the same task names.
     "email-morning-motivation": {
         "task": "apps.emails.scheduler.schedule_morning_motivation",
         "schedule": 60 * 60,  # hourly

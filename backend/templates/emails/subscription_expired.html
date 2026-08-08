@@ -1,0 +1,32 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<h2 style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0 0 16px 0;">
+    Your Subscription Has Ended
+</h2>
+<p style="color: #d1d5db; margin: 0 0 20px 0;">
+    Hey <strong style="color: #ffffff;">{{ user_name }}</strong>,
+</p>
+<p style="color: #d1d5db; margin: 0 0 20px 0;">
+    Your YOU VS YOU subscription has expired. Your account data, streaks, and all progress are safe &mdash;
+    but premium features are now locked.
+</p>
+
+<div style="background: rgba(239, 68, 68, 0.06); border-left: 4px solid #ef4444; border-radius: 0 8px 8px 0; padding: 16px 20px; margin-bottom: 24px;">
+    <p style="color: #f87171; font-weight: 600; margin: 0 0 6px 0;">You had a great run.</p>
+    <p style="color: #d1d5db; margin: 0; font-size: 14px; line-height: 1.6;">
+        Your discipline and commitment during your subscription built real habits.
+        Come back any time &mdash; your data will be exactly where you left it.
+    </p>
+</div>
+
+<div style="text-align: center; margin: 32px 0;">
+    <a href="{{ app_url }}/settings/billing"
+       style="display: inline-block; background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%); color: #ffffff; font-weight: 700; font-size: 15px; text-decoration: none; padding: 14px 36px; border-radius: 100px; box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.4);">
+        Reactivate &mdash; Pick Up Where You Left Off
+    </a>
+</div>
+
+<p style="color: #6b7280; font-size: 13px; text-align: center; margin: 0;">
+    Questions? Reply to this email &mdash; we&apos;re here to help.
+</p>
+{% endblock %}
