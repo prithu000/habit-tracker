@@ -1,0 +1,27 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<h2 style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0 0 16px 0;">
+    Are You Done?
+</h2>
+<p style="color: #d1d5db; margin: 0 0 20px 0;">
+    Hey <strong style="color: #ffffff;">{{ user_name }}</strong>,
+</p>
+<p style="color: #d1d5db; margin: 0 0 20px 0;">
+    It&apos;s been 90 days. A full quarter of a year. The habits you built might feel like a distant memory now.
+    We&apos;re not going to keep bothering you. This is the last check-in.
+</p>
+
+<div style="background: rgba(107, 114, 128, 0.1); border-left: 4px solid #9ca3af; border-radius: 0 8px 8px 0; padding: 16px 20px; margin-bottom: 24px;">
+    <p style="color: #d1d5db; font-weight: 600; margin: 0 0 6px 0;">Final Call.</p>
+    <p style="color: #9ca3af; margin: 0; font-size: 14px; line-height: 1.6;">
+        If you want to leave the old you behind, click the button below. Otherwise, we wish you the best.
+    </p>
+</div>
+
+<div style="text-align: center; margin: 32px 0;">
+    <a href="{{ app_url }}/dashboard"
+       style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; font-weight: 700; font-size: 15px; text-decoration: none; padding: 14px 36px; border-radius: 100px; box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.4);">
+        I'm Not Done Yet
+    </a>
+</div>
+{% endblock %}

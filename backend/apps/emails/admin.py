@@ -3,10 +3,10 @@ from django.urls import path
 from django.shortcuts import render
 from django.utils.html import format_html
 from django.utils import timezone
-from django.db.models import Count, Q, Avg
+from django.db.models import Count, Q, Avg, Sum
 import uuid
 
-from .models import EmailLog, EmailIdempotency, EmailTemplateConfig, SubjectLineVariation
+from .models import EmailLog, EmailIdempotency, EmailTemplateConfig, SubjectLineVariation, EmailBounceSuppress
 from .core import EmailSender
 
 
@@ -22,18 +22,23 @@ class EmailTemplateConfigAdmin(admin.ModelAdmin):
     inlines = [SubjectLineVariationInline]
     search_fields = ("name", "description")
 
+    def get_queryset(self, request):
+        """Annotate queryset to avoid N+1 on subject_variations."""
+        return super().get_queryset(request).annotate(
+            _total_sent=Sum("subject_variations__sent_count"),
+            _total_opened=Sum("subject_variations__open_count"),
+        )
+
     def total_sent(self, obj):
-        return sum(v.sent_count for v in obj.subject_variations.all())
+        return obj._total_sent or 0
+    total_sent.admin_order_field = "_total_sent"
 
     def average_open_rate(self, obj):
-        variations = obj.subject_variations.all()
-        if not variations:
+        sent = obj._total_sent or 0
+        opened = obj._total_opened or 0
+        if sent == 0:
             return "0%"
-        total_sent = sum(v.sent_count for v in variations)
-        if total_sent == 0:
-            return "0%"
-        total_opened = sum(v.open_count for v in variations)
-        return f"{round((total_opened / total_sent) * 100, 2)}%"
+        return f"{round((opened / sent) * 100, 2)}%"
 
 
 @admin.register(EmailLog)
@@ -191,35 +196,40 @@ class EmailLogAdmin(admin.ModelAdmin):
         return "No HTML content available."
     html_preview.short_description = "HTML Preview"
     
-    @admin.action(description="Resend selected emails")
+    @admin.action(description="Resend selected emails (via Celery queue)")
     def resend_emails(self, request, queryset):
+        """Re-queues failed/cancelled emails through the proper Celery pipeline."""
+        from apps.emails.services import EmailService
+        from apps.emails.core.builder import EmailBuilder
         count = 0
+        skipped = 0
+
         for log in queryset:
+            # Only re-send emails that have stored HTML content
             if not log.html_content:
-                self.message_user(request, f"Skipped {log.id} - missing HTML content.", level="WARNING")
+                skipped += 1
                 continue
-                
-            new_log = EmailLog.objects.create(
+
+            # Rebuild context from stored HTML (best effort)
+            context = {"user_name": "User", "app_url": "https://youvsyou.site"}
+
+            # Queue through service (checks bounce suppression automatically)
+            queued = EmailService.send_email_async(
                 recipient=log.recipient,
-                template=log.template,
                 subject=f"[RESEND] {log.subject}",
-                status=EmailLog.Status.QUEUED,
-                html_content=log.html_content,
-                segment=log.segment
+                template_name=log.template,
+                context=context,
+                segment=log.segment or "admin_resend"
             )
-            
-            try:
-                from django.utils.html import strip_tags
-                EmailSender.send(
-                    email_log=new_log,
-                    html_content=new_log.html_content,
-                    text_content=strip_tags(new_log.html_content)
-                )
+            if queued:
                 count += 1
-            except Exception as e:
-                self.message_user(request, f"Failed to resend {log.id}: {e}", level="ERROR")
-                
-        self.message_user(request, f"Successfully resent {count} emails.")
+            else:
+                skipped += 1
+
+        msg = f"Queued {count} email(s) for resend."
+        if skipped:
+            msg += f" Skipped {skipped} (suppressed or missing HTML)."
+        self.message_user(request, msg)
         
     @admin.action(description="Cancel selected queued/retrying emails")
     def cancel_emails(self, request, queryset):
@@ -232,3 +242,20 @@ class EmailIdempotencyAdmin(admin.ModelAdmin):
     list_display = ("idempotency_key", "created_at")
     search_fields = ("idempotency_key",)
     readonly_fields = ("created_at", "updated_at")
+
+
+@admin.register(EmailBounceSuppress)
+class EmailBounceSuppressAdmin(admin.ModelAdmin):
+    list_display = ("email", "reason", "provider_event", "created_at")
+    list_filter = ("reason",)
+    search_fields = ("email", "notes")
+    readonly_fields = ("created_at", "updated_at")
+    ordering = ("-created_at",)
+
+    actions = ["remove_from_suppression_list"]
+
+    @admin.action(description="Remove selected from suppression list (re-enable delivery)")
+    def remove_from_suppression_list(self, request, queryset):
+        count, _ = queryset.delete()
+        self.message_user(request, f"Removed {count} address(es) from suppression list.")
+

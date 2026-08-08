@@ -133,7 +133,10 @@ def schedule_inactive_reminders():
         5:  {"template": "retention/missed_5_days",  "subject": "Your streak can still be rebuilt."},
         7:  {"template": "retention/missed_7_days",  "subject": "Don't let your identity disappear."},
         14: {"template": "retention/missed_14_days", "subject": "You started for a reason."},
+        21: {"template": "retention/missed_21_days", "subject": "It's not too late to turn this around."},
         30: {"template": "retention/missed_30_days", "subject": "Come back. Start again."},
+        60: {"template": "retention/missed_60_days", "subject": "Do you remember why you started?"},
+        90: {"template": "retention/missed_90_days", "subject": "The arena is still waiting for you."},
     }
 
     for days, config in drip_config.items():

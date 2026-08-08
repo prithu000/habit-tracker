@@ -1,0 +1,27 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<h2 style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0 0 16px 0;">
+    3 Weeks.
+</h2>
+<p style="color: #d1d5db; margin: 0 0 20px 0;">
+    Hey <strong style="color: #ffffff;">{{ user_name }}</strong>,
+</p>
+<p style="color: #d1d5db; margin: 0 0 20px 0;">
+    It&apos;s been 21 days since your last habit completion. Three weeks is exactly how long they say it takes to break a habit.
+    But you didn&apos;t come this far just to go back to where you started.
+</p>
+
+<div style="background: rgba(245, 158, 11, 0.08); border-left: 4px solid #f59e0b; border-radius: 0 8px 8px 0; padding: 16px 20px; margin-bottom: 24px;">
+    <p style="color: #f59e0b; font-weight: 600; margin: 0 0 8px 0;">The choice is yours.</p>
+    <p style="color: #d1d5db; margin: 0; font-size: 14px;">
+        Every day you wait makes the comeback harder. Break the cycle today. Just complete ONE habit.
+    </p>
+</div>
+
+<div style="text-align: center; margin: 32px 0;">
+    <a href="{{ app_url }}/dashboard"
+       style="display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #000000; font-weight: 700; font-size: 15px; text-decoration: none; padding: 14px 36px; border-radius: 100px; box-shadow: 0 10px 20px -5px rgba(245, 158, 11, 0.4);">
+        Start Your Comeback Today
+    </a>
+</div>
+{% endblock %}

@@ -100,3 +100,50 @@ class SubjectLineVariation(BaseModel):
         if self.sent_count == 0:
             return 0.0
         return round((self.open_count / self.sent_count) * 100, 2)
+
+
+class EmailBounceSuppress(BaseModel):
+    """
+    Permanent suppression list for hard bounces and spam complaints.
+
+    Once an address is on this list, EmailService will never attempt to send
+    to it again, protecting domain reputation and Brevo sending score.
+
+    Populated automatically by the Brevo webhook handler.
+    Admins can also manually add entries.
+    """
+    class Reason(models.TextChoices):
+        HARD_BOUNCE = "hard_bounce", "Hard Bounce"
+        SOFT_BOUNCE = "soft_bounce", "Soft Bounce"
+        SPAM_COMPLAINT = "spam_complaint", "Spam Complaint"
+        UNSUBSCRIBED = "unsubscribed", "Unsubscribed"
+        MANUAL = "manual", "Manually Suppressed"
+        BLOCKED = "blocked", "Blocked by Provider"
+
+    email = models.EmailField(unique=True, db_index=True)
+    reason = models.CharField(max_length=20, choices=Reason.choices, default=Reason.HARD_BOUNCE)
+    provider_event = models.CharField(max_length=100, blank=True, help_text="Raw Brevo event name")
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        db_table = "emails_emailbouncesuppress"
+        ordering = ["-created_at"]
+        verbose_name = "Suppressed Email"
+        verbose_name_plural = "Suppressed Emails"
+
+    def __str__(self):
+        return f"{self.email} ({self.get_reason_display()})"
+
+    @classmethod
+    def is_suppressed(cls, email: str) -> bool:
+        """Check if an address is on the suppression list."""
+        return cls.objects.filter(email__iexact=email).exists()
+
+    @classmethod
+    def suppress(cls, email: str, reason: str, provider_event: str = "") -> "EmailBounceSuppress":
+        """Idempotent add to suppression list."""
+        obj, _ = cls.objects.update_or_create(
+            email=email.lower(),
+            defaults={"reason": reason, "provider_event": provider_event}
+        )
+        return obj

@@ -1,0 +1,27 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<h2 style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0 0 16px 0;">
+    Two Months Away.
+</h2>
+<p style="color: #d1d5db; margin: 0 0 20px 0;">
+    Hey <strong style="color: #ffffff;">{{ user_name }}</strong>,
+</p>
+<p style="color: #d1d5db; margin: 0 0 20px 0;">
+    60 days ago you were building momentum. You were showing up. You were doing the work.
+    Life gets in the way, we get it. But are you going to let a two-month setback define your year?
+</p>
+
+<div style="background: rgba(239, 68, 68, 0.06); border-left: 4px solid #ef4444; border-radius: 0 8px 8px 0; padding: 16px 20px; margin-bottom: 24px;">
+    <p style="color: #f87171; font-weight: 600; margin: 0 0 6px 0;">Your Highest Streak: {{ longest_streak }} Days</p>
+    <p style="color: #d1d5db; margin: 0; font-size: 14px; line-height: 1.6;">
+        You've proven you have the discipline. You just need to reactivate it.
+    </p>
+</div>
+
+<div style="text-align: center; margin: 32px 0;">
+    <a href="{{ app_url }}/dashboard"
+       style="display: inline-block; background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%); color: #ffffff; font-weight: 700; font-size: 15px; text-decoration: none; padding: 14px 36px; border-radius: 100px; box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.4);">
+        Rebuild From Day One
+    </a>
+</div>
+{% endblock %}
