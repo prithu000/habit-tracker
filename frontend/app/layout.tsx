@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/layouts/Providers";
+import { PwaRegister } from "@/components/PwaRegister";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -19,6 +20,7 @@ export const metadata: Metadata = {
     description: "Become the person you promised yourself you'd be.",
     type: "website",
   },
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
@@ -29,6 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} dark`} suppressHydrationWarning>
       <body className="min-h-screen bg-background text-foreground antialiased">
+        <PwaRegister />
         <Providers>{children}</Providers>
       </body>
     </html>
