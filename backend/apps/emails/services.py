@@ -95,6 +95,18 @@ class EmailService:
             },
             segment="welcome"
         )
+    @classmethod
+    def send_comeback_email(cls, user) -> bool:
+        return cls.send_email_async(
+            recipient=user.email,
+            subject="You didn't quit. You just got distracted.",
+            template_name="comeback",
+            context={
+                "user_name": getattr(user, "display_name", None) or "Champion",
+                "app_url": getattr(settings, "FRONTEND_URL", FRONTEND_URL),
+            },
+        segment="comeback"
+    )
 
     @classmethod
     def send_email_verification(cls, user, verification_link: str) -> bool:
