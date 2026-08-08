@@ -1,0 +1,18 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<h2>Return to the Arena.</h2>
+<div class="content-body">
+    <p>{{ user_name }},</p>
+    <p>It's been 3 days.</p>
+    <p>Right now, your brain is looking for excuses. It's telling you it's too hard, you're too busy, or you'll start again "on Monday."</p>
+    <p>That is the voice of average. You did not download this system to be average.</p>
+    {% if longest_streak > 0 %}
+    <p>Remember when you hit your <strong>{{ longest_streak }}-day streak</strong>? You proved you have the discipline. Now you just have to choose it again.</p>
+    {% endif %}
+    <p>You Vs You. Who wins today?</p>
+    
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="{{ app_url }}" class="button">Enter the Arena</a>
+    </div>
+</div>
+{% endblock %}

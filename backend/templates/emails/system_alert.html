@@ -1,0 +1,7 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<h2>{{ header_title }}</h2>
+<div class="content-body" style="font-family: monospace; white-space: pre-wrap; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px;">
+{{ message }}
+</div>
+{% endblock %}

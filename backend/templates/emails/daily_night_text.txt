@@ -1,0 +1,26 @@
+Night Review
+
+Good evening, {{ user_name }}.
+
+
+Here is your execution summary for today:
+
+
+
+
+    - Completed: {{ completed_tasks }}
+
+    - Missed: {{ missed_tasks }}
+
+    - Completion Rate: {{ completion_percent }}%
+
+    - XP Earned: {{ xp_earned }}
+
+
+
+Prepare for Tomorrow: {{ app_url }}/tomorrow
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

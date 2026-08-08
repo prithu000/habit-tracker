@@ -1,0 +1,49 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+
+{% block content %}
+<div style="margin-bottom: 20px; background: #222; color: #fff; padding: 20px; border-radius: 8px;">
+    <h2>FORGE Email Analytics Dashboard</h2>
+    <div style="display: flex; gap: 20px; margin-top: 15px;">
+        <div style="background: #333; padding: 15px; border-radius: 5px; flex: 1;">
+            <h3 style="margin:0 0 10px 0; color:#aaa;">Total Emails</h3>
+            <div style="font-size: 24px; font-weight: bold;">{{ email_stats.total }}</div>
+        </div>
+        <div style="background: #333; padding: 15px; border-radius: 5px; flex: 1;">
+            <h3 style="margin:0 0 10px 0; color:#aaa;">Delivery Rate</h3>
+            <div style="font-size: 24px; font-weight: bold; color: #4ade80;">{{ email_stats.delivery_rate }}%</div>
+        </div>
+        <div style="background: #333; padding: 15px; border-radius: 5px; flex: 1;">
+            <h3 style="margin:0 0 10px 0; color:#aaa;">Open Rate</h3>
+            <div style="font-size: 24px; font-weight: bold; color: #60a5fa;">{{ email_stats.open_rate }}%</div>
+        </div>
+        <div style="background: #333; padding: 15px; border-radius: 5px; flex: 1;">
+            <h3 style="margin:0 0 10px 0; color:#aaa;">Click Rate</h3>
+            <div style="font-size: 24px; font-weight: bold; color: #c084fc;">{{ email_stats.click_rate }}%</div>
+        </div>
+        <div style="background: #333; padding: 15px; border-radius: 5px; flex: 1;">
+            <h3 style="margin:0 0 10px 0; color:#aaa;">Bounced / Spam</h3>
+            <div style="font-size: 24px; font-weight: bold; color: #f87171;">{{ email_stats.bounced }} / {{ email_stats.spam }}</div>
+        </div>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <h3 style="color:#aaa; margin-bottom: 10px;">Top Performing Templates</h3>
+        <ul style="list-style: none; padding: 0; display: flex; gap: 15px;">
+            {% for temp in email_stats.top_templates %}
+            <li style="background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 15px; font-size: 14px;">
+                <strong>{{ temp.template }}</strong> ({{ temp.count }})
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <a href="test-center/" style="background: #3b82f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+            🛠️ Launch Email Test Center
+        </a>
+    </div>
+</div>
+
+{{ block.super }}
+{% endblock %}

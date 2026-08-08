@@ -1,0 +1,6 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<p>You are about to lose your {{ streak }}-day streak.</p>
+<p>You have incomplete tasks. Finish them before midnight to protect your streak.</p>
+<p><a href="{{ app_url }}/dashboard" class="btn">Protect Streak</a></p>
+{% endblock %}

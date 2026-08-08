@@ -1,22 +1,14 @@
-Hello {{ user_name }},
+Monthly Report Ready
 
-Your Monthly Growth Report for {{ month }}
+Your monthly growth report is ready.
 
-Life Score:
-{{ life_score }}
 
-Best Habit:
-{{ best_habit }}
+See how much you've improved this month.
 
-Improvement:
-{{ improvement }}
 
-Current Streak:
-{{ current_streak }} days
+View Monthly Report: {{ app_url }}/analytics/monthly
 
-To view your full analytics, visit:
-{{ app_url }}/analytics
 
-Thank you,
 
-YOU VS YOU Team
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

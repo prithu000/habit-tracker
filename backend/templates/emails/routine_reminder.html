@@ -1,0 +1,5 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<p>It's time for your routine: <strong>{{ task_name }}</strong>.</p>
+<p><a href="{{ app_url }}/dashboard" class="btn">Execute Routine</a></p>
+{% endblock %}

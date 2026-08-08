@@ -176,7 +176,7 @@ def google_auth_view(request):
         logger.info(f"📧 GOOGLE AUTH EMAIL TRIGGER for {user.email}")
         
         try:
-            from services.email_service import EmailService
+            from apps.emails.services import EmailService
             logger.info(f"   ↳ Calling EmailService.send_welcome_email()...")
             email_sent = EmailService.send_welcome_email(user)
             logger.info(f"   ↳ Result: {email_sent}")

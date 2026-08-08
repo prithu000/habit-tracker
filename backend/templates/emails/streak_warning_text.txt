@@ -1,0 +1,14 @@
+Streak Warning
+
+You are about to lose your {{ streak }}-day streak.
+
+
+You have incomplete tasks. Finish them before midnight to protect your streak.
+
+
+Protect Streak: {{ app_url }}/dashboard
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

@@ -1,17 +1,6 @@
-{% extends "emails/base_email.html" %}
-
-{% block title %}Trial Expired{% endblock %}
-
+{% extends "emails/base.html" %}
 {% block content %}
-<p>Hello {{ user_name }},</p>
-
-<p>Your Premium Trial has ended.</p>
-
-<p>Your account has been moved to the free plan. To regain access to all premium features, please upgrade your subscription.</p>
-
-<p>To upgrade your account, visit your settings:<br>
-<a href="{{ settings_url }}">{{ settings_url }}</a></p>
-
-<p>Thank you,<br><br>
-YOU VS YOU Team</p>
+<p>Your premium trial has expired.</p>
+<p>Your account has been moved to the basic tier. You can upgrade at any time to restore full access.</p>
+<p><a href="{{ app_url }}/premium/upgrade" class="btn">Upgrade Now</a></p>
 {% endblock %}

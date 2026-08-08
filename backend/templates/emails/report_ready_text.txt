@@ -1,0 +1,11 @@
+Report Ready
+
+Your requested data export is ready.
+
+
+Download Report: {{ download_url }}
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

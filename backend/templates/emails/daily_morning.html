@@ -1,0 +1,11 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<p>Good morning, {{ user_name }}.</p>
+<p>Your execution plan for today is ready.</p>
+<ul>
+    <li>Current Streak: {{ current_streak }} days</li>
+    <li>Arena Rank: {{ arena_rank }}</li>
+</ul>
+<p><strong>Thought for the day:</strong><br>{{ quote }}</p>
+<p><a href="{{ app_url }}/dashboard" class="btn">Execute Routines</a></p>
+{% endblock %}

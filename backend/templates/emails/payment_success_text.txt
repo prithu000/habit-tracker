@@ -1,27 +1,20 @@
-Hello {{ user_name }},
+Payment Successful
 
-Your payment has been received successfully.
+Hi {{ user_name }},
 
-Invoice Number:
-{{ invoice_number }}
 
-Plan:
-{{ plan_name }}
+Your payment of {{ amount }} for {{ plan_name }} was successful.
 
-Amount:
-{{ amount }}
 
-Payment Date:
-{{ payment_date }}
+Invoice ID: {{ invoice_number }}
 
-Activation Date:
-{{ subscription_start }}
 
-Expiry Date:
-{{ subscription_end }}
+Your premium access is now active until {{ subscription_end }}.
 
-If you did not perform this transaction, please contact support immediately.
 
-Thank you,
+Thank you for your support.
 
-YOU VS YOU Team
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

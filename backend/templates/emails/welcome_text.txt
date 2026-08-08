@@ -1,13 +1,23 @@
-Hello {{ user_name }},
+Welcome to YOU VS YOU
 
-Your account has been created successfully.
+Hi {{ user_name }},
 
-To get started, visit your dashboard:
-{{ dashboard_url }}
 
-If you need any help, check out our help center:
-{{ help_url }}
+Welcome to YOU VS YOU. Your account has been created successfully.
 
-Thank you,
 
-YOU VS YOU Team
+We are a personal operating system designed to help you execute your routines and build discipline.
+
+
+Open Dashboard: {{ app_url }}/dashboard
+
+
+If you have any questions, reply to this email.
+
+
+— The YOU VS YOU Team
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

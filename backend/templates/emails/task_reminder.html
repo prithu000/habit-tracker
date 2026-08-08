@@ -1,0 +1,5 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<p>You scheduled a reminder for: <strong>{{ task_name }}</strong>.</p>
+<p><a href="{{ app_url }}/dashboard" class="btn">Execute Task</a></p>
+{% endblock %}

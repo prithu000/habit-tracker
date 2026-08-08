@@ -1,0 +1,11 @@
+Verify Your Email Address
+
+Please verify your email address to continue setting up your account.
+
+
+Verify Email: {{ verify_url }}
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

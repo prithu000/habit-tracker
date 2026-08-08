@@ -1,21 +1,6 @@
-{% extends "emails/base_email.html" %}
-
-{% block title %}Trial Started{% endblock %}
-
+{% extends "emails/base.html" %}
 {% block content %}
-<p>Hello {{ user_name }},</p>
-
-<p>Your Premium Trial has started.</p>
-
-<p><strong>Trial Duration:</strong><br>
-{{ trial_days }} days</p>
-
-<p><strong>Expiry Date:</strong><br>
-{{ trial_end_date }}</p>
-
-<p>To manage your trial, visit your settings:<br>
-<a href="{{ settings_url }}">{{ settings_url }}</a></p>
-
-<p>Thank you,<br><br>
-YOU VS YOU Team</p>
+<p>Your 14-day premium trial has started.</p>
+<p>You now have full access to all operating system features.</p>
+<p><a href="{{ app_url }}/premium" class="btn">View Premium Features</a></p>
 {% endblock %}

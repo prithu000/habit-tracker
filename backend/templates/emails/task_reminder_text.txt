@@ -1,0 +1,11 @@
+Task Reminder
+
+You scheduled a reminder for: {{ task_name }}.
+
+
+Execute Task: {{ app_url }}/dashboard
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

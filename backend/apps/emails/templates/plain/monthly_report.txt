@@ -1,0 +1,11 @@
+Monthly Report
+
+Your monthly report is ready.
+
+
+View Report: {{ app_url }}/reports/monthly
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

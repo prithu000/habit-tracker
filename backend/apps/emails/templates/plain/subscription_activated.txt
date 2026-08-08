@@ -1,0 +1,11 @@
+Subscription Activated
+
+Your premium subscription is now active.
+
+
+View Features: {{ app_url }}/premium
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

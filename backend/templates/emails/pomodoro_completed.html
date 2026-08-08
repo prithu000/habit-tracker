@@ -1,0 +1,6 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<p>Focus session completed for <strong>{{ task_name }}</strong>.</p>
+<p>You earned {{ xp_earned }} XP.</p>
+<p><a href="{{ app_url }}/dashboard" class="btn">Start Next Session</a></p>
+{% endblock %}

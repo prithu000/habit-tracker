@@ -1,0 +1,14 @@
+Evening Reflection
+
+Good evening, {{ user_name }}.
+
+
+Completed: {{ completed_tasks }} | Missed: {{ missed_tasks }}
+
+
+Prepare for Tomorrow: {{ app_url }}/tomorrow
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

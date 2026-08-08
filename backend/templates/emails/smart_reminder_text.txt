@@ -1,0 +1,11 @@
+Pending Tasks
+
+You still have tasks pending for today. Don't let your streak break.
+
+
+Execute Now: {{ app_url }}/dashboard
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

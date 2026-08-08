@@ -1,12 +1,14 @@
-Hello {{ user_name }},
+Trial Expired
 
-Your Premium Trial has ended.
+Your premium trial has expired.
 
-Your account has been moved to the free plan. To regain access to all premium features, please upgrade your subscription.
 
-To upgrade your account, visit your settings:
-{{ settings_url }}
+Your account has been moved to the basic tier. You can upgrade at any time to restore full access.
 
-Thank you,
 
-YOU VS YOU Team
+Upgrade Now: {{ app_url }}/premium/upgrade
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

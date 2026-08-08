@@ -1,0 +1,5 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<p>You still have tasks pending for today. Don't let your streak break.</p>
+<p><a href="{{ app_url }}/dashboard" class="btn">Execute Now</a></p>
+{% endblock %}

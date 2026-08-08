@@ -1,0 +1,14 @@
+Welcome to YOU VS YOU
+
+Hi {{ user_name }},
+
+
+Welcome to YOU VS YOU. Your account has been created.
+
+
+Open Dashboard: {{ app_url }}/dashboard
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

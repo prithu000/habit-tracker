@@ -1,13 +1,14 @@
-Hello {{ user_name }},
+Trial Ending Soon
 
-Your Premium Trial ends in {{ days_left }} days.
+Your premium trial ends in {{ days_left }} days.
 
-Expiry Date:
-{{ trial_end_date }}
 
-To upgrade your account, visit your settings:
-{{ settings_url }}
+Upgrade to retain access to all features.
 
-Thank you,
 
-YOU VS YOU Team
+Upgrade to Premium: {{ app_url }}/premium/upgrade
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

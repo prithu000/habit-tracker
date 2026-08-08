@@ -1,0 +1,11 @@
+Payment Success
+
+We received your payment of {{ amount }}.
+
+
+Invoice: {{ invoice_number }}
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

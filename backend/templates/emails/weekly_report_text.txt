@@ -1,0 +1,14 @@
+Weekly Report Ready
+
+Your weekly execution report is ready.
+
+
+Review your progress from the past week.
+
+
+View Weekly Report: {{ app_url }}/analytics/weekly
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

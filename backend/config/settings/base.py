@@ -44,6 +44,7 @@ LOCAL_APPS = [
     "apps.notifications",
     "apps.integrations",
     "apps.subscriptions",
+    "apps.emails",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -273,6 +274,19 @@ CELERY_BEAT_SCHEDULE = {
         "task": "workers.tasks.cache_management.refresh_leaderboard_cache",
         "schedule": 60 * 3,  # every 3 minutes
     },
+    # Emails
+    "email-morning-motivation": {
+        "task": "apps.emails.scheduler.schedule_morning_motivation",
+        "schedule": 60 * 60,  # hourly
+    },
+    "email-evening-reflection": {
+        "task": "apps.emails.scheduler.schedule_evening_reflection",
+        "schedule": 60 * 60,  # hourly
+    },
+    "email-inactive-reminders": {
+        "task": "apps.emails.scheduler.schedule_inactive_reminders",
+        "schedule": 60 * 60 * 24,  # daily
+    },
 }
 
 # ─────────────────────────────────────────────
@@ -363,14 +377,14 @@ LOGGING = {
 
 
 # ─────────────────────────────────────────────
-# Email
+# Email (Amazon SES)
 # ─────────────────────────────────────────────
 EMAIL_BACKEND = config("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
-EMAIL_HOST = config("EMAIL_HOST", default="smtp.gmail.com")
+EMAIL_HOST = config("EMAIL_HOST", default="email-smtp.us-east-1.amazonaws.com")
 EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
 EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
 EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
-EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="").replace(" ", "")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="YOU VS YOU <noreply@youvsyou.com>")
 SERVER_EMAIL = config("SERVER_EMAIL", default="noreply@youvsyou.com")
 

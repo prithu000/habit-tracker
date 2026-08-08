@@ -1,0 +1,17 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<h2>You Missed Today.</h2>
+<div class="content-body">
+    <p>Hey {{ user_name }},</p>
+    <p>We noticed you didn't execute your routine today.</p>
+    <p>Missing one day is an anomaly. Missing two days is the start of a new habit.</p>
+    {% if longest_streak > 0 %}
+    <p>You have a record of <strong>{{ longest_streak }} days</strong> of pure discipline. The version of you that built that momentum is still there.</p>
+    {% endif %}
+    <p>Don't let today dictate tomorrow. Open the app and prepare your execution plan for tomorrow.</p>
+    
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="{{ app_url }}" class="button">Log In & Execute</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+Payment Failed
+
+Your recent payment failed.
+
+
+Update Payment Method: {{ app_url }}/billing
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

@@ -1,0 +1,11 @@
+Return to the Arena
+
+It's been 7 days. Consistency is key.
+
+
+Return Now: {{ app_url }}/dashboard
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

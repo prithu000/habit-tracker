@@ -1,0 +1,15 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<h2>Your streak can still be rebuilt.</h2>
+<div class="content-body">
+    <p>{{ user_name }},</p>
+    <p>It's been 5 days.</p>
+    <p>You might be feeling a little guilt. You might feel like you've already failed so there is no point in trying today.</p>
+    <p>That's a lie. The only failure is staying down.</p>
+    <p>We don't do guilt here. We do discipline. Get back up.</p>
+    
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="{{ app_url }}" class="button">Start Rebuilding</a>
+    </div>
+</div>
+{% endblock %}

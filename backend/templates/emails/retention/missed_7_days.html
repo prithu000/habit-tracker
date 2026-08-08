@@ -1,0 +1,18 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<h2>Don't Let Your Identity Disappear.</h2>
+<div class="content-body">
+    <p>{{ user_name }},</p>
+    <p>A full week has passed since you last executed your protocol.</p>
+    <p>Habits shape your identity. When you stop showing up, you aren't just breaking a streak. You're slowly eroding the identity of the person you want to become.</p>
+    <p>The pain of discipline weighs ounces. The pain of regret weighs tons.</p>
+    {% if longest_streak > 0 %}
+    <p>You've hit <strong>{{ longest_streak }} consecutive days</strong> before. We both know what you are capable of.</p>
+    {% endif %}
+    <p>Take 5 minutes right now. Just 5 minutes to complete one small task. Start the momentum again.</p>
+    
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="{{ app_url }}" class="button">Rebuild Your Identity</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,18 +1,18 @@
-{% extends "emails/base_email.html" %}
-
-{% block title %}Welcome to YOU VS YOU{% endblock %}
-
+﻿{% extends "emails/base.html" %}
 {% block content %}
-<p>Hello {{ user_name }},</p>
+<h2>Welcome to the Arena, {{ user_name }} ⚔️</h2>
+<p>Your YOU VS YOU account has been created successfully. You've just taken the first step towards building an unbreakable system for your life.</p>
 
-<p>Your account has been created successfully.</p>
+<div class="highlight-box">
+    <strong>Your Mission:</strong> We are a personal operating system designed to help you execute your routines and build extreme discipline. No excuses.
+</div>
 
-<p>To get started, visit your dashboard:<br>
-<a href="{{ dashboard_url }}">{{ dashboard_url }}</a></p>
+<p>Every day is a battle against your former self. Let's start tracking your habits and dominating your goals.</p>
 
-<p>If you need any help, check out our help center:<br>
-<a href="{{ help_url }}">{{ help_url }}</a></p>
+<div class="btn-wrapper">
+    <a href="{{ frontend_url }}/dashboard" class="btn">Enter The Dashboard</a>
+</div>
 
-<p>Thank you,<br><br>
-YOU VS YOU Team</p>
+<p>If you need any guidance setting up your first routines, just reply to this email.</p>
+<p>Stay disciplined,<br><strong>The YOU VS YOU Team</strong></p>
 {% endblock %}

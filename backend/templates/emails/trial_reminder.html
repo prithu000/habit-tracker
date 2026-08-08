@@ -1,18 +1,6 @@
-{% extends "emails/base_email.html" %}
-
-{% block title %}Trial Reminder{% endblock %}
-
+{% extends "emails/base.html" %}
 {% block content %}
-<p>Hello {{ user_name }},</p>
-
-<p>Your Premium Trial ends in {{ days_left }} days.</p>
-
-<p><strong>Expiry Date:</strong><br>
-{{ trial_end_date }}</p>
-
-<p>To upgrade your account, visit your settings:<br>
-<a href="{{ settings_url }}">{{ settings_url }}</a></p>
-
-<p>Thank you,<br><br>
-YOU VS YOU Team</p>
+<p>Your premium trial ends in {{ days_left }} days.</p>
+<p>Upgrade to retain access to all features.</p>
+<p><a href="{{ app_url }}/premium/upgrade" class="btn">Upgrade to Premium</a></p>
 {% endblock %}

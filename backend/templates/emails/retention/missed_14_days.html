@@ -1,0 +1,17 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<h2>You started for a reason.</h2>
+<div class="content-body">
+    <p>{{ user_name }},</p>
+    <p>Two weeks ago, you stopped executing.</p>
+    <p>Remember the day you downloaded YOU VS YOU? Remember the exact reason why you wanted to change your life? That reason is still there. But the time to act on it is slipping away.</p>
+    {% if longest_streak > 0 %}
+    <p>Your highest streak is <strong>{{ longest_streak }} days</strong>. Your potential is immense. But potential means nothing without action.</p>
+    {% endif %}
+    <p>Stop waiting for the perfect moment. Take action now.</p>
+    
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="{{ app_url }}" class="button">Take Action</a>
+    </div>
+</div>
+{% endblock %}

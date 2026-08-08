@@ -1,0 +1,11 @@
+Weekly Report
+
+Your weekly report is ready.
+
+
+View Report: {{ app_url }}/reports/weekly
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

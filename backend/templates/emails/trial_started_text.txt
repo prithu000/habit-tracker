@@ -1,16 +1,14 @@
-Hello {{ user_name }},
+Premium Trial Started
 
-Your Premium Trial has started.
+Your 14-day premium trial has started.
 
-Trial Duration:
-{{ trial_days }} days
 
-Expiry Date:
-{{ trial_end_date }}
+You now have full access to all operating system features.
 
-To manage your trial, visit your settings:
-{{ settings_url }}
 
-Thank you,
+View Premium Features: {{ app_url }}/premium
 
-YOU VS YOU Team
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

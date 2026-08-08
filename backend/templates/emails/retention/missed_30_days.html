@@ -1,0 +1,16 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<h2>Come Back. Start Again.</h2>
+<div class="content-body">
+    <p>{{ user_name }}.</p>
+    <p>30 days ago, you were on a different path.</p>
+    <p>Life happens. Chaos hits. But sitting on the sidelines for a month doesn't mean the game is over.</p>
+    <p>The only time you truly fail is when you stop trying.</p>
+    <p>Today is Day 1.</p>
+    <p>Forget the past. Open the app. Set one simple goal for today and crush it. That's how it starts.</p>
+    
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="{{ app_url }}" class="button">Start Day 1</a>
+    </div>
+</div>
+{% endblock %}

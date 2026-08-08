@@ -26,4 +26,5 @@ urlpatterns = [
     path("notifications/support/", notif_os.support_report_view, name="os-support-report"),
     path("notifications/pomodoro-email/", notif_os.pomodoro_email_view, name="os-pomodoro-email"),
     path("notifications/reminders/", notif_os.email_reminders_view, name="os-reminders"),
+    path("notifications/preferences/", notif_os.preferences_view, name="os-preferences"),
 ]

@@ -1,0 +1,5 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<p>Your requested data export is ready.</p>
+<p><a href="{{ download_url }}" class="btn">Download Report</a></p>
+{% endblock %}

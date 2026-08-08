@@ -49,7 +49,7 @@ def on_user_created(sender, instance, created, **kwargs):
     pass
     
     # Send premium welcome email
-    from services.email_service import EmailService
+    from apps.emails.services import EmailService
     
     # CRITICAL: Print user details before email
     

@@ -1,0 +1,14 @@
+Focus Session Completed
+
+Focus session completed for {{ task_name }}.
+
+
+You earned {{ xp_earned }} XP.
+
+
+Start Next Session: {{ app_url }}/dashboard
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

@@ -1,0 +1,6 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<p>You have started a focus session for <strong>{{ task_name }}</strong>.</p>
+<p>Duration: {{ duration_mins }} minutes.</p>
+<p>Block out all distractions. Your timer is running.</p>
+{% endblock %}

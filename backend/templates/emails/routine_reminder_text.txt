@@ -1,0 +1,11 @@
+Routine Reminder
+
+It's time for your routine: {{ task_name }}.
+
+
+Execute Routine: {{ app_url }}/dashboard
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

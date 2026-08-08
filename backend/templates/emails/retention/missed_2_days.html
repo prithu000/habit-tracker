@@ -1,0 +1,15 @@
+{% extends "emails/base.html" %}
+{% block content %}
+<h2>Your future self is waiting.</h2>
+<div class="content-body">
+    <p>{{ user_name }},</p>
+    <p>Two days of silence. The momentum is fading.</p>
+    <p>This is exactly the moment where 99% of people quit. They rationalize it. They make an excuse. And then they disappear.</p>
+    <p>Are you the 99%, or are you the 1%?</p>
+    <p>Open the app. Show up for yourself. Prove that you are who you say you are.</p>
+    
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="{{ app_url }}" class="button">Log In & Execute</a>
+    </div>
+</div>
+{% endblock %}

@@ -26,24 +26,19 @@ app.conf.beat_schedule = {
         "schedule": crontab(minute="*/3"),
     },
     # ==================== EMAIL TASKS ====================
-    "daily-motivation-6am": {
-        "task": "workers.tasks.email_tasks.send_daily_motivation_emails",
-        "schedule": crontab(hour=6, minute=0),  # 6:00 AM daily
+    "daily-morning-hourly": {
+        "task": "apps.emails.scheduler.schedule_morning_motivation",
+        "schedule": crontab(minute=0),  # Every hour to hit different timezones
     },
-    "trial-reminders-9am": {
-        "task": "workers.tasks.email_tasks.send_trial_reminders",
-        "schedule": crontab(hour=9, minute=0),  # 9:00 AM daily
+    "daily-night-hourly": {
+        "task": "apps.emails.scheduler.schedule_evening_reflection",
+        "schedule": crontab(minute=0),
     },
-    "trial-expired-10am": {
-        "task": "workers.tasks.email_tasks.send_trial_expired_emails",
-        "schedule": crontab(hour=10, minute=0),  # 10:00 AM daily
+    "inactive-recovery-midnight-utc": {
+        "task": "apps.emails.scheduler.schedule_inactive_reminders",
+        "schedule": crontab(hour=0, minute=0),  # Midnight UTC
     },
-    "weekly-summary-monday-8am": {
-        "task": "workers.tasks.email_tasks.send_weekly_summaries",
-        "schedule": crontab(day_of_week=1, hour=8, minute=0),  # Monday 8:00 AM
-    },
-    "monthly-report-1st-9am": {
-        "task": "workers.tasks.email_tasks.send_monthly_reports",
-        "schedule": crontab(day_of_month=1, hour=9, minute=0),  # 1st day of month, 9:00 AM
-    },
+    # Note: Weekly/Monthly reports or other non-existent tasks are removed 
+    # unless they are explicitly implemented elsewhere. We removed trial/reports 
+    # tasks that were pointing to the deleted email_tasks.py.
 }

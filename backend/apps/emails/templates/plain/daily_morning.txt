@@ -1,0 +1,14 @@
+Morning Motivation
+
+Good morning, {{ user_name }}.
+
+
+{{ quote }}
+
+
+Execute Routines: {{ app_url }}/dashboard
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

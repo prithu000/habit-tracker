@@ -1,0 +1,11 @@
+You've been missed
+
+You haven't logged in for 3 days.
+
+
+Resume Progress: {{ app_url }}/dashboard
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

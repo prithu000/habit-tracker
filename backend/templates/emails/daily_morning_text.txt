@@ -1,0 +1,26 @@
+Today's Execution Plan
+
+Good morning, {{ user_name }}.
+
+
+Your execution plan for today is ready.
+
+
+
+
+    - Current Streak: {{ current_streak }} days
+
+    - Arena Rank: {{ arena_rank }}
+
+
+
+Thought for the day:
+{{ quote }}
+
+
+Execute Routines: {{ app_url }}/dashboard
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

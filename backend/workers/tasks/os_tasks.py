@@ -144,12 +144,13 @@ The Personal Operating System
 Engineer Your Best Self.
 Every action compounds.
         """
-        send_mail(
+        from apps.emails.services import EmailService
+        EmailService.send_email_async(
+            recipient=user_email,
             subject=subject,
-            message=body.strip(),
-            from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@youvsyou-os.com"),
-            recipient_list=[user_email],
-            fail_silently=True
+            template_name="system_alert",
+            context={"header_title": protocol_title.upper(), "message": body.strip()},
+            idempotency_key=f"pomodoro_{user_email}_{start_time}_{end_time}"
         )
         logger.info(f"Focus telemetry email ({session_type}/{event_type}) dispatched to {user_email}.")
         return True
@@ -191,12 +192,12 @@ Engineer Your Best Self.
 Every action compounds.
             """
             try:
-                send_mail(
+                from apps.emails.services import EmailService
+                EmailService.send_email_async(
+                    recipient=reminder.user.email,
                     subject=subject,
-                    message=body.strip(),
-                    from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@youvsyou-os.com"),
-                    recipient_list=[reminder.user.email],
-                    fail_silently=False
+                    template_name="system_alert",
+                    context={"header_title": "Scheduled Reminder", "message": body.strip()}
                 )
                 
                 logger.info(
@@ -262,12 +263,12 @@ The Personal Operating System
 Engineer Your Best Self.
 Every action compounds.
         """
-        send_mail(
+        from apps.emails.services import EmailService
+        EmailService.send_email_async(
+            recipient=target_email,
             subject=subject,
-            message=body.strip(),
-            from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@youvsyou-os.com"),
-            recipient_list=[target_email],
-            fail_silently=True
+            template_name="system_alert",
+            context={"header_title": "Support Submission", "message": body.strip()}
         )
         logger.info(f"Support issue report sent to {target_email} from {user_email}.")
         return True

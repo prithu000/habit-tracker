@@ -1,0 +1,11 @@
+Subscription Expiring
+
+Your subscription expires in {{ days_left }} days.
+
+
+Update Billing: {{ app_url }}/billing
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

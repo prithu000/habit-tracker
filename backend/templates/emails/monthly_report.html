@@ -1,27 +1,6 @@
-{% extends "emails/base_email.html" %}
-
-{% block title %}Monthly Growth Report{% endblock %}
-
+{% extends "emails/base.html" %}
 {% block content %}
-<p>Hello {{ user_name }},</p>
-
-<p>Your Monthly Growth Report for {{ month }}</p>
-
-<p><strong>Life Score:</strong><br>
-{{ life_score }}</p>
-
-<p><strong>Best Habit:</strong><br>
-{{ best_habit }}</p>
-
-<p><strong>Improvement:</strong><br>
-{{ improvement }}</p>
-
-<p><strong>Current Streak:</strong><br>
-{{ current_streak }} days</p>
-
-<p>To view your full analytics, visit:<br>
-<a href="{{ app_url }}/analytics">{{ app_url }}/analytics</a></p>
-
-<p>Thank you,<br><br>
-YOU VS YOU Team</p>
+<p>Your monthly growth report is ready.</p>
+<p>See how much you've improved this month.</p>
+<p><a href="{{ app_url }}/analytics/monthly" class="btn">View Monthly Report</a></p>
 {% endblock %}

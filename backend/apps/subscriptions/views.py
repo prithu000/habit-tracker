@@ -312,7 +312,7 @@ class VerifyPaymentView(APIView):
             from apps.subscriptions.models import PaymentHistory
             invoice = PaymentHistory.objects.filter(invoice_number=result["invoice_number"]).first()
             if invoice:
-                from services.email_service import EmailService
+                from apps.emails.services import EmailService
                 EmailService.send_payment_success(request.user, invoice)
                 EmailService.send_subscription_activated(request.user)
         except Exception as e:

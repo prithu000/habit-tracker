@@ -156,3 +156,43 @@ def email_reminders_view(request):
         for r in reminders
     ]
     return Response({"reminders": data})
+
+
+@api_view(["GET", "PATCH"])
+@permission_classes([IsAuthenticated])
+def preferences_view(request):
+    """
+    GET/PATCH /api/v1/notifications/preferences/
+    Manage NotificationPreferences (email and push).
+    """
+    from apps.notifications.models import NotificationPreference
+    user = request.user
+    
+    prefs, _ = NotificationPreference.objects.get_or_create(user=user)
+    
+    if request.method == "PATCH":
+        data = request.data
+        if 'morning_mail_enabled' in data: prefs.morning_mail_enabled = data['morning_mail_enabled']
+        if 'night_mail_enabled' in data: prefs.night_mail_enabled = data['night_mail_enabled']
+        if 'weekly_report_enabled' in data: prefs.weekly_report_enabled = data['weekly_report_enabled']
+        if 'monthly_report_enabled' in data: prefs.monthly_report_enabled = data['monthly_report_enabled']
+        if 'marketing_mail_enabled' in data: prefs.marketing_mail_enabled = data['marketing_mail_enabled']
+        if 'recovery_mail_enabled' in data: prefs.recovery_mail_enabled = data['recovery_mail_enabled']
+        if 'trial_mail_enabled' in data: prefs.trial_mail_enabled = data['trial_mail_enabled']
+        if 'push_notifications_enabled' in data: prefs.push_notifications_enabled = data['push_notifications_enabled']
+        if 'push_subscription_info' in data: prefs.push_subscription_info = data['push_subscription_info']
+        
+        prefs.save()
+        return Response({"message": "Preferences updated successfully."})
+        
+    return Response({
+        "morning_mail_enabled": prefs.morning_mail_enabled,
+        "night_mail_enabled": prefs.night_mail_enabled,
+        "weekly_report_enabled": prefs.weekly_report_enabled,
+        "monthly_report_enabled": prefs.monthly_report_enabled,
+        "marketing_mail_enabled": prefs.marketing_mail_enabled,
+        "recovery_mail_enabled": prefs.recovery_mail_enabled,
+        "trial_mail_enabled": prefs.trial_mail_enabled,
+        "push_notifications_enabled": prefs.push_notifications_enabled,
+        "push_subscription_info": prefs.push_subscription_info,
+    })

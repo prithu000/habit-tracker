@@ -3,168 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>{{ subject }}</title>
     <style>
-        * {
+        /* 
+         * YOU VS YOU - Premium Email Design System 
+         * Theme: Dark Mode First, Vibrant Accents, Glassmorphic 
+         */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0f0f13;
+            color: #ffffff;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: #0a0a0f;
-            color: #ffffff;
             line-height: 1.6;
-            padding: 20px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-        .email-container {
+
+        .email-wrapper {
+            background-color: #0f0f13;
+            width: 100%;
+            padding: 40px 20px;
+        }
+
+        .container {
             max-width: 600px;
             margin: 0 auto;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16162a 100%);
+            background: linear-gradient(180deg, #181921 0%, #121319 100%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
         }
+
+        /* Header / Logo */
         .header {
-            background: linear-gradient(135deg, {{ brand_color }} 0%, #6d28d9 100%);
-            padding: 40px 30px;
             text-align: center;
-        }
-        .logo {
-            font-size: 28px;
-            font-weight: 900;
-            color: #ffffff;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-        .content {
-            padding: 40px 30px;
-        }
-        h1 {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            color: #ffffff;
-        }
-        p {
-            font-size: 16px;
-            line-height: 1.8;
-            color: #d1d5db;
-            margin-bottom: 16px;
-        }
-        .button {
-            display: inline-block;
-            padding: 16px 32px;
-            background: linear-gradient(135deg, {{ brand_color }} 0%, #6d28d9 100%);
-            color: #ffffff !important;
-            text-decoration: none;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 16px;
-            margin: 20px 0;
-            transition: all 0.3s ease;
-        }
-        .button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4);
-        }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-            margin: 30px 0;
-        }
-        .stat-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-        }
-        .stat-value {
-            font-size: 32px;
-            font-weight: 700;
-            color: {{ brand_color }};
-            margin-bottom: 8px;
-        }
-        .stat-label {
-            font-size: 13px;
-            color: #9ca3af;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .quote-box {
-            background: rgba(139, 92, 246, 0.1);
-            border-left: 4px solid {{ brand_color }};
-            padding: 20px;
-            margin: 30px 0;
-            border-radius: 8px;
-        }
-        .quote-text {
-            font-size: 18px;
-            font-style: italic;
-            color: #e5e7eb;
-            line-height: 1.6;
-        }
-        .footer {
-            background: #0f0f1a;
-            padding: 30px;
-            text-align: center;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .footer-text {
-            font-size: 13px;
-            color: #6b7280;
-            margin-bottom: 8px;
-        }
-        .footer-links {
-            margin-top: 16px;
-        }
-        .footer-link {
-            color: {{ brand_color }};
-            text-decoration: none;
-            margin: 0 12px;
-            font-size: 13px;
+            padding: 40px 20px 20px 20px;
         }
         
-        /* Mobile responsive */
-        @media only screen and (max-width: 600px) {
-            body {
-                padding: 10px;
-            }
-            .header, .content, .footer {
-                padding: 30px 20px;
-            }
-            h1 {
-                font-size: 20px;
-            }
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
+        .header img {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            display: block;
+            margin: 0 auto;
         }
+
+        /* Content Area */
+        .content {
+            padding: 30px 40px;
+            color: #d1d5db;
+            font-size: 15px;
+        }
+
+        .content h2 {
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        .content p {
+            margin: 0 0 20px 0;
+        }
+
+        .highlight-box {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 4px solid #3b82f6;
+            border-radius: 0 8px 8px 0;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+        }
+
+        /* Call To Action Button */
+        .btn-wrapper {
+            text-align: center;
+            margin: 32px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+            color: #ffffff !important;
+            font-weight: 600;
+            font-size: 15px;
+            text-decoration: none;
+            padding: 14px 32px;
+            border-radius: 100px;
+            box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.4);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn:hover {
+            box-shadow: 0 15px 25px -5px rgba(59, 130, 246, 0.5);
+        }
+
+        /* Footer */
+        .footer {
+            padding: 30px 40px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            background-color: #121319;
+        }
+
+        .footer p {
+            font-size: 12px;
+            color: #6b7280;
+            margin: 0 0 10px 0;
+        }
+
+        .footer a {
+            color: #9ca3af;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer a:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+
+        .social-links {
+            margin-bottom: 20px;
+        }
+
+        .social-links a {
+            display: inline-block;
+            margin: 0 8px;
+            color: #9ca3af;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        hr {
+            border: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin: 32px 0;
+        }
+
+        /* Light Mode Fallback (For email clients that don't support dark mode natively, we force dark theme to preserve brand identity) */
     </style>
 </head>
 <body>
-    <div class="email-container">
-        <div class="header">
-            <div class="logo">{{ brand_name }}</div>
-        </div>
-        
-        <div class="content">
-            {% block content %}{% endblock %}
-        </div>
-        
-        <div class="footer">
-            <p class="footer-text">© {{ current_year }} {{ brand_name }}. All rights reserved.</p>
-            <p class="footer-text">Personal Operating System for Elite Performers</p>
-            <div class="footer-links">
-                <a href="{{ app_url }}/settings" class="footer-link">Settings</a>
-                <a href="{{ app_url }}/support" class="footer-link">Support</a>
-                <a href="{{ app_url }}" class="footer-link">Dashboard</a>
-            </div>
-        </div>
-    </div>
+    <table class="email-wrapper" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+        <tr>
+            <td align="center">
+                <table class="container" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                    <!-- Header -->
+                    <tr>
+                        <td class="header">
+                            {% if logo_url %}
+                            <img src="{{ logo_url }}" alt="YOU VS YOU Logo">
+                            {% endif %}
+                        </td>
+                    </tr>
+                    
+                    <!-- Main Content -->
+                    <tr>
+                        <td class="content">
+                            {% block content %}{% endblock %}
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td class="footer">
+                            <div class="social-links">
+                                <a href="https://twitter.com/youvsyou">Twitter</a> &bull; 
+                                <a href="https://instagram.com/youvsyou">Instagram</a> &bull; 
+                                <a href="{{ frontend_url }}">Website</a>
+                            </div>
+                            <p>
+                                You are receiving this email because you are a member of YOU VS YOU.
+                            </p>
+                            <p>
+                                <a href="{{ settings_url }}">Notification Preferences</a> | 
+                                <a href="{{ unsubscribe_url }}">Unsubscribe</a>
+                            </p>
+                            <p style="margin-top: 16px;">
+                                &copy; {% now "Y" %} YOU VS YOU. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>

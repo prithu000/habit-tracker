@@ -1,0 +1,14 @@
+Missed Habit Reminder
+
+You missed a habit today: {{ task_name }}.
+
+
+Don't let your streak break.
+
+
+Complete Habit: {{ app_url }}/dashboard
+
+
+
+Settings: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}
