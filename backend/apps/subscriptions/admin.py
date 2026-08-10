@@ -71,9 +71,9 @@ class SubscriptionOrderAdmin(admin.ModelAdmin):
         }
         plan_labels = {
             "trial": "14-Day Free Trial",
-            "monthly": "Monthly Plan (₹99)",
-            "6_month": "6-Month Plan (₹399)",
-            "12_month": "12-Month Plan (₹699)",
+            "monthly": "Monthly Plan (₹49)",
+            "6_month": "6-Month Plan (₹265)",
+            "12_month": "12-Month Plan (₹499)",
         }
         color = plan_colors.get(obj.plan_type, "#6b7280")
         label = plan_labels.get(obj.plan_type, obj.plan_type)

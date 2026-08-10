@@ -42,9 +42,9 @@ export const SubscriptionTab: React.FC = () => {
   const planType = subscription?.plan_type || user?.plan_type || "free";
 
   const getPlanTitle = () => {
-    if (planType === "monthly") return "Monthly Pro Plan (₹99)";
-    if (planType === "6_month") return "6-Month Pro Plan (₹399)";
-    if (planType === "12_month") return "12-Month VIP Plan (₹699)";
+    if (planType === "monthly") return "Monthly Pro Plan (₹49)";
+    if (planType === "6_month") return "6-Month Pro Plan (₹265)";
+    if (planType === "12_month") return "12-Month VIP Plan (₹499)";
     return "Free Plan";
   };
 

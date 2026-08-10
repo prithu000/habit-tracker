@@ -81,24 +81,21 @@ interface Plan {
 
 const PLANS: Plan[] = [
   {
-    id: "12_month",
-    name: "Premium Annual Plan (12 Months)",
-    price: 499,
-    originalPrice: 588,
-    period: "year",
-    monthlyEquivalent: "≈ ₹42/month",
-    savings: "SAVE ₹89",
-    description: "One year. One commitment. Build the version of yourself you keep promising to become.",
-    badge: "🔥 BEST VALUE",
-    badgeColor: "bg-gradient-to-r from-amber-500/20 via-forge-500/20 to-purple-500/20 text-amber-300 border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.35)] animate-pulse",
-    bestValue: true,
-    ctaText: "Start My Year of Consistency",
+    id: "monthly",
+    name: "Monthly Plan",
+    price: 49,
+    period: "month",
+    description: "Start building your consistency today.",
+    badge: "👑 BEST VALUE",
+    badgeColor: "bg-gradient-to-r from-yellow-500 to-orange-500 text-black border-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.5)]",
+    popular: true, 
+    ctaText: "Start Your Transformation Now →",
     features: [
-      "Everything in 6 Month Plan",
-      "VIP Priority Support & Feature Requests",
-      "Early Access to Next-Gen AI Modules",
-      "Lifetime Price Lock Guarantee",
-      "Exclusive Founder Status & Badge",
+      "All 8 Core OS Modules (Dashboard, Life Score, Focus)",
+      "Daily & Weekly Executive PDF Reports",
+      "Interactive Habit Analytics & Heatmaps",
+      "Standard AI Insights & Score Breakdown",
+      "Cancel anytime from account settings",
     ],
   },
   {
@@ -110,10 +107,9 @@ const PLANS: Plan[] = [
     monthlyEquivalent: "≈ ₹44/month",
     savings: "SAVE ₹29",
     description: "Enough time to turn consistency into a habit.",
-    badge: "⭐ POPULAR",
+    badge: "POPULAR",
     badgeColor: "bg-forge-500/20 text-forge-300 border-forge-500/40",
-    popular: true,
-    ctaText: "Choose 6 Months",
+    ctaText: "Commit for 6 Months →",
     features: [
       "Everything in Monthly Plan",
       "Priority AI Performance Coaching & Diagnostics",
@@ -123,20 +119,24 @@ const PLANS: Plan[] = [
     ],
   },
   {
-    id: "monthly",
-    name: "Monthly Plan",
-    price: 49,
-    period: "month",
-    description: "Start building your consistency today.",
-    badge: "FLEXIBLE",
-    badgeColor: "bg-white/10 text-zinc-300 border-white/20",
-    ctaText: "Start for ₹49",
+    id: "12_month",
+    name: "Premium Annual Plan (12 Months)",
+    price: 499,
+    originalPrice: 588,
+    period: "year",
+    monthlyEquivalent: "≈ ₹42/month",
+    savings: "SAVE ₹89",
+    description: "One year. One commitment. Build the version of yourself you keep promising to become.",
+    badge: "🔥 BEST VALUE",
+    badgeColor: "bg-gradient-to-r from-amber-500/20 via-amber-500/10 to-transparent text-amber-400 border-amber-500/30",
+    bestValue: true,
+    ctaText: "Build Your Year →",
     features: [
-      "All 8 Core OS Modules (Dashboard, Life Score, Focus)",
-      "Daily & Weekly Executive PDF Reports",
-      "Interactive Habit Analytics & Heatmaps",
-      "Standard AI Insights & Score Breakdown",
-      "Cancel anytime from account settings",
+      "Everything in 6 Month Plan",
+      "VIP Priority Support & Feature Requests",
+      "Early Access to Next-Gen AI Modules",
+      "Lifetime Price Lock Guarantee",
+      "Exclusive Founder Status & Badge",
     ],
   },
 ];
@@ -330,10 +330,8 @@ export function PricingCards() {
             key={plan.id}
             className={cn(
               "relative rounded-3xl p-6 sm:p-8 flex flex-col justify-between transition-all duration-300",
-              plan.bestValue
-                ? "bg-gradient-to-b from-[#1d1633] via-[#151324] to-[#111116] border-2 border-forge-500 shadow-[0_0_50px_rgba(139,92,246,0.35)] lg:-translate-y-3 ring-1 ring-forge-400/50"
-                : plan.popular
-                ? "bg-[#14141a] border border-forge-500/50 shadow-[0_10px_35px_rgba(0,0,0,0.5)]"
+              plan.popular
+                ? "bg-[#0b0410] border-2 border-purple-500 shadow-[0_0_50px_rgba(168,85,247,0.4)] lg:-translate-y-3 ring-2 ring-purple-500/50"
                 : "bg-[#111116] border border-white/10 hover:border-white/20 shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
             )}
           >
@@ -365,7 +363,20 @@ export function PricingCards() {
               <p className="text-xs text-muted-foreground min-h-[32px] mb-5">{plan.description}</p>
 
               {/* Price Display */}
-              <div className="mb-6">
+              <div className="mb-6 relative">
+                {plan.id === "monthly" && (
+                  <div className="absolute -left-12 top-4 opacity-80 hidden sm:block animate-pulse">
+                    {/* Hand-drawn arrow SVG */}
+                    <svg width="40" height="40" viewBox="0 0 100 100" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" className="rotate-[15deg]">
+                      <path d="M10,80 Q30,20 90,50 M70,30 L90,50 L60,70" />
+                    </svg>
+                  </div>
+                )}
+                {plan.id === "monthly" && (
+                  <div className="inline-block bg-pink-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full mb-2 tracking-wider">
+                    NOW AT
+                  </div>
+                )}
                 {plan.originalPrice && (
                   <div className="flex items-center gap-2 mb-1.5">
                     <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
@@ -377,10 +388,16 @@ export function PricingCards() {
                   </div>
                 )}
                 <div className="flex items-baseline gap-2 mb-1.5">
-                  <span className="text-4xl sm:text-5xl font-black text-white tracking-tight">
-                    {activeOffer ? `Now ₹${Math.max(0, plan.price - activeOffer.discount_value_inr)}` : (plan.originalPrice ? `Now ₹${plan.price}` : `₹${plan.price}`)}
+                  <span className={cn(
+                    "font-black tracking-tight",
+                    plan.id === "monthly" ? "text-7xl sm:text-8xl text-white drop-shadow-[0_0_25px_rgba(255,255,255,0.6)]" : "text-4xl sm:text-5xl text-white"
+                  )}>
+                    {activeOffer ? `₹${Math.max(0, plan.price - activeOffer.discount_value_inr)}` : `₹${plan.price}`}
                   </span>
-                  <span className="text-xs font-medium text-muted-foreground">/ {plan.period}</span>
+                  <span className={cn(
+                    "font-medium", 
+                    plan.id === "monthly" ? "text-lg text-white/90" : "text-xs text-muted-foreground"
+                  )}>/ {plan.period}</span>
                 </div>
                 {activeOffer && (
                    <div className="text-xs font-bold text-green-400 mb-1.5 bg-green-500/10 px-2 py-1 rounded inline-block">
@@ -424,15 +441,14 @@ export function PricingCards() {
                   <span>{buttonState.text}</span>
                 </div>
               ) : (
-                <button
-                  onClick={() => handleSelectPlan(plan)}
-                  disabled={isLoading || buttonState.disabled}
+                <>
+                  <button
+                    onClick={() => handleSelectPlan(plan)}
+                    disabled={isLoading || buttonState.disabled}
                   className={cn(
                     "w-full py-4 px-6 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 group",
-                    plan.bestValue
-                      ? "bg-gradient-to-r from-forge-500 to-purple-600 hover:from-forge-600 hover:to-purple-700 text-white shadow-[0_0_25px_rgba(139,92,246,0.4)] hover:shadow-[0_0_35px_rgba(139,92,246,0.6)]"
-                      : plan.popular
-                      ? "bg-white text-black hover:bg-white/90 shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+                    plan.popular
+                      ? "bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 text-red-950 shadow-[0_0_30px_rgba(245,158,11,0.6)] hover:shadow-[0_0_45px_rgba(245,158,11,0.8)] scale-105"
                       : "bg-white/[0.06] hover:bg-white/[0.1] text-white border border-white/10",
                     (isLoading || buttonState.disabled) && "opacity-70 cursor-not-allowed"
                   )}
@@ -449,6 +465,12 @@ export function PricingCards() {
                     </>
                   )}
                 </button>
+                {plan.id === "monthly" && (
+                  <p className="text-center text-[11px] text-muted-foreground mt-3 font-medium">
+                    Secure Razorpay checkout &bull; Cancel anytime
+                  </p>
+                )}
+                </>
               )}
             </div>
           </div>

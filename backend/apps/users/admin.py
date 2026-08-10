@@ -141,13 +141,13 @@ class UserAdmin(BaseUserAdmin):
                     
                     if obj.plan_type == User.PlanType.SIX_MONTH:
                         duration = timedelta(days=180)
-                        price = 399.00
+                        price = 265.00
                     elif obj.plan_type == User.PlanType.TWELVE_MONTH:
                         duration = timedelta(days=365)
-                        price = 699.00
+                        price = 499.00
                     else:
                         duration = timedelta(days=30)
-                        price = 99.00
+                        price = 49.00
                         obj.plan_type = User.PlanType.MONTHLY
                         
                     # Complete state transition
@@ -163,9 +163,9 @@ class UserAdmin(BaseUserAdmin):
                     obj.amount_paid = price
                     
                     plan_names = {
-                        User.PlanType.MONTHLY: "Monthly Plan (₹99)",
-                        User.PlanType.SIX_MONTH: "6-Month Plan (₹399)",
-                        User.PlanType.TWELVE_MONTH: "12-Month Plan (₹699)",
+                        User.PlanType.MONTHLY: "Monthly Plan (₹49)",
+                        User.PlanType.SIX_MONTH: "6-Month Plan (₹265)",
+                        User.PlanType.TWELVE_MONTH: "12-Month Plan (₹499)",
                     }
                     obj.plan_name = plan_names.get(obj.plan_type, "Pro")
 
@@ -256,9 +256,9 @@ class UserAdmin(BaseUserAdmin):
         """Display plan type in compact format"""
         plan_map = {
             User.PlanType.TRIAL: "Trial",
-            User.PlanType.MONTHLY: "₹99/mo",
-            User.PlanType.SIX_MONTH: "₹399/6mo",
-            User.PlanType.TWELVE_MONTH: "₹699/yr",
+            User.PlanType.MONTHLY: "₹49/mo",
+            User.PlanType.SIX_MONTH: "₹265/6mo",
+            User.PlanType.TWELVE_MONTH: "₹499/yr",
         }
         return plan_map.get(obj.plan_type, obj.plan_type)
     
@@ -419,7 +419,7 @@ class UserAdmin(BaseUserAdmin):
             
             user.subscription_status = User.SubscriptionStatus.ACTIVE
             user.plan_type = User.PlanType.MONTHLY
-            user.plan_name = "Monthly Plan (₹99)"
+            user.plan_name = "Monthly Plan (₹49)"
             user.subscription_start = now
             user.subscription_end = end_date
             user.renewal_date = end_date
@@ -451,7 +451,7 @@ class UserAdmin(BaseUserAdmin):
             
             user.subscription_status = User.SubscriptionStatus.ACTIVE
             user.plan_type = User.PlanType.SIX_MONTH
-            user.plan_name = "6-Month Plan (₹399)"
+            user.plan_name = "6-Month Plan (₹265)"
             user.subscription_start = now
             user.subscription_end = end_date
             user.renewal_date = end_date
@@ -483,7 +483,7 @@ class UserAdmin(BaseUserAdmin):
             
             user.subscription_status = User.SubscriptionStatus.ACTIVE
             user.plan_type = User.PlanType.TWELVE_MONTH
-            user.plan_name = "12-Month Plan (₹699)"
+            user.plan_name = "12-Month Plan (₹499)"
             user.subscription_start = now
             user.subscription_end = end_date
             user.renewal_date = end_date

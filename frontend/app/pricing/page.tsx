@@ -27,8 +27,8 @@ export default function PricingPage() {
             </div>
 
             <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight mb-4 leading-tight">
-              Your future self doesn&apos;t need motivation.<br className="hidden sm:inline" />
-              It needs consistency.
+              Your future self doesn&apos;t need <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-indigo-500">motivation.</span><br className="hidden sm:inline" />
+              It needs <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-indigo-500">consistency.</span>
             </h1>
 
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto">
