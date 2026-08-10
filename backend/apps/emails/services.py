@@ -109,6 +109,25 @@ class EmailService:
     )
 
     @classmethod
+    def send_price_drop_email(cls, user, campaign_id="price_drop_v1") -> bool:
+        """
+        Sends the Price Drop marketing email.
+        Enforces idempotency using the campaign_id and user.id.
+        """
+        return cls.send_email_async(
+            recipient=user.email,
+            subject="YOU VS YOU is now ₹49/month 🔥",
+            template_name="price_drop",
+            context={
+                "user_name": getattr(user, "display_name", None) or "Champion",
+                "app_url": getattr(settings, "FRONTEND_URL", FRONTEND_URL),
+            },
+            idempotency_key=f"{campaign_id}:{user.id}",
+            segment="price_drop"
+        )
+
+
+    @classmethod
     def send_email_verification(cls, user, verification_link: str) -> bool:
         return cls.send_email_async(
             recipient=user.email,

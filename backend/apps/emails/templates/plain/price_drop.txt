@@ -1,0 +1,25 @@
+Your discipline just got cheaper.
+
+Hi {{ user_name }},
+
+You don't need another expensive productivity app.
+YOU VS YOU is now available at just ₹49/month.
+
+New Pricing Plans:
+- Monthly: ₹49 / month
+- 6 Months: ₹265 / 6 months
+- Yearly: ₹499 / year (🔥 BEST VALUE)
+
+Note: Free access is limited to basic task creation and completion. Premium features (Analytics, Focus Mode, Heatmap, Life Score) require an active subscription.
+
+START YOUR PREMIUM JOURNEY:
+{{ app_url }}/pricing
+
+Stop restarting every Monday. It's time to build a system.
+
+See you in the arena,
+YOU VS YOU
+
+---
+Update notification preferences: {{ settings_url }}
+Unsubscribe: {{ unsubscribe_url }}

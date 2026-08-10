@@ -1,0 +1,36 @@
+{% extends "html/base.html" %}
+
+{% block content %}
+<h2>Your discipline just got cheaper.</h2>
+
+<p>Hi {{ user_name }},</p>
+
+<p>You don't need another expensive productivity app.<br>
+YOU VS YOU is now available at just <strong>₹49/month</strong>.</p>
+
+<div class="highlight-box">
+    <p style="margin-bottom: 12px;"><strong>New Pricing Plans:</strong></p>
+    <ul style="margin: 0; padding-left: 20px; line-height: 1.8;">
+        <li><strong>Monthly:</strong> ₹49 / month</li>
+        <li><strong>6 Months:</strong> ₹265 / 6 months</li>
+        <li><strong>Yearly:</strong> ₹499 / year <span style="color: #f59e0b; font-weight: 700; font-size: 13px;">(🔥 BEST VALUE)</span></li>
+    </ul>
+</div>
+
+<p>
+    <em>Note: Free access is limited to basic task creation and completion. Premium features (Analytics, Focus Mode, Heatmap, Life Score) require an active subscription.</em>
+</p>
+
+<div class="btn-wrapper">
+    <a href="{{ app_url }}/pricing" class="btn">START YOUR PREMIUM JOURNEY</a>
+</div>
+
+<p style="text-align: center; margin-top: 30px; font-weight: 500; color: #d1d5db;">
+    Stop restarting every Monday. It's time to build a system.
+</p>
+
+<p style="text-align: center; margin-top: 15px; color: #9ca3af; font-size: 13px;">
+    See you in the arena,<br>
+    <strong>YOU VS YOU</strong>
+</p>
+{% endblock %}
