@@ -22,7 +22,7 @@ from apps.routines.serializers import (
     TaskCreateSerializer,
     ReorderSerializer,
 )
-from apps.core.permissions import IsOwner
+from apps.core.permissions import IsOwner, HasPremiumAccessPermission
 from apps.core.mixins import SoftDeleteMixin, UserScopedMixin
 from apps.core.filters import RoutineFilter
 
@@ -98,7 +98,7 @@ class RoutineViewSet(UserScopedMixin, SoftDeleteMixin, viewsets.ModelViewSet):
         instance.save(update_fields=["is_deleted", "is_active", "deleted_at", "updated_at"])
         CacheService.invalidate_today(str(self.request.user.id))
 
-    @action(detail=True, methods=["post"], url_path="archive")
+    @action(detail=True, methods=["post"], url_path="archive", permission_classes=[IsAuthenticated, IsOwner, HasPremiumAccessPermission])
     def archive(self, request, pk=None):
         """POST /api/v1/routines/{id}/archive/"""
         routine = self.get_object()
@@ -107,7 +107,7 @@ class RoutineViewSet(UserScopedMixin, SoftDeleteMixin, viewsets.ModelViewSet):
         CacheService.invalidate_today(str(request.user.id))
         return Response({"detail": "Routine archived successfully."})
 
-    @action(detail=True, methods=["post"], url_path="duplicate")
+    @action(detail=True, methods=["post"], url_path="duplicate", permission_classes=[IsAuthenticated, IsOwner, HasPremiumAccessPermission])
     def duplicate(self, request, pk=None):
         """POST /api/v1/routines/{id}/duplicate/"""
         routine = self.get_object()

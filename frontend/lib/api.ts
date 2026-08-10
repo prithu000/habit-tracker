@@ -95,8 +95,8 @@ api.interceptors.response.use(
       error.response?.status === 403 &&
       (error.response?.data?.code === "SUBSCRIPTION_REQUIRED" ||
        error.response?.data?.error?.code === "SUBSCRIPTION_REQUIRED" ||
-       (typeof error.response?.data?.message === "string" && error.response?.data?.message.includes("Premium Trial has ended")) ||
-       (typeof error.response?.data?.error?.message === "string" && error.response?.data?.error?.message.includes("Premium Trial has ended")))
+       (typeof error.response?.data?.message === "string" && (error.response?.data?.message.includes("Premium Trial has ended") || error.response?.data?.message.includes("An active subscription is required"))) ||
+       (typeof error.response?.data?.error?.message === "string" && (error.response?.data?.error?.message.includes("Premium Trial has ended") || error.response?.data?.error?.message.includes("An active subscription is required"))))
     ) {
       // Silently open paywall modal, do NOT show toast
       if (typeof window !== "undefined") {

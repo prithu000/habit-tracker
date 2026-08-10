@@ -39,12 +39,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         FLEXIBLE = "flexible", "Flexible"
 
     class PlanType(models.TextChoices):
+        FREE = "free", "Free Plan"
         TRIAL = "trial", "14-Day Free Trial"
         MONTHLY = "monthly", "Monthly Plan (₹99)"
         SIX_MONTH = "6_month", "6-Month Plan (₹399)"
         TWELVE_MONTH = "12_month", "12-Month Plan (₹699)"
 
     class SubscriptionStatus(models.TextChoices):
+        FREE = "free", "Free"
         TRIAL = "trial", "Trial Active"
         ACTIVE = "active", "Subscription Active"
         EXPIRED = "expired", "Trial/Plan Expired"
@@ -79,13 +81,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     plan_type = models.CharField(
         max_length=20,
         choices=PlanType.choices,
-        default=PlanType.TRIAL,
+        default=PlanType.FREE,
     )
-    plan_name = models.CharField(max_length=50, blank=True, default="14-Day Free Trial")
+    plan_name = models.CharField(max_length=50, blank=True, default="Free Plan")
     subscription_status = models.CharField(
         max_length=20,
         choices=SubscriptionStatus.choices,
-        default=SubscriptionStatus.TRIAL,
+        default=SubscriptionStatus.FREE,
     )
     subscription_start = models.DateTimeField(null=True, blank=True)
     subscription_end = models.DateTimeField(null=True, blank=True)
@@ -138,7 +140,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         now = django_timezone.now()
         if self.subscription_status == self.SubscriptionStatus.TRIAL and self.trial_end:
             if now > self.trial_end:
-                self.subscription_status = self.SubscriptionStatus.EXPIRED
+                self.subscription_status = self.SubscriptionStatus.FREE
                 self.save(update_fields=["subscription_status", "updated_at"])
         elif self.subscription_status == self.SubscriptionStatus.ACTIVE and self.subscription_end:
             if now > self.subscription_end:
@@ -172,11 +174,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         return max(0, int(total_sec // 3600))
 
     def is_premium_active(self) -> bool:
-        """Checks if user has an active trial or paid subscription."""
+        """Checks if user has an active paid subscription."""
         self.expire_trial_if_needed()
         if self.is_superuser or self.is_staff:
             return True
-        return self.subscription_status in (self.SubscriptionStatus.TRIAL, self.SubscriptionStatus.ACTIVE)
+        return self.subscription_status == self.SubscriptionStatus.ACTIVE
 
     # Authoritative Property Aliases
     @property

@@ -9,6 +9,7 @@ class CreateOrderSerializer(serializers.Serializer):
     plan_type = serializers.ChoiceField(
         choices=[("monthly", "Monthly"), ("6_month", "6 Month"), ("12_month", "12 Month")]
     )
+    offer_code = serializers.CharField(max_length=50, required=False, allow_blank=True)
 
 
 class VerifyPaymentSerializer(serializers.Serializer):

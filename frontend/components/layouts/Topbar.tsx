@@ -55,7 +55,10 @@ export const Topbar = memo(function Topbar() {
     || "U";
   const displayName = user?.display_name || user?.email?.split("@")[0] || "Operator";
 
-  const { countdown } = useSubscription();
+  const { subscription } = useSubscription();
+  const isPremiumActive = subscription?.is_premium_active;
+  const isExpired = subscription?.subscription_status === 'expired';
+  const planName = isPremiumActive ? "PRO MEMBER" : isExpired ? "EXPIRED" : "FREE";
 
   return (
     <header 
@@ -113,25 +116,23 @@ export const Topbar = memo(function Topbar() {
           href="/pricing"
           className={cn(
             "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-tight transition-opacity active:scale-95 shrink-0 border whitespace-nowrap",
-            countdown.isActivePaid
+            isPremiumActive
               ? "bg-forge-500/20 border-forge-500/30 text-forge-300 shadow-[0_0_10px_rgba(139,92,246,0.2)]"
-              : countdown.isExpired
-              ? "bg-white/5 border-white/10 text-muted-foreground"
-              : "bg-white/5 border-white/20 text-white"
+              : isExpired
+              ? "bg-red-500/10 border-red-500/20 text-red-400"
+              : "bg-white/5 border-white/20 text-white hover:bg-white/10"
           )}
           title="Click to view plans and subscription status"
         >
-          {countdown.isActivePaid ? (
+          {isPremiumActive ? (
             <>
               <span className="text-xs shrink-0">👑</span>
               <span className="uppercase tracking-widest font-bold">PRO MEMBER</span>
             </>
-          ) : user?.plan_type === "free" ? (
-            <span className="uppercase tracking-widest font-bold text-muted-foreground">FREE</span>
-          ) : countdown.isExpired ? (
-            <span>Trial Expired</span>
+          ) : isExpired ? (
+            <span className="uppercase tracking-widest font-bold text-red-400">EXPIRED</span>
           ) : (
-            <span>Trial • {countdown.endsToday ? "Ends Today" : `${countdown.daysRemaining} Days Left`}</span>
+            <span className="uppercase tracking-widest font-bold text-muted-foreground">FREE PLAN</span>
           )}
         </Link>
 
@@ -184,11 +185,13 @@ export const Topbar = memo(function Topbar() {
                 <div className="mt-2 flex items-center gap-1.5">
                   <span className={cn(
                     "inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest border",
-                    countdown.isActivePaid 
+                    isPremiumActive 
                       ? "bg-forge-500/20 text-forge-300 border-forge-500/30" 
+                      : isExpired
+                      ? "bg-red-500/10 text-red-400 border-red-500/20"
                       : "bg-white/5 text-muted-foreground border-white/10"
                   )}>
-                    {countdown.isActivePaid ? "PRO MEMBER" : user?.plan_type === "free" ? "FREE" : countdown.isExpired ? "TRIAL EXPIRED" : "FREE TRIAL"}
+                    {planName}
                   </span>
                 </div>
               </div>

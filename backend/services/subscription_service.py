@@ -33,6 +33,11 @@ class SubscriptionService:
             if trial_end and now <= trial_end:
                 return True
 
+        if status == "cancelled":
+            sub_end = getattr(user, "subscription_end", None) or getattr(user, "subscription_ends_at", None)
+            if sub_end and now <= sub_end:
+                return True
+
         return False
 
     @classmethod

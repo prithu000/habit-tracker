@@ -25,7 +25,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 
-from apps.subscriptions.models import SubscriptionOrder, PaymentHistory
+from apps.subscriptions.models import SubscriptionOrder, PaymentHistory, SubscriptionOffer
 from apps.subscriptions.serializers import (
     CreateOrderSerializer,
     VerifyPaymentSerializer,
@@ -189,6 +189,8 @@ class CreateOrderView(APIView):
         plan_type = serializer.validated_data["plan_type"]
         plan_info = PLAN_DETAILS[plan_type]
 
+        offer_code = serializer.validated_data.get("offer_code")
+
         user = request.user
 
         # Block lifetime re-purchase
@@ -199,6 +201,20 @@ class CreateOrderView(APIView):
             )
 
         amount_paisa = plan_info["amount_paisa"]
+        original_amount_paisa = amount_paisa
+        applied_offer = None
+
+        if offer_code:
+            offer = SubscriptionOffer.objects.filter(code=offer_code, is_active=True).first()
+            if offer and offer.is_valid():
+                amount_paisa = max(0, amount_paisa - offer.discount_value)
+                applied_offer = offer
+            else:
+                return Response(
+                    {"error": "The provided offer code is invalid or has expired."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
         currency = "INR"
         key_id = getattr(settings, "RAZORPAY_KEY_ID", "")
         key_secret = getattr(settings, "RAZORPAY_KEY_SECRET", "")
@@ -238,6 +254,8 @@ class CreateOrderView(APIView):
             order_id=order_id,
             plan_type=plan_type,
             amount_paisa=amount_paisa,
+            original_amount_paisa=original_amount_paisa,
+            offer=applied_offer,
             currency=currency,
             status=SubscriptionOrder.OrderStatus.CREATED,
         )
@@ -350,7 +368,7 @@ class SubscriptionInfoView(APIView):
     def get(self, request, *args, **kwargs):
         user = request.user
         user.expire_trial_if_needed()
-        return Response({
+        response_data = {
             "plan_type": user.plan_type,
             "subscription_plan": user.plan_type,
             "plan_name": user.plan_name or ("14-Day Free Trial" if user.plan_type == "trial" else user.plan_type),
@@ -376,7 +394,22 @@ class SubscriptionInfoView(APIView):
             "currency": user.currency or "INR",
             "payment_method": user.payment_method or "razorpay",
             "payment_status": user.payment_status,
-        }, status=status.HTTP_200_OK)
+        }
+
+        # Add active offer if any
+        now = django_timezone.now()
+        active_offer = SubscriptionOffer.objects.filter(is_active=True, starts_at__lte=now, expires_at__gt=now).first()
+        if active_offer:
+            response_data["active_offer"] = {
+                "code": active_offer.code,
+                "name": active_offer.name,
+                "discount_value_inr": active_offer.discount_value / 100,
+                "starts_at": active_offer.starts_at.isoformat(),
+                "expires_at": active_offer.expires_at.isoformat(),
+            }
+        response_data["server_time"] = now.isoformat()
+
+        return Response(response_data, status=status.HTTP_200_OK)
 
 
 # ─────────────────────────────────────────────────────────

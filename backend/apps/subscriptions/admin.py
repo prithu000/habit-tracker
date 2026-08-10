@@ -4,7 +4,22 @@ FORGE — Subscriptions Admin with Enhanced Management
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils import timezone
-from apps.subscriptions.models import SubscriptionOrder, PaymentHistory
+from apps.subscriptions.models import SubscriptionOrder, PaymentHistory, SubscriptionOffer
+
+
+@admin.register(SubscriptionOffer)
+class SubscriptionOfferAdmin(admin.ModelAdmin):
+    list_display = ("code", "name", "discount_display", "starts_at", "expires_at", "is_active", "is_valid_now")
+    list_filter = ("is_active", "starts_at", "expires_at")
+    search_fields = ("code", "name")
+    
+    @admin.display(description="Discount", ordering="discount_value")
+    def discount_display(self, obj):
+        return f"₹{obj.discount_value / 100:.2f}"
+    
+    @admin.display(description="Valid Now", boolean=True)
+    def is_valid_now(self, obj):
+        return obj.is_valid()
 
 
 @admin.register(SubscriptionOrder)

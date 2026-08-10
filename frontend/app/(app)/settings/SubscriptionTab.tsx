@@ -37,15 +37,15 @@ export const SubscriptionTab: React.FC = () => {
     },
   });
 
-  const { countdown, daysRemaining: trialDaysLeft, subscription } = useSubscription();
-  const subStatus = countdown.status;
-  const planType = subscription?.plan_type || user?.plan_type || "trial";
+  const { subscription } = useSubscription();
+  const subStatus = subscription?.subscription_status || "free";
+  const planType = subscription?.plan_type || user?.plan_type || "free";
 
   const getPlanTitle = () => {
     if (planType === "monthly") return "Monthly Pro Plan (₹99)";
     if (planType === "6_month") return "6-Month Pro Plan (₹399)";
     if (planType === "12_month") return "12-Month VIP Plan (₹699)";
-    return "14-Day Full Featured Trial";
+    return "Free Plan";
   };
 
   const handleDownloadInvoice = (item: PaymentHistoryItem) => {
@@ -93,20 +93,15 @@ Thank you for investing in yourself. Keep showing up.
                 "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border",
                 subStatus === "active"
                   ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-400"
-                  : subStatus === "expired"
+                  : subStatus === "expired" || subStatus === "cancelled"
                   ? "bg-red-500/15 border-red-500/30 text-red-400"
                   : "bg-amber-500/15 border-amber-500/30 text-amber-300"
               )}>
                 {subStatus === "active" && "PRO ACTIVE"}
-                {subStatus === "trial" && "TRIAL ACTIVE"}
                 {subStatus === "expired" && "EXPIRED"}
+                {subStatus === "cancelled" && "CANCELLED"}
+                {(subStatus === "free" || !subStatus) && "FREE PLAN"}
               </span>
-
-              {subStatus === "trial" && (
-                <span className="text-xs text-muted-foreground font-medium">
-                  {countdown.endsToday ? "Ends Today" : `${countdown.daysRemaining} Days Left`}
-                </span>
-              )}
             </div>
 
             <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
@@ -114,23 +109,13 @@ Thank you for investing in yourself. Keep showing up.
             </h3>
 
             <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              {user?.renewal_date ? (
+              {user?.renewal_date && subStatus === "active" ? (
                 <div className="flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-forge-400" />
                   <span>
-                    {subStatus === "active" ? "Renews / Expires on:" : "Trial ends on:"}{" "}
+                    Renews on:{" "}
                     <strong className="text-white">
                       {new Date(user.renewal_date).toLocaleDateString()}
-                    </strong>
-                  </span>
-                </div>
-              ) : (user?.trial_end && subStatus === "trial") ? (
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-amber-400" />
-                  <span>
-                    Trial concludes on:{" "}
-                    <strong className="text-white">
-                      {new Date(user.trial_end).toLocaleDateString()}
                     </strong>
                   </span>
                 </div>

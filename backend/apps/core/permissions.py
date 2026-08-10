@@ -72,7 +72,10 @@ class HasPremiumAccessPermission(BasePermission):
     If the user's trial has ended and they have no active paid subscription,
     access is denied (HTTP 403 Forbidden).
     """
-    message = "Your 14-day Premium Trial has ended. Upgrade to continue."
+    message = {
+        "code": "SUBSCRIPTION_REQUIRED",
+        "message": "An active subscription is required to access this feature."
+    }
     code = "SUBSCRIPTION_REQUIRED"
 
     def has_permission(self, request, view):
@@ -86,6 +89,9 @@ class HasPremiumAccessPermission(BasePermission):
             return True
 
         raise PermissionDenied(
-            detail="Your 14-day Premium Trial has ended. Upgrade to continue.",
+            detail={
+                "code": "SUBSCRIPTION_REQUIRED",
+                "message": "An active subscription is required to access this feature."
+            },
             code="SUBSCRIPTION_REQUIRED"
         )

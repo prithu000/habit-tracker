@@ -14,7 +14,7 @@ from drf_spectacular.utils import extend_schema
 
 @extend_schema(responses=None)
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumAccessPermission])
 def xp_history(request):
     """
     GET /api/v1/rewards/xp/
@@ -46,7 +46,7 @@ def xp_history(request):
 
 @extend_schema(responses=None)
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumAccessPermission])
 def xp_summary(request):
     """GET /api/v1/rewards/xp/summary/"""
     from apps.rewards.models import XPTransaction
@@ -84,7 +84,7 @@ def xp_summary(request):
 
 @extend_schema(responses=None)
 @api_view(["GET"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumAccessPermission])
 def badge_list(request):
     """
     GET /api/v1/rewards/badges/?earned=true|false&rarity=legendary
@@ -136,7 +136,7 @@ def badge_list(request):
 
 @extend_schema(request=None, responses=None)
 @api_view(["POST"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, HasPremiumAccessPermission])
 def mark_badges_seen(request):
     """POST /api/v1/rewards/badges/mark-seen/"""
     from apps.rewards.models import UserBadge

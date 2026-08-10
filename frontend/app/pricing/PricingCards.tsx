@@ -124,6 +124,7 @@ export function PricingCards() {
       // 1. Create Order on Backend
       const res = await api.post("/subscriptions/create-order/", {
         plan_type: plan.id,
+        offer_code: subscription?.active_offer?.code,
       });
       
       // Handle both wrapped and unwrapped responses
@@ -247,20 +248,10 @@ export function PricingCards() {
   const currentPlanType = subscription?.plan_type || user?.plan_type;
 
   const getButtonState = (planId: string, planName: string) => {
-    if (!user) return { text: "Start 14-Day Free Trial", disabled: false };
+    if (!user) return { text: "Upgrade to Premium", disabled: false };
 
-    const hasUsedTrial = subscription?.trial_used || subscription?.trial_start != null;
-    const isCurrentlyInTrial = subscription?.subscription_status === "trial" || currentPlanType === "trial";
-    const hasActivePaidSub = isSubscriber && currentPlanType !== "trial";
+    const hasActivePaidSub = isSubscriber;
     const isCurrentPlan = planId === currentPlanType;
-
-    if (!hasUsedTrial && !isCurrentlyInTrial && !hasActivePaidSub) {
-      return { text: "Start 14-Day Free Trial", disabled: false };
-    }
-
-    if (isCurrentlyInTrial) {
-      return { text: "Upgrade after Trial", disabled: false };
-    }
 
     if (hasActivePaidSub) {
       if (isCurrentPlan) return { text: "Current Plan ✓", disabled: true, isCurrent: true };
@@ -331,10 +322,15 @@ export function PricingCards() {
                 )}
                 <div className="flex items-baseline gap-2 mb-1.5">
                   <span className="text-4xl sm:text-5xl font-black text-white tracking-tight">
-                    {plan.originalPrice ? `Now ₹${plan.price}` : `₹${plan.price}`}
+                    {subscription?.active_offer ? `Now ₹${Math.max(0, plan.price - subscription.active_offer.discount_value_inr)}` : (plan.originalPrice ? `Now ₹${plan.price}` : `₹${plan.price}`)}
                   </span>
                   <span className="text-xs font-medium text-muted-foreground">/ {plan.period}</span>
                 </div>
+                {subscription?.active_offer && (
+                   <div className="text-xs font-bold text-green-400 mb-1.5 bg-green-500/10 px-2 py-1 rounded inline-block">
+                     🎉 Special Offer Applied: {subscription.active_offer.name}
+                   </div>
+                )}
                 {plan.monthlyEquivalent ? (
                   <div className="text-xs font-bold text-forge-400 tracking-wide">
                     {plan.monthlyEquivalent} · Billed upfront

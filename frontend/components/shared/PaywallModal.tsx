@@ -4,6 +4,7 @@ import React from "react";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { usePaywallStore } from "@/lib/stores/paywallStore";
 import { useRouter, usePathname } from "next/navigation";
+import { useSubscription } from "@/lib/hooks/useSubscription";
 import { Sparkles, CheckCircle2, Lock, ArrowRight, ShieldCheck } from "lucide-react";
 import { ResponsiveModal } from "@/components/ui/ResponsiveModal";
 
@@ -12,6 +13,8 @@ export function PaywallModal() {
   const { isOpen, closePaywall } = usePaywallStore();
   const router = useRouter();
   const pathname = usePathname();
+
+  const { isFreeMode } = useSubscription();
 
   if (!user) return null;
   if (
@@ -25,7 +28,6 @@ export function PaywallModal() {
 
   const lockedRoutes = ["/reports", "/analytics", "/leagues", "/calendar", "/focus"];
   const isLockedRoute = lockedRoutes.some((route) => pathname?.startsWith(route));
-  const isFreeMode = user.subscription_status === "expired" || user.is_premium_active === false;
 
   const shouldShow = isOpen || (isFreeMode && isLockedRoute);
   if (!shouldShow) return null;
@@ -66,11 +68,11 @@ export function PaywallModal() {
         </div>
 
         <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-3 relative z-10">
-          Your Premium Trial Has Ended
+          Premium Features Locked
         </h2>
 
         <p className="text-sm sm:text-base text-muted-foreground max-w-md mb-8 leading-relaxed relative z-10">
-          You can still continue tracking your daily routines for free.
+          Upgrade to a premium subscription to access this feature and supercharge your productivity.
         </p>
 
         {/* Benefits Box */}
