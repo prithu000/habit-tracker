@@ -34,7 +34,7 @@ export function PaywallModal() {
 
   const handleUpgrade = () => {
     closePaywall();
-    router.push("/pricing");
+    router.push("/pricing?plan=12_month");
   };
 
   const handleContinueFree = () => {
@@ -43,6 +43,50 @@ export function PaywallModal() {
       router.push("/dashboard");
     }
   };
+
+  const getContextualMessaging = () => {
+    const path = pathname || "";
+    if (path.startsWith("/analytics")) {
+      return {
+        title: "Unlock Analytics",
+        description: "See whether your consistency is actually improving.",
+        features: ["Progress analytics", "Weekly trends", "Monthly insights", "Detailed performance data"],
+        cta: "Unlock Analytics"
+      };
+    }
+    if (path.startsWith("/reports")) {
+      return {
+        title: "Unlock Executive Reports",
+        description: "Get detailed, actionable PDFs of your performance.",
+        features: ["Daily breakdowns", "Weekly executive summaries", "AI coaching insights", "Printable PDFs"],
+        cta: "Unlock Reports"
+      };
+    }
+    if (path.startsWith("/focus")) {
+      return {
+        title: "Unlock Focus Mode",
+        description: "Deep work sessions without distraction.",
+        features: ["Pomodoro timer", "Ambient soundscapes", "Session analytics", "Distraction blocking"],
+        cta: "Unlock Focus Mode"
+      };
+    }
+    if (path.startsWith("/calendar") || path.startsWith("/leagues")) {
+      return {
+        title: "Unlock Your Full Potential",
+        description: "Access advanced tools to engineer your best self.",
+        features: ["Calendar heatmap", "Arena competition", "Advanced routines", "Lifetime data retention"],
+        cta: "Unlock YOU VS YOU"
+      };
+    }
+    return {
+      title: "Premium Features Locked",
+      description: "Upgrade to a premium subscription to access this feature and supercharge your productivity.",
+      features: ["AI Coach", "Reports", "Executive PDF", "Analytics", "Arena", "Heatmaps", "Planner", "Focus Mode"],
+      cta: "Upgrade Now"
+    };
+  };
+
+  const context = getContextualMessaging();
 
   return (
     <ResponsiveModal
@@ -68,11 +112,11 @@ export function PaywallModal() {
         </div>
 
         <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-3 relative z-10">
-          Premium Features Locked
+          {context.title}
         </h2>
 
         <p className="text-sm sm:text-base text-muted-foreground max-w-md mb-8 leading-relaxed relative z-10">
-          Upgrade to a premium subscription to access this feature and supercharge your productivity.
+          {context.description}
         </p>
 
         {/* Benefits Box */}
@@ -81,38 +125,12 @@ export function PaywallModal() {
             Upgrade to unlock:
           </div>
           <div className="grid grid-cols-2 gap-2.5 text-xs sm:text-sm text-white/90 font-medium">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>AI Coach</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>Reports</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>Executive PDF</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>Analytics</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>Arena</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>Heatmaps</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>Planner</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>Focus Mode</span>
-            </div>
+            {context.features.map((feat, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>{feat}</span>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -122,7 +140,7 @@ export function PaywallModal() {
             onClick={handleUpgrade}
             className="w-full sm:flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-forge-500 to-purple-600 hover:from-forge-600 hover:to-purple-700 text-white font-bold text-sm sm:text-base shadow-[0_0_30px_rgba(139,92,246,0.4)] hover:shadow-[0_0_45px_rgba(139,92,246,0.6)] transition-all flex items-center justify-center gap-2 group"
           >
-            <span>Upgrade Now</span>
+            <span>{context.cta}</span>
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </button>
 

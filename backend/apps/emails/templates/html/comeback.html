@@ -1,99 +1,29 @@
 {% extends "html/base.html" %}
 
 {% block content %}
+<h2>Hey {{ user_name }},</h2>
 
-<h1 style="font-size:32px; margin-bottom:10px;">
-    You didn't quit.
-</h1>
-
-<h2 style="font-size:24px; color:#666; margin-top:0;">
+<p style="font-size: 18px; font-weight: 600; color: #f3f4f6;">
+    You didn't quit.<br>
     You just got distracted.
-</h2>
-
-<p>Hi <strong>{{ user_name }}</strong>,</p>
-
-<p>
-    A few days ago you installed <strong>YOU VS YOU</strong> for a reason.
-    Not to collect another app.
-    Not to scroll endlessly.
-    You wanted to become a stronger version of yourself.
 </p>
 
-<p>
-    Then life happened.
-    One missed day became two.
-    Two became a week.
-    And slowly...
-    your goals stopped feeling urgent.
-</p>
-
-<hr style="margin:30px 0;">
-
-<h2>But here's the truth.</h2>
-
-<p style="font-size:18px;">
-    <strong>You are not behind.</strong><br>
-    <strong>You are just one decision away from getting back on track.</strong>
-</p>
-
-<p>
-    Every disciplined person misses days.
-    The difference is simple:
-</p>
-
-<p style="font-size:20px; text-align:center; font-weight:bold;">
-    They come back.
-</p>
-
-<hr style="margin:30px 0;">
-
-<h2>Your future self is waiting.</h2>
-
-<p>
-    Imagine yourself 6 months from today.
-</p>
-
-<ul>
-    <li>More disciplined.</li>
-    <li>Healthier.</li>
-    <li>Focused.</li>
-    <li>Proud of yourself.</li>
-</ul>
-
-<p>
-    That version of you doesn't need perfection.
-    It only needs today's decision.
-</p>
-
-<div style="text-align:center; margin:40px 0;">
-    <a href="{{ app_url }}/dashboard" style="background:#111827;
-              color:white;
-              text-decoration:none;
-              padding:16px 36px;
-              border-radius:8px;
-              display:inline-block;
-              font-size:18px;
-              font-weight:bold;">
-        🚀 Continue Your Journey
-    </a>
+<div style="margin-bottom: 24px;">
+    <p>Your goals are still here.</p>
+    <p>Your dashboard is still here.</p>
+    <p>And today is another chance to show up.</p>
 </div>
 
-<p style="text-align:center; font-size:18px;">
-    <strong>Don't start over.</strong><br>
-    Continue where you left off.
+<div class="btn-wrapper">
+    <a href="{{ app_url }}/dashboard" class="btn">Get Back on Track</a>
+</div>
+
+<p style="text-align: center; margin-top: 30px; font-weight: 500; color: #d1d5db;">
+    One task is enough to restart.
 </p>
 
-<hr style="margin:35px 0;">
-
-<p style="text-align:center; color:#777;">
-    The hardest part isn't building discipline.<br>
-    It's deciding to begin again.
+<p style="text-align: center; margin-top: 15px; color: #9ca3af; font-size: 13px;">
+    See you in the arena,<br>
+    <strong>YOU VS YOU</strong>
 </p>
-
-<p style="text-align:center;">
-    ❤️ <br>
-    See you inside,<br>
-    <strong>Team YOU VS YOU</strong>
-</p>
-
 {% endblock %}

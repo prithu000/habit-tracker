@@ -11,6 +11,50 @@ import { useLogout } from "@/lib/utils/logout";
 import { useQueryClient } from "@tanstack/react-query";
 import { USER_QUERY_KEY } from "@/lib/queries/useUser";
 import { useSubscription } from "@/lib/hooks/useSubscription";
+import { useCurrentOffer } from "@/lib/hooks/useCurrentOffer";
+
+function CountdownTimer({ expiresAt, serverTime }: { expiresAt: string, serverTime: string }) {
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+
+  React.useEffect(() => {
+    const expiry = new Date(expiresAt).getTime();
+    const server = new Date(serverTime).getTime();
+    const clientNow = Date.now();
+    const offset = server - clientNow;
+
+    const updateTimer = () => {
+      const now = Date.now() + offset;
+      const remaining = Math.max(0, expiry - now);
+      setTimeLeft(remaining);
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [expiresAt, serverTime]);
+
+  if (timeLeft <= 0) return null;
+
+  const h = Math.floor(timeLeft / (1000 * 60 * 60));
+  const m = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+  const s = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+  const pad = (n: number) => n.toString().padStart(2, "0");
+
+  return (
+    <div className="flex flex-col items-center justify-center p-4 mb-8 bg-[#1a1423] border border-purple-500/30 rounded-2xl max-w-md mx-auto shadow-[0_0_30px_rgba(139,92,246,0.15)] relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-600 via-forge-500 to-amber-500 animate-pulse" />
+      <span className="text-xs font-bold uppercase tracking-widest text-forge-400 mb-2">Special Launch Offer Ends In</span>
+      <div className="flex items-center gap-3 text-3xl font-black text-white tracking-widest">
+        <div className="flex flex-col items-center"><span className="bg-white/5 px-3 py-1.5 rounded-lg border border-white/10 shadow-inner">{pad(h)}</span><span className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">HRS</span></div>
+        <span className="text-forge-500/50 pb-4">:</span>
+        <div className="flex flex-col items-center"><span className="bg-white/5 px-3 py-1.5 rounded-lg border border-white/10 shadow-inner">{pad(m)}</span><span className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">MIN</span></div>
+        <span className="text-forge-500/50 pb-4">:</span>
+        <div className="flex flex-col items-center"><span className="bg-white/5 px-3 py-1.5 rounded-lg border border-white/10 shadow-inner">{pad(s)}</span><span className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">SEC</span></div>
+      </div>
+    </div>
+  );
+}
 
 declare global {
   interface Window {
@@ -32,21 +76,23 @@ interface Plan {
   popular?: boolean;
   bestValue?: boolean;
   features: string[];
+  ctaText?: string;
 }
 
 const PLANS: Plan[] = [
   {
     id: "12_month",
     name: "Premium Annual Plan (12 Months)",
-    price: 699,
-    originalPrice: 1188,
-    period: "12 Months",
-    monthlyEquivalent: "Only ₹58/month",
-    savings: "Save ₹489",
-    description: "The ultimate commitment to your life transformation. Best value for serious builders.",
+    price: 499,
+    originalPrice: 588,
+    period: "year",
+    monthlyEquivalent: "≈ ₹42/month",
+    savings: "SAVE ₹89",
+    description: "One year. One commitment. Build the version of yourself you keep promising to become.",
     badge: "🔥 BEST VALUE",
     badgeColor: "bg-gradient-to-r from-amber-500/20 via-forge-500/20 to-purple-500/20 text-amber-300 border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.35)] animate-pulse",
     bestValue: true,
+    ctaText: "Start My Year of Consistency",
     features: [
       "Everything in 6 Month Plan",
       "VIP Priority Support & Feature Requests",
@@ -58,15 +104,16 @@ const PLANS: Plan[] = [
   {
     id: "6_month",
     name: "Premium 6 Month Plan",
-    price: 399,
-    originalPrice: 594,
-    period: "6 Months",
-    monthlyEquivalent: "Only ₹66/month",
-    savings: "Save ₹195",
-    description: "For dedicated builders committed to half-year discipline and focus.",
-    badge: "⭐ MOST POPULAR",
+    price: 265,
+    originalPrice: 294,
+    period: "6 months",
+    monthlyEquivalent: "≈ ₹44/month",
+    savings: "SAVE ₹29",
+    description: "Enough time to turn consistency into a habit.",
+    badge: "⭐ POPULAR",
     badgeColor: "bg-forge-500/20 text-forge-300 border-forge-500/40",
     popular: true,
+    ctaText: "Choose 6 Months",
     features: [
       "Everything in Monthly Plan",
       "Priority AI Performance Coaching & Diagnostics",
@@ -78,9 +125,12 @@ const PLANS: Plan[] = [
   {
     id: "monthly",
     name: "Monthly Plan",
-    price: 99,
+    price: 49,
     period: "month",
-    description: "Flexible month-to-month access for immediate momentum.",
+    description: "Start building your consistency today.",
+    badge: "FLEXIBLE",
+    badgeColor: "bg-white/10 text-zinc-300 border-white/20",
+    ctaText: "Start for ₹49",
     features: [
       "All 8 Core OS Modules (Dashboard, Life Score, Focus)",
       "Daily & Weekly Executive PDF Reports",
@@ -96,6 +146,7 @@ export function PricingCards() {
   const router = useRouter();
   const performLogout = useLogout();
   const queryClient = useQueryClient();
+  const { data: activeOffer } = useCurrentOffer();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
   const loadRazorpayScript = () => {
@@ -124,7 +175,7 @@ export function PricingCards() {
       // 1. Create Order on Backend
       const res = await api.post("/subscriptions/create-order/", {
         plan_type: plan.id,
-        offer_code: subscription?.active_offer?.code,
+        offer_code: activeOffer?.code,
       });
       
       // Handle both wrapped and unwrapped responses
@@ -260,14 +311,19 @@ export function PricingCards() {
       return { text: "Switch Plan", disabled: false };
     }
 
-    return { text: `Upgrade to ${planName}`, disabled: false };
+    const defaultCta = PLANS.find(p => p.id === planId)?.ctaText || `Upgrade to ${planName}`;
+    return { text: defaultCta, disabled: false };
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto items-stretch">
-      {PLANS.map((plan) => {
-        const buttonState = getButtonState(plan.id, plan.name);
-        const isLoading = loadingPlan === plan.id;
+    <>
+      {activeOffer && activeOffer.expires_at && activeOffer.server_time && (
+        <CountdownTimer expiresAt={activeOffer.expires_at} serverTime={activeOffer.server_time} />
+      )}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto items-stretch">
+        {PLANS.map((plan) => {
+          const buttonState = getButtonState(plan.id, plan.name);
+          const isLoading = loadingPlan === plan.id;
 
         return (
           <div
@@ -322,13 +378,13 @@ export function PricingCards() {
                 )}
                 <div className="flex items-baseline gap-2 mb-1.5">
                   <span className="text-4xl sm:text-5xl font-black text-white tracking-tight">
-                    {subscription?.active_offer ? `Now ₹${Math.max(0, plan.price - subscription.active_offer.discount_value_inr)}` : (plan.originalPrice ? `Now ₹${plan.price}` : `₹${plan.price}`)}
+                    {activeOffer ? `Now ₹${Math.max(0, plan.price - activeOffer.discount_value_inr)}` : (plan.originalPrice ? `Now ₹${plan.price}` : `₹${plan.price}`)}
                   </span>
                   <span className="text-xs font-medium text-muted-foreground">/ {plan.period}</span>
                 </div>
-                {subscription?.active_offer && (
+                {activeOffer && (
                    <div className="text-xs font-bold text-green-400 mb-1.5 bg-green-500/10 px-2 py-1 rounded inline-block">
-                     🎉 Special Offer Applied: {subscription.active_offer.name}
+                     🎉 Special Offer Applied: {activeOffer.name}
                    </div>
                 )}
                 {plan.monthlyEquivalent ? (
@@ -399,5 +455,6 @@ export function PricingCards() {
         );
       })}
     </div>
+    </>
   );
 }

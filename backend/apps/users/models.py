@@ -40,10 +40,10 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     class PlanType(models.TextChoices):
         FREE = "free", "Free Plan"
-        TRIAL = "trial", "14-Day Free Trial"
-        MONTHLY = "monthly", "Monthly Plan (₹99)"
-        SIX_MONTH = "6_month", "6-Month Plan (₹399)"
-        TWELVE_MONTH = "12_month", "12-Month Plan (₹699)"
+        TRIAL = "trial", "Legacy Trial"
+        MONTHLY = "monthly", "Monthly Plan (₹49)"
+        SIX_MONTH = "6_month", "6-Month Plan (₹265)"
+        TWELVE_MONTH = "12_month", "12-Month Plan (₹499)"
 
     class SubscriptionStatus(models.TextChoices):
         FREE = "free", "Free"

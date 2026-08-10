@@ -10,6 +10,7 @@ from apps.subscriptions.views import (
     AdminOverviewView,
     SubscriptionInfoView,
     CancelSubscriptionView,
+    CurrentOfferView,
 )
 
 urlpatterns = [
@@ -21,5 +22,6 @@ urlpatterns = [
     path("admin-overview/", AdminOverviewView.as_view(), name="subscription-admin-overview"),
     path("info/", SubscriptionInfoView.as_view(), name="subscription-info"),
     path("cancel/", CancelSubscriptionView.as_view(), name="subscription-cancel"),
+    path("current-offer/", CurrentOfferView.as_view(), name="subscription-current-offer"),
 ]
 

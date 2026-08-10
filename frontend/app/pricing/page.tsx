@@ -27,26 +27,26 @@ export default function PricingPage() {
             </div>
 
             <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight mb-4 leading-tight">
-              Invest in the Person You <br className="hidden sm:inline" />
-              Are Committed to Becoming.
+              Your future self doesn&apos;t need motivation.<br className="hidden sm:inline" />
+              It needs consistency.
             </h1>
 
             <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-              Choose the plan that matches your ambition. All plans include 100% full access to the Executive PDF Reports, Habit Heatmaps, and AI Coaching Chamber.
+              Stop restarting every Monday. You&apos;re investing in a system that helps you keep the promises you make to yourself. Choose the plan that matches your ambition.
             </p>
 
             <div className="mt-6 flex flex-wrap items-center justify-center gap-6 text-xs text-muted-foreground font-medium">
               <div className="flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>14-Day Free Trial Included</span>
+                <span>Secure Razorpay Checkout</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Zap className="w-4 h-4 text-amber-400" />
-                <span>Instant Access</span>
+                <span>Instant Premium Activation</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-forge-400" />
-                <span>Secure Razorpay Checkout</span>
+                <Check className="w-4 h-4 text-forge-400" />
+                <span>No Hidden Charges · Cancel Anytime</span>
               </div>
             </div>
           </div>
@@ -54,80 +54,34 @@ export default function PricingPage() {
           {/* Pricing Cards Component */}
           <PricingCards />
 
-          {/* Feature Comparison Matrix */}
+          {/* Value Stack */}
           <div className="mt-24 md:mt-32 max-w-5xl mx-auto">
             <h2 className="text-2xl sm:text-3xl font-black text-white text-center tracking-tight mb-3">
-              Comprehensive Feature Comparison
+              Everything you need to stop restarting.
             </h2>
             <p className="text-xs sm:text-sm text-muted-foreground text-center mb-10">
-              See how our subscription tiers compare to help you build relentless discipline.
+              Unlock the complete operating system to engineer your best self.
             </p>
 
-            <div className="bg-[#111116] border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[600px]">
-                  <thead>
-                    <tr className="border-b border-white/10 bg-white/[0.02]">
-                      <th className="py-4 px-6 text-xs font-bold uppercase tracking-wider text-muted-foreground w-2/5">
-                        Feature / Capability
-                      </th>
-                      <th className="py-4 px-4 text-center text-xs font-bold text-white w-1/5">
-                        Monthly
-                      </th>
-                      <th className="py-4 px-4 text-center text-xs font-bold text-forge-300 w-1/5 bg-forge-500/5">
-                        6-Month (Popular)
-                      </th>
-                      <th className="py-4 px-4 text-center text-xs font-bold text-amber-300 w-1/5 bg-purple-500/5">
-                        12-Month (VIP)
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/[0.06] text-xs">
-                    <tr>
-                      <td className="py-4 px-6 font-medium text-white">All 8 Core OS Modules</td>
-                      <td className="py-4 px-4 text-center"><Check className="w-4 h-4 text-emerald-400 mx-auto" /></td>
-                      <td className="py-4 px-4 text-center bg-forge-500/5"><Check className="w-4 h-4 text-emerald-400 mx-auto" /></td>
-                      <td className="py-4 px-4 text-center bg-purple-500/5"><Check className="w-4 h-4 text-emerald-400 mx-auto" /></td>
-                    </tr>
-                    <tr>
-                      <td className="py-4 px-6 font-medium text-white">Daily & Weekly PDF Executive Reports</td>
-                      <td className="py-4 px-4 text-center"><Check className="w-4 h-4 text-emerald-400 mx-auto" /></td>
-                      <td className="py-4 px-4 text-center bg-forge-500/5"><Check className="w-4 h-4 text-emerald-400 mx-auto" /></td>
-                      <td className="py-4 px-4 text-center bg-purple-500/5"><Check className="w-4 h-4 text-emerald-400 mx-auto" /></td>
-                    </tr>
-                    <tr>
-                      <td className="py-4 px-6 font-medium text-white">Interactive Heatmap & Analytics Engine</td>
-                      <td className="py-4 px-4 text-center"><Check className="w-4 h-4 text-emerald-400 mx-auto" /></td>
-                      <td className="py-4 px-4 text-center bg-forge-500/5"><Check className="w-4 h-4 text-emerald-400 mx-auto" /></td>
-                      <td className="py-4 px-4 text-center bg-purple-500/5"><Check className="w-4 h-4 text-emerald-400 mx-auto" /></td>
-                    </tr>
-                    <tr>
-                      <td className="py-4 px-6 font-medium text-white">Advanced AI Performance Diagnostics</td>
-                      <td className="py-4 px-4 text-center"><span className="text-muted-foreground">Standard</span></td>
-                      <td className="py-4 px-4 text-center bg-forge-500/5"><span className="text-forge-400 font-bold">Priority Engine</span></td>
-                      <td className="py-4 px-4 text-center bg-purple-500/5"><span className="text-amber-400 font-bold">VIP Deep Engine</span></td>
-                    </tr>
-                    <tr>
-                      <td className="py-4 px-6 font-medium text-white">Data Export (CSV & A4 PDF)</td>
-                      <td className="py-4 px-4 text-center"><X className="w-4 h-4 text-muted-foreground/40 mx-auto" /></td>
-                      <td className="py-4 px-4 text-center bg-forge-500/5"><Check className="w-4 h-4 text-emerald-400 mx-auto" /></td>
-                      <td className="py-4 px-4 text-center bg-purple-500/5"><Check className="w-4 h-4 text-emerald-400 mx-auto" /></td>
-                    </tr>
-                    <tr>
-                      <td className="py-4 px-6 font-medium text-white">Lifetime Price Lock Guarantee</td>
-                      <td className="py-4 px-4 text-center"><X className="w-4 h-4 text-muted-foreground/40 mx-auto" /></td>
-                      <td className="py-4 px-4 text-center bg-forge-500/5"><span className="text-muted-foreground">6 Months</span></td>
-                      <td className="py-4 px-4 text-center bg-purple-500/5"><Check className="w-4 h-4 text-amber-400 mx-auto" /></td>
-                    </tr>
-                    <tr>
-                      <td className="py-4 px-6 font-medium text-white">Early Access to New Features</td>
-                      <td className="py-4 px-4 text-center"><X className="w-4 h-4 text-muted-foreground/40 mx-auto" /></td>
-                      <td className="py-4 px-4 text-center bg-forge-500/5"><X className="w-4 h-4 text-muted-foreground/40 mx-auto" /></td>
-                      <td className="py-4 px-4 text-center bg-purple-500/5"><Check className="w-4 h-4 text-amber-400 mx-auto" /></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {[
+                { name: "Advanced Analytics", desc: "Deep insights into your habits." },
+                { name: "Progress & Heatmaps", desc: "Visualize your daily consistency." },
+                { name: "Life Score", desc: "Quantify your overall discipline." },
+                { name: "Executive Reports", desc: "Daily & Weekly PDF breakdowns." },
+                { name: "Focus Mode", desc: "Deep work sessions without distraction." },
+                { name: "Advanced Routines", desc: "Stack habits seamlessly." },
+                { name: "Leagues", desc: "Compete with other builders." },
+                { name: "AI Coaching", desc: "Personalized performance feedback." }
+              ].map((feature, i) => (
+                <div key={i} className="bg-[#111116] border border-white/10 rounded-2xl p-5 flex flex-col items-center text-center hover:border-forge-500/30 hover:bg-forge-500/5 transition-colors">
+                  <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center mb-3">
+                    <Check className="w-5 h-5 text-emerald-400 stroke-[3]" />
+                  </div>
+                  <h3 className="text-sm font-bold text-white mb-1">{feature.name}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{feature.desc}</p>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -140,21 +94,21 @@ export default function PricingPage() {
               </h2>
             </div>
             <p className="text-xs sm:text-sm text-muted-foreground text-center mb-10">
-              Everything you need to know about subscriptions, billing, and the 14-day trial.
+              Everything you need to know about subscriptions and billing.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-[#111116] border border-white/10 rounded-2xl p-5 sm:p-6 space-y-2">
-                <h3 className="text-sm font-bold text-white">How does the 14-Day Free Trial work?</h3>
+                <h3 className="text-sm font-bold text-white">Can I use YOU VS YOU without a subscription?</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Every new user receives 14 full days of unrestricted access to every feature in the YOU VS YOU operating system. No credit card is required upfront to start your trial.
+                  Yes — you can add and complete tasks for free to manage your daily workflow. Premium features, analytics, and reports require an active subscription.
                 </p>
               </div>
 
               <div className="bg-[#111116] border border-white/10 rounded-2xl p-5 sm:p-6 space-y-2">
-                <h3 className="text-sm font-bold text-white">Can I change or upgrade my plan later?</h3>
+                <h3 className="text-sm font-bold text-white">Do I get a free trial?</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Yes! You can switch from Monthly to the 6-Month or 12-Month plan at any time directly from your Account Settings. Your billing cycle will adjust automatically.
+                  No. YOU VS YOU currently does not offer a free trial. You can start using the free features immediately or upgrade directly to unlock the full system.
                 </p>
               </div>
 
@@ -166,9 +120,9 @@ export default function PricingPage() {
               </div>
 
               <div className="bg-[#111116] border border-white/10 rounded-2xl p-5 sm:p-6 space-y-2">
-                <h3 className="text-sm font-bold text-white">What happens if my trial expires?</h3>
+                <h3 className="text-sm font-bold text-white">What happens when my subscription expires?</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  When your trial ends, your data and streaks remain safely stored in the database. You will simply be prompted to select a subscription plan to resume accessing your dashboard.
+                  Your account, tasks, and historical data remain completely safe. Premium features simply become locked until you renew your subscription.
                 </p>
               </div>
             </div>

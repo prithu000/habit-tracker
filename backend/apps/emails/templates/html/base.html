@@ -1,77 +1,172 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-    /* Transactional, Minimalist Style */
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-        background-color: #ffffff;
-        color: #24292f;
-        margin: 0;
-        padding: 40px 20px;
-        line-height: 1.5;
-        font-size: 14px;
-    }
-    .container {
-        max-width: 540px;
-        margin: 0 auto;
-    }
-    .content {
-        margin-bottom: 30px;
-    }
-    .footer {
-        font-size: 12px;
-        color: #57606a;
-        border-top: 1px solid #d0d7de;
-        padding-top: 20px;
-    }
-    .footer a {
-        color: #0969da;
-        text-decoration: none;
-    }
-    h1, h2, h3 {
-        color: #24292f;
-        margin-top: 0;
-        font-weight: 600;
-        font-size: 18px;
-    }
-    p { margin: 0 0 16px 0; }
-    ul { margin: 0 0 16px 0; padding-left: 20px; }
-    .btn {
-        display: inline-block;
-        color: #ffffff;
-        background-color: #0969da;
-        border-radius: 6px;
-        padding: 8px 16px;
-        font-size: 14px;
-        font-weight: 500;
-        text-decoration: none;
-        margin-top: 8px;
-        margin-bottom: 16px;
-    }
-    @media (prefers-color-scheme: dark) {
-        body { background-color: #0d1117; color: #c9d1d9; }
-        h1, h2, h3 { color: #c9d1d9; }
-        .footer { color: #8b949e; border-top: 1px solid #30363d; }
-        .footer a { color: #58a6ff; }
-        .btn { background-color: #21262d; border: 1px solid rgba(240, 246, 252, 0.1); color: #c9d1d9; }
-    }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0f0f13;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .email-wrapper {
+            background-color: #0f0f13;
+            width: 100%;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #181921;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 20px 20px 20px;
+        }
+        
+        .header img {
+            display: block;
+            margin: 0 auto;
+            width: 120px;
+            max-width: 120px;
+            height: auto;
+            border-radius: 12px;
+        }
+
+        .content {
+            padding: 30px 40px;
+            color: #d1d5db;
+            font-size: 15px; /* Updated readability */
+        }
+
+        .content h1, .content h2 {
+            color: #ffffff;
+            font-size: 26px; /* Headline typography */
+            font-weight: 800;
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .content p {
+            margin: 0 0 20px 0;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .btn-wrapper {
+            text-align: center;
+            margin: 32px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+            color: #ffffff !important;
+            font-weight: 600;
+            font-size: 15px;
+            text-decoration: none;
+            padding: 14px 32px;
+            border-radius: 100px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .footer {
+            padding: 30px 40px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            background-color: #121319;
+        }
+
+        .footer p {
+            font-size: 12px;
+            color: #6b7280;
+            margin: 0 0 10px 0;
+        }
+
+        .footer a {
+            color: #9ca3af;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer a:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+
+        .social-links {
+            margin-bottom: 20px;
+        }
+
+        .social-links a {
+            display: inline-block;
+            margin: 0 8px;
+            color: #9ca3af;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+    </style>
 </head>
 <body>
-    <div class="container">
-        <div class="content">
-            {% block content %}{% endblock %}
-        </div>
-        <div class="footer">
-            <p>
-                Sent by YOU VS YOU<br>
-                <a href="{{ settings_url }}">Notification Preferences</a> &bull; 
-                <a href="{{ unsubscribe_url }}">Unsubscribe</a>
-            </p>
-        </div>
-    </div>
+    <table class="email-wrapper" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+        <tr>
+            <td align="center">
+                <table class="container" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                    <!-- Header -->
+                    <tr>
+                        <td class="header">
+                            {% if logo_url %}
+                            <img src="{{ logo_url }}" width="120" style="display:block;width:120px;max-width:120px;height:auto;" alt="YOU VS YOU Logo">
+                            {% endif %}
+                        </td>
+                    </tr>
+                    
+                    <!-- Main Content -->
+                    <tr>
+                        <td class="content">
+                            {% block content %}{% endblock %}
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td class="footer">
+                            <p style="font-weight: bold; color: #9ca3af; font-size: 14px;">
+                                YOU VS YOU<br>
+                                <span style="font-weight: normal; font-size: 12px;">Personal Operating System</span>
+                            </p>
+                            <div class="social-links">
+                                <a href="https://www.instagram.com/youvsyou.site/">Instagram</a> &bull; 
+                                <a href="{{ frontend_url }}">Website</a>
+                            </div>
+                            <p>
+                                <a href="{{ settings_url }}">Notification Preferences</a> | 
+                                <a href="{{ unsubscribe_url }}">Unsubscribe</a>
+                            </p>
+                            <p style="margin-top: 16px;">
+                                &copy; {% now "Y" %} YOU VS YOU. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>

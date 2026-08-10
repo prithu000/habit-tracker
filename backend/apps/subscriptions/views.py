@@ -39,9 +39,9 @@ logger = logging.getLogger(__name__)
 # Plan Registry — Single Source of Truth
 # ─────────────────────────────────────────────────────────
 PLAN_DETAILS = {
-    "monthly":   {"amount_paisa": 9900,  "amount_inr": 99.00,  "days": 30,  "title": "Monthly Plan"},
-    "6_month":   {"amount_paisa": 39900, "amount_inr": 399.00, "days": 180, "title": "6-Month Plan"},
-    "12_month":  {"amount_paisa": 69900, "amount_inr": 699.00, "days": 365, "title": "12-Month Plan"},
+    "monthly":   {"amount_paisa": 4900,  "amount_inr": 49.00,  "days": 30,  "title": "Monthly Plan"},
+    "6_month":   {"amount_paisa": 26500, "amount_inr": 265.00, "days": 180, "title": "6-Month Plan"},
+    "12_month":  {"amount_paisa": 49900, "amount_inr": 499.00, "days": 365, "title": "12-Month Plan"},
 }
 
 
@@ -638,3 +638,33 @@ class AdminOverviewView(APIView):
             return Response({"detail": "Invoice not found."}, status=404)
 
         return Response({"detail": "Invalid action."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CurrentOfferView(APIView):
+    """
+    GET /api/v1/subscriptions/current-offer/
+    Returns the currently active promotional offer (if any), validated against the server time.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        now = django_timezone.now()
+        offer = SubscriptionOffer.objects.filter(
+            is_active=True,
+            starts_at__lte=now,
+            expires_at__gt=now
+        ).order_by("-created_at").first()
+
+        if not offer:
+            return Response({"active_offer": None})
+
+        return Response({
+            "active_offer": {
+                "code": offer.code,
+                "name": offer.name,
+                "discount_value_inr": offer.discount_value / 100,
+                "expires_at": offer.expires_at.isoformat(),
+                "server_time": now.isoformat(),
+            }
+        })
+

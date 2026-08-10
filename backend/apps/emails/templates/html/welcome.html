@@ -1,6 +1,27 @@
 {% extends "html/base.html" %}
+
 {% block content %}
-<p>Hi {{ user_name }},</p>
-<p>Welcome to YOU VS YOU. Your account has been created.</p>
-<p><a href="{{ app_url }}/dashboard" class="btn">Open Dashboard</a></p>
+<h2>Welcome to YOU VS YOU, {{ user_name }}.</h2>
+
+<p>You've taken the first step toward building a more consistent version of yourself.</p>
+
+<p>YOU VS YOU is your personal operating system for discipline, habits, and progress. We don't rely on motivation — we rely on systems.</p>
+
+<div class="highlight-box">
+    <p style="margin-bottom: 8px;"><strong>Start today:</strong></p>
+    <ul style="margin: 0; padding-left: 20px;">
+        <li>Add your first task.</li>
+        <li>Complete it.</li>
+        <li>Build your streak.</li>
+        <li>Keep showing up.</li>
+    </ul>
+</div>
+
+<div class="btn-wrapper">
+    <a href="{{ app_url }}/dashboard" class="btn">Enter Your Dashboard</a>
+</div>
+
+<p style="text-align: center; margin-top: 30px; color: #9ca3af; font-style: italic;">
+    Your only competition is yesterday's version of you.
+</p>
 {% endblock %}

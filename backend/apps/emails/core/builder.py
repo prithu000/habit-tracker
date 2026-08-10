@@ -15,7 +15,7 @@ class EmailBuilder:
         """
         Renders the template and returns HTML and plain text versions.
         """
-        html_template = f"emails/{template_name}.html"
+        html_template = f"html/{template_name}.html"
         
         frontend_url = getattr(settings, "FRONTEND_URL", "https://youvsyou.site")
         # Add global settings to context
