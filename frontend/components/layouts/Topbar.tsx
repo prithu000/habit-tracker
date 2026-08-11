@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, PanelRight, Sparkles, User as UserIcon, Menu } from "lucide-react";
+import { LogOut, PanelRight, Sparkles, User as UserIcon, Menu, X } from "lucide-react";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { useCustomizationStore } from "@/lib/stores/customizationStore";
 import { useUiStore } from "@/lib/stores/uiStore";
@@ -13,9 +13,9 @@ import { useSubscription } from "@/lib/hooks/useSubscription";
 import { useLogout } from "@/lib/utils/logout";
 
 export const Topbar = memo(function Topbar() {
-  const { user } = useAuthStore();
+  const { user, _hasHydrated } = useAuthStore();
   const { isRightSidebarOpen, toggleRightSidebar } = useCustomizationStore();
-  const { toggleMobileDrawer } = useUiStore();
+  const { isMobileDrawerOpen, toggleMobileDrawer } = useUiStore();
   const router = useRouter();
   const performLogout = useLogout();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -72,9 +72,11 @@ export const Topbar = memo(function Topbar() {
         <button
           onClick={toggleMobileDrawer}
           className="lg:hidden p-2 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] text-muted-foreground hover:text-foreground transition-opacity active:scale-95"
-          aria-label="Open navigation menu"
+          aria-label={isMobileDrawerOpen ? "Close navigation" : "Open navigation"}
+          aria-expanded={isMobileDrawerOpen}
+          aria-controls="mobile-sidebar-drawer"
         >
-          <Menu className="w-5 h-5" />
+          {isMobileDrawerOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
 
         {/* Compact Logo — visible only on mobile (< lg) */}
@@ -116,23 +118,27 @@ export const Topbar = memo(function Topbar() {
           href="/pricing"
           className={cn(
             "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-tight transition-opacity active:scale-95 shrink-0 border whitespace-nowrap",
-            isPremiumActive
+            !_hasHydrated 
+              ? "opacity-0 pointer-events-none" // Hide while loading
+              : isPremiumActive
               ? "bg-forge-500/20 border-forge-500/30 text-forge-300 shadow-[0_0_10px_rgba(139,92,246,0.2)]"
               : isExpired
               ? "bg-red-500/10 border-red-500/20 text-red-400"
-              : "bg-white/5 border-white/20 text-white hover:bg-white/10"
+              : "bg-white/10 border-white/20 text-white hover:bg-white/20"
           )}
           title="Click to view plans and subscription status"
         >
-          {isPremiumActive ? (
-            <>
-              <span className="text-xs shrink-0">👑</span>
-              <span className="uppercase tracking-widest font-bold">PRO MEMBER</span>
-            </>
-          ) : isExpired ? (
-            <span className="uppercase tracking-widest font-bold text-red-400">EXPIRED</span>
-          ) : (
-            <span className="uppercase tracking-widest font-bold text-muted-foreground">FREE PLAN</span>
+          {_hasHydrated && (
+            isPremiumActive ? (
+              <>
+                <span className="text-xs shrink-0">👑</span>
+                <span className="uppercase tracking-widest font-bold">PRO MEMBER</span>
+              </>
+            ) : isExpired ? (
+              <span className="uppercase tracking-widest font-bold text-red-400">RENEW PREMIUM</span>
+            ) : (
+              <span className="uppercase tracking-widest font-bold text-white">GET PREMIUM</span>
+            )
           )}
         </Link>
 

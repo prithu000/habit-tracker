@@ -122,6 +122,7 @@ export const MobileSidebarDrawer = memo(function MobileSidebarDrawer() {
             role="dialog"
             aria-modal="true"
             aria-label="Navigation menu"
+            id="mobile-sidebar-drawer"
           >
             {/* Header */}
             <div className="h-[64px] min-h-[64px] flex items-center justify-between px-4 border-b border-white/[0.08] shrink-0">
@@ -215,7 +216,6 @@ export const MobileSidebarDrawer = memo(function MobileSidebarDrawer() {
                       closeMobileDrawer();
                       if (isLocked) {
                         e.preventDefault();
-                        usePaywallStore.getState().openPaywall();
                         router.push("/pricing");
                       }
                     }}

@@ -4,6 +4,8 @@ import React from "react";
 import { PricingCards } from "./PricingCards";
 import { Topbar } from "@/components/layouts/Topbar";
 import { Footer } from "@/components/layouts/Footer";
+import { MobileSidebarDrawer } from "@/components/layouts/MobileSidebarDrawer";
+import { RightSidebar } from "@/components/layouts/RightSidebar";
 import { Sparkles, ShieldCheck, Zap, HelpCircle, Check, X } from "lucide-react";
 import Link from "next/link";
 
@@ -15,6 +17,10 @@ export default function PricingPage() {
 
       {/* Topbar */}
       <Topbar />
+
+      {/* Sidebars for mobile nav and studio */}
+      <MobileSidebarDrawer />
+      <RightSidebar />
 
       <main className="flex-1 py-12 md:py-20 px-4 sm:px-6 relative z-10">
         <div className="max-w-6xl mx-auto">
