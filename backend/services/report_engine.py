@@ -70,18 +70,15 @@ class ReportEngine:
         }
 
     @staticmethod
-    def generate_full_report(user, timeframe: str, local_date: date, start_date: date, logs_qs, widget_logs_qs, life_data=None, disc_data=None) -> dict:
+    def generate_full_report(user, timeframe: str, local_date: date, start_date: date, logs_qs, widget_logs_qs=None, life_data=None, disc_data=None) -> dict:
         logs = list(logs_qs)
-        widget_logs = list(widget_logs_qs)
+        # widget_logs_qs kept for API backward-compatibility but no longer used for Habit Breakdown
         
-        from apps.analytics.models import ReportSettings, CustomWidget
+        from apps.analytics.models import ReportSettings
         settings, _ = ReportSettings.objects.get_or_create(user=user)
         raw_selected_ids = settings.selected_habit_breakdown or []
         selected_ids = [str(sid) for sid in raw_selected_ids][:4]
-        widgets_qs = CustomWidget.objects.filter(id__in=selected_ids, user=user, is_active=True)
-        widgets_dict = {str(w.id): w for w in widgets_qs}
-        active_widgets = [widgets_dict[w_id] for w_id in selected_ids if w_id in widgets_dict]
-        
+
         # ── Basic Aggregations ──
         total_scheduled = sum(log.tasks_scheduled for log in logs)
         total_completed = sum(log.tasks_completed for log in logs)
@@ -101,32 +98,21 @@ class ReportEngine:
         discipline_index = disc_data["score"]
         total_xp = sum(log.xp_earned for log in logs)
 
-        # ── Dynamic Widget Aggregations ──
-        # Build the initial analytics pool for ALL active widgets (required by other charts if any)
-        # Note: active_widgets is built exclusively from ReportSettings.selected_habit_breakdown
-        dynamic_widget_analytics = []
-        for widget in active_widgets:
-            logs_for_widget = [wl for wl in widget_logs if wl.widget_id == widget.id]
-            total_progress = sum(wl.progress for wl in logs_for_widget)
-            consistency_pct = WidgetService.calculate_completion_pct(total_progress, widget.goal, period_days)
-            dynamic_widget_analytics.append({
-                "name": widget.name,
-                "color": widget.color,
-                "icon": widget.icon,
-                "consistency_pct": consistency_pct,
-                "total_progress": total_progress,
-                "goal": widget.goal,
-                "unit": widget.unit,
-                "daily_avg": round(total_progress / max(1, period_days), 1)
-            })
+        # ── Habit Breakdown: Routine-based aggregation (same source as Dashboard) ──
+        # selected_habit_breakdown now stores Routine UUIDs chosen via Report Settings.
+        # Completion % is computed from Completion model — identical to Dashboard logic.
+        dynamic_widget_analytics = ReportEngine._get_routine_habit_breakdown(
+            user, selected_ids, start_date, local_date, period_days
+        )
 
+        # Scalar helpers used by radar / health indices — still keyword-searched from habit names
         water_consistency_pct = next((wa["consistency_pct"] for wa in dynamic_widget_analytics if "water" in wa["name"].lower()), 0)
-        focus_total = next((wa["total_progress"] for wa in dynamic_widget_analytics if "focus" in wa["name"].lower() or "pomodoro" in wa["name"].lower()), 0)
-        study_total = next((wa["total_progress"] for wa in dynamic_widget_analytics if "study" in wa["name"].lower() or "read" in wa["name"].lower()), 0)
-        workout_total = next((wa["total_progress"] for wa in dynamic_widget_analytics if "workout" in wa["name"].lower() or "exercise" in wa["name"].lower()), 0)
+        focus_total = next((wa.get("total_progress", 0) for wa in dynamic_widget_analytics if "focus" in wa["name"].lower() or "pomodoro" in wa["name"].lower()), 0)
+        study_total = next((wa.get("total_progress", 0) for wa in dynamic_widget_analytics if "study" in wa["name"].lower() or "read" in wa["name"].lower()), 0)
+        workout_total = next((wa.get("total_progress", 0) for wa in dynamic_widget_analytics if "workout" in wa["name"].lower() or "exercise" in wa["name"].lower() or "gym" in wa["name"].lower()), 0)
 
         # ── Discipline Grade & Executive Summary ──
-        has_no_activity = (len(logs) == 0 and len(widget_logs) == 0)
+        has_no_activity = len(logs) == 0
         is_initializing = has_no_activity
         discipline_grade = "-" if is_initializing else ReportEngine._calculate_grade(avg_rate, current_streak)
         monthly_growth_pct = ReportEngine._calculate_growth_pct(user, local_date)
@@ -449,6 +435,108 @@ class ReportEngine:
         }
 
         # ── Helper Methods ──
+
+    @staticmethod
+    def _get_routine_habit_breakdown(user, selected_routine_ids: list, start_date: date, end_date: date, period_days: int) -> list:
+        """
+        Compute per-Routine completion percentages for the Habit Breakdown section.
+
+        Uses the Completion model as the single source of truth — the exact same
+        data source the Dashboard uses for per-routine progress bars.
+
+        For the DAILY timeframe:
+          pct = completed_tasks / total_active_tasks * 100
+
+        For WEEKLY / MONTHLY / YEARLY:
+          pct = total_completions_in_period / (active_task_count * days_routine_ran) * 100
+
+        Args:
+            selected_routine_ids: Ordered list of Routine UUID strings from ReportSettings.
+            start_date, end_date: Inclusive date range for the report period.
+            period_days: Calendar length of the period (1 / 7 / 30 / 365).
+
+        Returns:
+            List of dicts compatible with the existing dynamic_widget_analytics shape so
+            the frontend useReportData.ts hook requires no changes.
+        """
+        if not selected_routine_ids:
+            return []
+
+        # Single query: fetch selected routines with prefetched active task counts
+        routines = list(
+            Routine.objects.filter(
+                id__in=selected_routine_ids, user=user, is_active=True
+            ).prefetch_related("tasks")
+        )
+        if not routines:
+            return []
+
+        # Build ordered result preserving the user's chosen priority
+        routine_by_id = {str(r.id): r for r in routines}
+
+        # One aggregate query: count completions per routine in the date range
+        from django.db.models import Count as _Count
+        completion_counts = dict(
+            Completion.objects.filter(
+                user=user,
+                task__routine__in=routines,
+                local_date__range=[start_date, end_date],
+            )
+            .values("task__routine_id")
+            .annotate(n=_Count("id"))
+            .values_list("task__routine_id", "n")
+        )
+
+        # Colour palette cycling for routines that have no explicit colour set
+        _PALETTE = ["#8b5cf6", "#06b6d4", "#10b981", "#f59e0b", "#ec4899"]
+
+        result = []
+        for idx, r_id in enumerate(selected_routine_ids):
+            routine = routine_by_id.get(r_id)
+            if routine is None:
+                continue  # Routine was deleted or doesn't belong to user
+
+            active_task_count = sum(1 for t in routine.tasks.all() if t.is_active)
+            if active_task_count == 0:
+                # No tasks — skip gracefully rather than dividing by zero
+                result.append({
+                    "name": routine.name,
+                    "icon": routine.icon,
+                    "color": routine.color or _PALETTE[idx % len(_PALETTE)],
+                    "consistency_pct": 0,
+                    "total_progress": 0,
+                    "goal": 0,
+                    "unit": "tasks",
+                    "daily_avg": 0.0,
+                })
+                continue
+
+            completed = completion_counts.get(routine.id, 0)
+
+            if period_days == 1:
+                # Daily: straightforward ratio
+                pct = round(completed / active_task_count * 100, 1)
+                total_possible = active_task_count
+            else:
+                # Multi-day: total possible = active_task_count × period_days
+                # (conservative: assumes routine runs every day; correct for daily-scheduled routines)
+                total_possible = active_task_count * period_days
+                pct = round(completed / total_possible * 100, 1) if total_possible > 0 else 0.0
+
+            pct = min(100.0, pct)  # Cap at 100%
+
+            result.append({
+                "name": routine.name,
+                "icon": routine.icon,
+                "color": routine.color or _PALETTE[idx % len(_PALETTE)],
+                "consistency_pct": pct,
+                "total_progress": completed,
+                "goal": total_possible,
+                "unit": "tasks",
+                "daily_avg": round(completed / max(1, period_days), 1),
+            })
+
+        return result
 
     @staticmethod
     def _calculate_grade(rate: float, streak: int) -> str:

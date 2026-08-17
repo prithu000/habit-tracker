@@ -145,55 +145,76 @@ def custom_widget_log_view(request, pk):
 @permission_classes([IsAuthenticated])
 def report_settings_view(request):
     """
-    GET: Retrieve user's report settings (which widgets to show).
-    PUT/PATCH: Update the selected widgets.
+    GET: Retrieve user's report settings (which Routines to show in Habit Breakdown).
+    PUT/PATCH: Update the selected Routines.
+
+    selected_habit_breakdown now stores Routine UUIDs — the same identifiers the
+    Dashboard uses for per-routine progress. This ensures Dashboard and Reports
+    derive habit completion from the same Completion records.
     """
+    from apps.routines.models import Routine as _Routine
     user = request.user
     settings, _ = ReportSettings.objects.get_or_create(user=user)
 
     if request.method in ["PUT", "PATCH"]:
         data = request.data
+        # Accept either key name for backward compatibility
         if "selected_widget_ids" in data:
             selected = data["selected_widget_ids"]
         elif "selected_habit_breakdown" in data:
             selected = data["selected_habit_breakdown"]
         else:
             selected = None
-            
+
         if selected is not None:
             if not isinstance(selected, list):
                 return Response({"error": "selected_widget_ids must be a list"}, status=400)
             if len(selected) > 4:
                 return Response({"error": "Maximum 4 habits can be selected"}, status=400)
-            
-            # Save the raw string IDs sent from frontend directly, just filter out invalid ones
+
             str_ids = [str(sid) for sid in selected]
-            valid_qs = CustomWidget.objects.filter(id__in=str_ids, user=user, is_active=True).values_list("id", flat=True)
+
+            # Validate that IDs belong to the user's active Routines
+            valid_qs = _Routine.objects.filter(
+                id__in=str_ids, user=user, is_active=True
+            ).values_list("id", flat=True)
             valid_id_strs = [str(vid) for vid in valid_qs]
-            
+
+            # Preserve the user's chosen order
             ordered_valid = [sid for sid in str_ids if sid in valid_id_strs]
-            
+
             settings.selected_habit_breakdown = ordered_valid
             settings.save()
             CacheService.invalidate_all(str(user.id))
-            
+
             return Response({
                 "message": "Report settings updated",
                 "selected_widget_ids": settings.selected_habit_breakdown
             })
         return Response({"error": "Missing selected_widget_ids"}, status=400)
 
-    # GET request
+    # GET — return saved routine IDs with metadata so the frontend can render the modal
     raw_ids = settings.selected_habit_breakdown or []
     str_ids = [str(sid) for sid in raw_ids]
-    
-    # We will just validate that they still exist and are active
-    valid_qs = CustomWidget.objects.filter(id__in=str_ids, user=user, is_active=True).values_list("id", flat=True)
-    valid_id_strs = [str(vid) for vid in valid_qs]
-    
-    ordered_valid = [sid for sid in str_ids if sid in valid_id_strs]
-    
-    # Do NOT auto-save on GET, it can cause race conditions or empty out settings if DB is temporarily disconnected
+
+    # Validate that selected routines still exist and are active
+    valid_routines = _Routine.objects.filter(
+        id__in=str_ids, user=user, is_active=True
+    ).only("id", "name", "icon", "color")
+    valid_by_id = {str(r.id): r for r in valid_routines}
+
+    ordered_valid = [sid for sid in str_ids if sid in valid_by_id]
+
     return Response({
-        "selected_widget_ids": ordered_valid
+        "selected_widget_ids": ordered_valid,
+        # Include routine metadata so the ReportSettingsModal can render without a second request
+        "selected_routines": [
+            {
+                "id": sid,
+                "name": valid_by_id[sid].name,
+                "icon": valid_by_id[sid].icon,
+                "color": valid_by_id[sid].color,
+            }
+            for sid in ordered_valid
+        ],
     })
