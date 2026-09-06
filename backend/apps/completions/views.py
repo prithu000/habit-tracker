@@ -1,12 +1,9 @@
 """
-FORGE — Completions App Views (Optimized for 500k users)
+FORGE — Completions App Views (Flat Task Edition)
 
-Key changes:
-  - today_view: Prefetch with to_attr (filters tasks IN DB, not Python)
-  - today_view: Redis-cached, invalidated on completion
-  - CompleteTaskView: Invalidates dashboard cache after write
-  - CompleteTaskView: Single query for scheduled_count (was re-counted per call)
-  - completion_history: Added only() field projection
+Routine/RoutineSchedule references removed.
+Tasks are now queried directly by `user` FK.
+Dashboard groups tasks by `category` instead of routine.
 """
 import logging
 from datetime import date
@@ -16,7 +13,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db import transaction
-from django.db.models import Prefetch
 from drf_spectacular.utils import extend_schema
 
 from apps.completions.models import Completion, DayLog
@@ -24,7 +20,7 @@ from apps.completions.serializers import (
     CompleteTaskSerializer,
     CompletionSerializer,
 )
-from apps.routines.models import Routine, Task
+from apps.routines.models import Task
 from apps.core.utils import get_user_local_date
 from apps.core.exceptions import TaskAlreadyCompletedError, NotFoundError
 from services.xp_service import XPService
@@ -32,9 +28,21 @@ from services.cache_service import CacheService, TTL_TODAY
 
 logger = logging.getLogger(__name__)
 
+# Human-readable category labels
+CATEGORY_LABELS = {
+    "fitness":       "Fitness",
+    "learning":      "Learning",
+    "work":          "Work",
+    "mental_health": "Mental Health",
+    "health":        "Health",
+    "sleep":         "Sleep",
+    "finance":       "Finance",
+    "personal":      "Personal",
+    "discipline":    "Discipline",
+}
 
 # ─────────────────────────────────────────────────────────
-# Today View (optimized)
+# Today View (optimized, category-grouped)
 # ─────────────────────────────────────────────────────────
 
 @extend_schema(responses=None)
@@ -44,12 +52,11 @@ def today_view(request):
     """
     GET /api/v1/today/
 
-    Returns today's routines and task completion state.
+    Returns today's tasks grouped by category with completion state.
     Prefer GET /api/v1/dashboard/ for the full initial load.
-    This endpoint is for targeted today-only refreshes.
 
     Cache: 60s per user+date. Invalidated on completion events.
-    Queries: 3 (routines+tasks prefetch, completions, streak+xp)
+    Queries: 3 (tasks, completions, streak+xp)
     """
     from apps.rewards.models import XPTransaction
     from apps.streaks.models import StreakRecord
@@ -64,19 +71,11 @@ def today_view(request):
     if cached is not None:
         return Response(cached)
 
-    # ── Query 1: Routines + active tasks (2 DB hits, no Python filtering) ──
-    active_tasks_qs = Task.objects.filter(is_active=True).only(
-        "id", "name", "description", "duration_minutes", "sort_order", "routine_id"
-    ).order_by("sort_order")
-
-    routines = list(
-        Routine.objects.filter(user=user, is_active=True)
-        .prefetch_related(
-            Prefetch("tasks", queryset=active_tasks_qs, to_attr="active_tasks"),
-            "schedule",
-        )
-        .only("id", "name", "icon", "color", "time_of_day", "sort_order")
-        .order_by("sort_order")
+    # ── Query 1: All active tasks for this user ──
+    tasks = list(
+        Task.objects.filter(user=user, is_active=True)
+        .only("id", "name", "description", "duration_minutes", "sort_order", "category", "frequency")
+        .order_by("category", "sort_order")
     )
 
     # ── Query 2: All today's completions indexed ──
@@ -85,36 +84,35 @@ def today_view(request):
     ).only("id", "task_id", "completed_at", "note", "mood")
     completed_map = {str(c.task_id): c for c in completions}
 
-    # ── Query 3: XP + streak (aggregate + single row lookup) ──
+    # ── Query 3: XP + streak ──
     xp_today = XPService.get_xp_earned_for_date(user, local_date)
     streak = (
         StreakRecord.objects
-        .filter(user=user, routine__isnull=True)
+        .filter(user=user)
         .only("current_streak")
         .first()
     )
     current_streak = streak.current_streak if streak else 0
 
-    # ── Assemble ──
-    routine_data = []
+    # ── Group tasks by category ──
+    from collections import defaultdict
+    category_map = defaultdict(list)
+    for task in tasks:
+        category_map[task.category].append(task)
+
+    categories_out = []
     total_tasks = total_done = 0
 
-    for routine in routines:
-        if not routine.is_scheduled_for(local_date):
-            continue
-        tasks_list = getattr(routine, "active_tasks", [])
-        if not tasks_list:
-            continue
-
+    for category, cat_tasks in sorted(category_map.items()):
         tasks_out = []
-        r_done = 0
+        cat_done = 0
 
-        for task in tasks_list:
+        for task in sorted(cat_tasks, key=lambda t: t.sort_order):
             tid = str(task.id)
             comp = completed_map.get(tid)
             is_done = comp is not None
             if is_done:
-                r_done += 1
+                cat_done += 1
                 total_done += 1
             total_tasks += 1
             tasks_out.append({
@@ -123,6 +121,8 @@ def today_view(request):
                 "description": task.description,
                 "duration_minutes": task.duration_minutes,
                 "sort_order": task.sort_order,
+                "category": task.category,
+                "frequency": task.frequency,
                 "is_completed": is_done,
                 "completed_at": comp.completed_at.isoformat() if comp else None,
                 "note": comp.note if comp else "",
@@ -130,18 +130,14 @@ def today_view(request):
                 "completion_id": str(comp.id) if comp else None,
             })
 
-        tc = len(tasks_list)
-        routine_data.append({
-            "id": str(routine.id),
-            "name": routine.name,
-            "icon": routine.icon,
-            "color": routine.color,
-            "time_of_day": routine.time_of_day,
-            "sort_order": routine.sort_order,
-            "is_complete": r_done == tc and tc > 0,
+        tc = len(cat_tasks)
+        categories_out.append({
+            "category": category,
+            "label": CATEGORY_LABELS.get(category, category.title()),
+            "is_complete": cat_done == tc and tc > 0,
             "task_count": tc,
-            "completed_count": r_done,
-            "completion_rate": round(r_done / tc * 100, 1) if tc else 0.0,
+            "completed_count": cat_done,
+            "completion_rate": round(cat_done / tc * 100, 1) if tc else 0.0,
             "tasks": tasks_out,
         })
 
@@ -156,7 +152,9 @@ def today_view(request):
             "xp_earned_today": xp_today,
             "current_streak": current_streak,
         },
-        "routines": routine_data,
+        "categories": categories_out,
+        # Kept for any legacy consumers that may read `routines` — empty list signals migration
+        "routines": [],
     }
 
     CacheService.set(user_id, "today", data, TTL_TODAY, variant)
@@ -184,23 +182,21 @@ class CompleteTaskView(APIView):
         user = request.user
         local_date = get_user_local_date(user)
 
-        # Verify task ownership — single join query
+        # Verify task ownership via direct user FK
         try:
             task = (
                 Task.objects
-                .select_related("routine")
-                .only("id", "name", "routine_id", "routine__user_id", "routine__is_active")
+                .only("id", "name", "user_id", "category")
                 .get(
                     id=data["task_id"],
-                    routine__user=user,
-                    routine__is_active=True,
+                    user=user,
                     is_active=True,
                 )
             )
         except Task.DoesNotExist:
             raise NotFoundError("Task not found or you do not have access to it.")
 
-        # Duplicate guard — uses (user, task, local_date) unique_together index
+        # Duplicate guard
         if Completion.objects.filter(task=task, user=user, local_date=local_date).exists():
             raise TaskAlreadyCompletedError()
 
@@ -227,18 +223,17 @@ class CompleteTaskView(APIView):
         )
         user.refresh_from_db(fields=["total_xp", "current_level"])
 
-        # ── Determine perfect day using pre-computed counts ──
-        # Count tasks via DB aggregate (not Python iteration)
+        # ── Perfect day check ──
         from django.db.models import Count as DCount
         scheduled_count = (
             Task.objects
-            .filter(routine__user=user, routine__is_active=True, is_active=True)
+            .filter(user=user, is_active=True)
             .aggregate(c=DCount("id"))["c"]
         )
         done_today = Completion.objects.filter(user=user, local_date=local_date).count()
         is_perfect = scheduled_count > 0 and done_today == scheduled_count
 
-        # ── Synchronously materialize DayLog for accurate heatmap ──
+        # ── Sync DayLog ──
         from workers.tasks.reward_evaluator import sync_day_log
         try:
             sync_day_log(str(user.id), local_date.isoformat())
@@ -253,11 +248,11 @@ class CompleteTaskView(APIView):
         CacheService.delete(str(user.id), f"life_score_2:{local_date.isoformat()}")
         CacheService.delete(str(user.id), f"discipline_score_2:{local_date.isoformat()}")
 
-        # ── Read streak (already in DB) ──
+        # ── Read streak ──
         from apps.streaks.models import StreakRecord
         streak = (
             StreakRecord.objects
-            .filter(user=user, routine__isnull=True)
+            .filter(user=user)
             .only("current_streak")
             .first()
         )
@@ -302,9 +297,9 @@ def undo_completion(request, completion_id):
     local_date = get_user_local_date(user)
 
     try:
-        completion = Completion.objects.select_related("task").only("id", "task_id", "local_date", "task__id").get(
-            id=completion_id, user=user, local_date=local_date
-        )
+        completion = Completion.objects.select_related("task").only(
+            "id", "task_id", "local_date", "task__id"
+        ).get(id=completion_id, user=user, local_date=local_date)
     except Completion.DoesNotExist:
         raise NotFoundError("Completion not found or cannot be undone (different day).")
 
@@ -321,7 +316,6 @@ def undo_completion(request, completion_id):
     except Exception:
         pass
 
-    # Invalidate caches
     CacheService.invalidate_all(str(user.id))
     CacheService.delete(str(user.id), f"life_score_2:{local_date.isoformat()}")
     CacheService.delete(str(user.id), f"discipline_score_2:{local_date.isoformat()}")
@@ -339,20 +333,16 @@ def undo_completion(request, completion_id):
 def completion_history(request):
     """
     GET /api/v1/today/history/?date_from=YYYY-MM-DD&date_to=YYYY-MM-DD
-
-    Cursor-paginated completion history (20 per page).
-    Use ?cursor=<token> for the next page.
     """
     from apps.core.pagination import ForgeCursorPagination
 
     qs = (
         Completion.objects
         .filter(user=request.user)
-        .select_related("task", "task__routine")
+        .select_related("task")
         .only(
             "id", "task_id", "local_date", "completed_at", "note", "mood",
-            "task__name", "task__routine_id",
-            "task__routine__name", "task__routine__icon",
+            "task__name", "task__category",
         )
         .order_by("-completed_at")
     )
@@ -369,4 +359,3 @@ def completion_history(request):
     return paginator.get_paginated_response(
         CompletionSerializer(page, many=True).data
     )
-

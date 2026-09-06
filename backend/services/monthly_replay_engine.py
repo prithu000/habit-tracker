@@ -24,7 +24,7 @@ class MonthlyReplayEngine:
         """
         from apps.completions.models import DayLog, Completion
         from apps.rewards.models import XPTransaction, UserBadge
-        from apps.routines.models import Routine, Task
+        from apps.routines.models import Task
         from apps.streaks.models import StreakRecord
         from django.db.models import Avg, Sum, Max, Count, Q
 
@@ -44,7 +44,7 @@ class MonthlyReplayEngine:
         # ── Streak during month ──
         # Find the max streak within the month from DayLog dates
         streak_record = StreakRecord.objects.filter(
-            user=user, routine__isnull=True
+            user=user
         ).first()
         current_streak = streak_record.current_streak if streak_record else 0
         longest_streak = streak_record.longest_streak if streak_record else 0
@@ -69,23 +69,28 @@ class MonthlyReplayEngine:
                 best_weekday_avg = avg
                 best_weekday = wd
 
-        # ── Best routine ──
-        best_routine = None
-        best_routine_rate = 0
-        for routine in Routine.objects.filter(user=user, is_active=True):
-            tasks = Task.objects.filter(routine=routine, is_active=True)
-            if not tasks.exists():
+        # ── Best category ──
+        best_category = None
+        best_category_rate = 0
+        from django.db.models import Count as _Count
+        for category, active_count in (
+            Task.objects.filter(user=user, is_active=True)
+            .values("category")
+            .annotate(n=_Count("id"))
+            .values_list("category", "n")
+        ):
+            if active_count == 0:
                 continue
             done = Completion.objects.filter(
                 user=user,
-                task__in=tasks,
+                task__category=category,
                 local_date__range=[first_day, last_day],
             ).count()
-            possible = tasks.count() * (last_day - first_day).days + tasks.count()
+            possible = active_count * ((last_day - first_day).days + 1)
             rate = safe_percentage(done, possible)
-            if rate > best_routine_rate:
-                best_routine_rate = rate
-                best_routine = routine
+            if rate > best_category_rate:
+                best_category_rate = rate
+                best_category = category
 
         # ── Badges earned this month ──
         badges_this_month = UserBadge.objects.filter(
@@ -143,11 +148,11 @@ class MonthlyReplayEngine:
                 } if worst_log else None,
                 "best_day_of_week": weekday_names[best_weekday] if best_weekday is not None else None,
                 "best_day_of_week_avg": round(best_weekday_avg, 1),
-                "best_routine": {
-                    "name": best_routine.name,
-                    "icon": best_routine.icon,
-                    "consistency_rate": round(best_routine_rate, 1),
-                } if best_routine else None,
+                "best_category": {
+                    "name": best_category.replace("_", " ").title() if best_category else None,
+                    "slug": best_category,
+                    "consistency_rate": round(best_category_rate, 1),
+                } if best_category else None,
             },
             "badges_earned": [
                 {

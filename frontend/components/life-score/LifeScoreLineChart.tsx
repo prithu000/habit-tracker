@@ -18,12 +18,12 @@ export const LifeScoreLineChart = memo(function LifeScoreLineChart({ history }: 
   return (
     <ResponsiveContainer width="100%" height="100%">
       <LineChart data={history}>
-        <XAxis dataKey="date" stroke="#52525b" fontSize={11} tickLine={false} />
-        <YAxis domain={[50, 100]} stroke="#52525b" fontSize={11} tickLine={false} />
+        <XAxis dataKey="date" stroke="#71717A" fontSize={11} tickLine={false} />
+        <YAxis domain={[50, 100]} stroke="#71717A" fontSize={11} tickLine={false} />
         <Tooltip
-          contentStyle={{ backgroundColor: "#18181b", borderColor: "#27272a", borderRadius: "12px", color: "#fff" }}
+          contentStyle={{ backgroundColor: "#18181D", borderColor: "#292930", borderRadius: "10px", color: "#F5F5F7", fontSize: "12px" }}
         />
-        <Line type="monotone" dataKey="score" stroke="#c084fc" strokeWidth={3} dot={{ r: 4, fill: "#c084fc" }} />
+        <Line type="monotone" dataKey="score" stroke="#8B5CF6" strokeWidth={2} dot={{ r: 3, fill: "#8B5CF6" }} />
       </LineChart>
     </ResponsiveContainer>
   );

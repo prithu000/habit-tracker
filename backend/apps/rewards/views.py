@@ -189,7 +189,7 @@ def discipline_league(request):
     percentile = round(100 - ((user_rank / total_participants) * 100), 1) if user_rank else None
 
     # Current streak
-    streak_record = StreakRecord.objects.filter(user=user, routine__isnull=True).first()
+    streak_record = StreakRecord.objects.filter(user=user).first()
     current_streak = streak_record.current_streak if streak_record else 0
 
     # Anonymous top-10 ranking (masked, no identifiable info)
@@ -197,7 +197,7 @@ def discipline_league(request):
     for i, entry in enumerate(monthly_xp[:10]):
         uid = str(entry["user_id"])
         is_self = uid == user_id_str
-        streak = StreakRecord.objects.filter(user_id=entry["user_id"], routine__isnull=True).first()
+        streak = StreakRecord.objects.filter(user_id=entry["user_id"]).first()
         leaderboard.append({
             "rank": i + 1,
             "is_self": is_self,

@@ -193,6 +193,30 @@ class CacheService:
         cache.delete_many(keys_to_delete)
 
     @staticmethod
+    def invalidate_reports(user_id: str):
+        """Invalidate cached report outputs for all timeframes."""
+        from datetime import date, timedelta
+        today = date.today()
+        dates_to_clear = [
+            "",
+            today.isoformat(),
+            (today - timedelta(days=1)).isoformat(),
+            (today + timedelta(days=1)).isoformat(),
+            (today - timedelta(days=2)).isoformat(),
+            (today + timedelta(days=2)).isoformat(),
+            (today - timedelta(days=7)).isoformat(),
+            (today + timedelta(days=7)).isoformat(),
+        ]
+        keys = [
+            CacheService._key(user_id, "smart_reports"),
+        ]
+        for tf in ["daily", "weekly", "monthly", "yearly"]:
+            keys.append(CacheService._key(user_id, "reports", tf))
+            for d in dates_to_clear:
+                keys.append(CacheService._key(user_id, "reports", f"{tf}_{d}"))
+        cache.delete_many(keys)
+
+    @staticmethod
     def invalidate_badges(user_id: str):
         cache.delete(CacheService._key(user_id, "badges"))
 
@@ -201,6 +225,7 @@ class CacheService:
         """Nuclear option — invalidates everything for a user."""
         CacheService.invalidate_today(user_id)
         CacheService.invalidate_analytics(user_id)
+        CacheService.invalidate_reports(user_id)
         CacheService.invalidate_badges(user_id)
 
     @staticmethod

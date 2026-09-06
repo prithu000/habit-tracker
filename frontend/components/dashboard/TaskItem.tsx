@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Check, Clock, Sparkles } from "lucide-react";
 import { Task } from "@/types/api";
 import { useCompleteTask, useUndoCompletion } from "@/lib/queries/useDashboard";
-import { cn } from "@/lib/utils/cn";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 
@@ -16,7 +15,7 @@ export function TaskItem({ task }: TaskItemProps) {
   const completeMutation = useCompleteTask();
   const undoMutation = useUndoCompletion();
   const [showPopup, setShowPopup] = useState(false);
-  const [xpEarned, setXpEarned] = useState(25); // Centralized XP default for optimistic rendering
+  const [xpEarned, setXpEarned] = useState(25);
 
   const toggleTask = () => {
     if (task.is_completed) {
@@ -26,17 +25,17 @@ export function TaskItem({ task }: TaskItemProps) {
         toast.error("Cannot undo task right now.");
       }
     } else {
-      setXpEarned(25); // Optimistically assume 25 XP
+      setXpEarned(25);
       setShowPopup(true);
       setTimeout(() => setShowPopup(false), 2500);
       completeMutation.mutate(
         { taskId: task.id },
         {
           onSuccess: (data) => {
-            if (data && typeof data.xp_earned === 'number') {
+            if (data && typeof data.xp_earned === "number") {
               setXpEarned(data.xp_earned);
             }
-          }
+          },
         }
       );
     }
@@ -44,25 +43,44 @@ export function TaskItem({ task }: TaskItemProps) {
 
   return (
     <motion.div
-      whileHover={{ scale: 1.005, x: 2 }}
+      whileHover={{ y: -1 }}
       whileTap={{ scale: 0.995 }}
       onClick={toggleTask}
-      className={cn(
-        "group relative flex items-center justify-between p-3.5 rounded-xl border transition-colors duration-200 cursor-pointer select-none",
-        task.is_completed
-          ? "bg-emerald-500/[0.04] border-emerald-500/20 text-muted-foreground"
-          : "bg-white/[0.02] border-white/[0.06] hover:bg-white/[0.05] hover:border-forge-500/40 shadow-[0_2px_10px_rgba(0,0,0,0.2)] text-foreground"
-      )}
+      className="group relative flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer select-none"
+      style={{
+        background: task.is_completed ? "var(--surface-raised)" : "var(--surface)",
+        borderColor: task.is_completed ? "var(--border-subtle)" : "var(--border)",
+        opacity: task.is_completed ? 0.65 : 1,
+      }}
+      onMouseEnter={(e) => {
+        if (!task.is_completed) {
+          (e.currentTarget as HTMLElement).style.borderColor = "var(--accent-border)";
+          (e.currentTarget as HTMLElement).style.background = "var(--surface-hover)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLElement).style.borderColor = task.is_completed
+          ? "var(--border-subtle)"
+          : "var(--border)";
+        (e.currentTarget as HTMLElement).style.background = task.is_completed
+          ? "var(--surface-raised)"
+          : "var(--surface)";
+      }}
     >
-      {/* Animated XP & Coin Popup */}
+      {/* XP Popup */}
       <AnimatePresence>
         {showPopup && (
           <motion.div
-            initial={{ opacity: 0, y: 0, scale: 0.5 }}
-            animate={{ opacity: 1, y: -38, scale: 1.1 }}
-            exit={{ opacity: 0, y: -50, scale: 0.8 }}
-            transition={{ duration: 0.4, type: "spring" }}
-            className="absolute -top-6 left-4 z-50 flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500 to-purple-600 text-zinc-950 font-black text-[11px] shadow-lg shadow-purple-500/50 whitespace-nowrap pointer-events-none border border-amber-300"
+            initial={{ opacity: 0, y: 0, scale: 0.8 }}
+            animate={{ opacity: 1, y: -28, scale: 1 }}
+            exit={{ opacity: 0, y: -36, scale: 0.8 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="absolute -top-4 left-4 z-50 flex items-center gap-1 px-2.5 py-0.5 rounded-full font-semibold text-[10px] whitespace-nowrap pointer-events-none shadow-md"
+            style={{
+              background: "var(--accent-subtle)",
+              border: "1px solid var(--accent-border)",
+              color: "var(--accent)",
+            }}
           >
             <Sparkles className="w-3 h-3 fill-current" />
             <span>+{xpEarned} XP</span>
@@ -70,53 +88,48 @@ export function TaskItem({ task }: TaskItemProps) {
         )}
       </AnimatePresence>
 
-      <div className="flex items-center gap-3.5 flex-1 min-w-0">
-        {/* Checkbox with Ripple & Neon Glow */}
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        {/* Checkbox */}
         <div
-          className={cn(
-            "flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border transition-colors duration-300 relative overflow-hidden",
+          className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-md border transition-all"
+          style={
             task.is_completed
-              ? "border-emerald-500 bg-emerald-500 text-[#0a0a0c] shadow-[0_0_15px_rgba(16,185,129,0.6)] scale-105"
-              : "border-white/20 group-hover:border-forge-400 group-hover:bg-forge-500/10"
-          )}
+              ? {
+                  background: "var(--accent)",
+                  borderColor: "var(--accent)",
+                  color: "var(--accent-fg)",
+                }
+              : {
+                  background: "transparent",
+                  borderColor: "var(--border)",
+                }
+          }
         >
-          {/* Pure CSS Ripple effect on hover when not completed (0 JS/Framer Motion layout thrashing) */}
-          {!task.is_completed && (
-            <div className="absolute inset-0 bg-forge-500/20 rounded-lg scale-0 group-hover:scale-150 opacity-0 group-hover:opacity-30 transition-transform duration-300 pointer-events-none" />
-          )}
-
           <motion.div
             initial={false}
-            animate={{
-              scale: task.is_completed ? 1 : 0,
-              opacity: task.is_completed ? 1 : 0,
-              rotate: task.is_completed ? 0 : -45,
-            }}
-            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            animate={{ scale: task.is_completed ? 1 : 0, opacity: task.is_completed ? 1 : 0 }}
+            transition={{ duration: 0.15 }}
           >
-            <Check className="h-4 w-4" strokeWidth={3.5} />
+            <Check className="h-3 w-3" strokeWidth={3} />
           </motion.div>
         </div>
 
-        {/* Task Content */}
+        {/* Task content */}
         <div className="flex flex-col min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span
-              className={cn(
-                "font-semibold transition-all duration-200 text-xs sm:text-sm truncate",
-                task.is_completed
-                  ? "text-muted-foreground/60 line-through decoration-emerald-500/50"
-                  : "text-foreground group-hover:text-white"
-              )}
-            >
-              {task.name}
-            </span>
-            {task.is_completed && (
-              <Sparkles className="w-3 h-3 text-emerald-400 shrink-0 animate-pulse" />
-            )}
-          </div>
+          <span
+            className="font-medium text-xs truncate transition-colors"
+            style={{
+              color: task.is_completed ? "var(--fg-faint)" : "var(--fg)",
+              textDecoration: task.is_completed ? "line-through" : "none",
+            }}
+          >
+            {task.name}
+          </span>
           {task.description && !task.is_completed && (
-            <span className="text-[11px] text-muted-foreground mt-0.5 truncate font-normal">
+            <span
+              className="text-[11px] mt-0.5 truncate font-normal"
+              style={{ color: "var(--fg-faint)" }}
+            >
               {task.description}
             </span>
           )}
@@ -125,7 +138,14 @@ export function TaskItem({ task }: TaskItemProps) {
 
       {/* Duration badge */}
       {task.duration_minutes > 0 && !task.is_completed && (
-        <div className="flex items-center gap-1 text-[11px] font-mono font-bold text-muted-foreground bg-white/5 border border-white/10 px-2 py-1 rounded-lg shrink-0 ml-3 transition-colors group-hover:bg-forge-500/10 group-hover:text-forge-300 group-hover:border-forge-500/30">
+        <div
+          className="flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded shrink-0 ml-2.5"
+          style={{
+            background: "var(--surface-raised)",
+            border: "1px solid var(--border)",
+            color: "var(--fg-faint)",
+          }}
+        >
           <Clock className="w-3 h-3" />
           <span>{task.duration_minutes}m</span>
         </div>

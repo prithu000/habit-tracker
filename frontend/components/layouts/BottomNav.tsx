@@ -40,12 +40,14 @@ export const BottomNav = memo(function BottomNav() {
         className="
           flex items-center justify-around w-full max-w-lg mx-auto
           px-2 pt-1.5
-          bg-[#0a0a0c]/95 backdrop-blur-2xl
-          border-t border-white/[0.08]
-          shadow-[0_-8px_32px_rgba(0,0,0,0.6)]
+          backdrop-blur-xl
+          border-t
+          shadow-[0_-8px_30px_rgba(0,0,0,0.2)]
           transition-all
         "
         style={{
+          background: "var(--surface)",
+          borderColor: "var(--border)",
           paddingBottom: "max(14px, env(safe-area-inset-bottom, 14px))",
           minHeight: "68px",
           maxHeight: "76px",
@@ -71,7 +73,7 @@ export const BottomNav = memo(function BottomNav() {
               }}
               className={cn(
                 "relative flex flex-col items-center justify-center gap-1 flex-1 py-1 min-w-[52px] group",
-                isLocked && "opacity-65"
+                isLocked && "opacity-60"
               )}
               aria-label={item.label}
               aria-current={isActive ? "page" : undefined}
@@ -81,7 +83,8 @@ export const BottomNav = memo(function BottomNav() {
                 {isActive && !isLocked && (
                   <motion.div
                     layoutId="bottom-nav-active"
-                    className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-8 h-[3px] rounded-full bg-forge-500 shadow-[0_0_8px_#8b5cf6]"
+                    className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-6 h-[2px] rounded-full"
+                    style={{ background: "var(--accent)" }}
                     initial={{ opacity: 0, scaleX: 0.5 }}
                     animate={{ opacity: 1, scaleX: 1 }}
                     exit={{ opacity: 0, scaleX: 0.5 }}
@@ -92,36 +95,36 @@ export const BottomNav = memo(function BottomNav() {
 
               {/* Icon container */}
               <div
-                className={cn(
-                  "relative flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl transition-all duration-150 shrink-0",
-                  isActive && !isLocked
-                    ? "bg-forge-500/15 text-forge-300"
-                    : "text-muted-foreground group-hover:text-foreground group-hover:bg-white/[0.04]"
-                )}
+                className="relative flex items-center justify-center w-8 h-8 rounded-lg transition-colors shrink-0"
+                style={{
+                  background: isActive && !isLocked ? "var(--accent-subtle)" : undefined,
+                }}
               >
-                {/* Glow behind active icon */}
-                {isActive && !isLocked && (
-                  <span className="absolute inset-0 rounded-xl bg-forge-500/10 blur-sm" />
-                )}
                 <Icon
-                  className={cn(
-                    "relative w-4 h-4 sm:w-5 sm:h-5 transition-all duration-150 shrink-0",
-                    isActive && !isLocked
-                      ? "text-forge-400 drop-shadow-[0_0_8px_rgba(139,92,246,0.9)]"
-                      : "group-hover:scale-110"
-                  )}
+                  className="relative w-4 h-4 transition-colors shrink-0"
+                  style={{
+                    color: isActive && !isLocked ? "var(--accent)" : "var(--fg-muted)",
+                  }}
                 />
                 {isLocked && (
-                  <Lock className="absolute -top-0.5 -right-0.5 w-3 h-3 text-amber-400/90 bg-[#0a0a0c] rounded-full p-0.5 border border-amber-500/30" />
+                  <Lock 
+                    className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full p-0.5 border" 
+                    style={{
+                      background: "var(--surface-raised)",
+                      borderColor: "var(--border)",
+                      color: "var(--warning)",
+                    }}
+                  />
                 )}
               </div>
 
               {/* Label */}
               <span
-                className={cn(
-                  "text-[10px] font-semibold tracking-wide transition-colors duration-150 leading-none text-center truncate max-w-full px-0.5",
-                  isActive && !isLocked ? "text-forge-300 font-bold" : "text-muted-foreground group-hover:text-foreground"
-                )}
+                className="text-[10px] font-medium tracking-tight transition-colors leading-none text-center truncate max-w-full px-0.5"
+                style={{
+                  color: isActive && !isLocked ? "var(--accent)" : "var(--fg-muted)",
+                  fontWeight: isActive && !isLocked ? 600 : 500,
+                }}
               >
                 {item.label}
               </span>

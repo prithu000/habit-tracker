@@ -47,7 +47,7 @@ def schedule_morning_motivation():
 
     for user in users:
         # Collect telemetry for AI Engine
-        overall_streak = StreakRecord.objects.filter(user=user, routine__isnull=True).first()
+        overall_streak = StreakRecord.objects.filter(user=user).first()
         streak_count = overall_streak.current_streak if overall_streak else 0
         
         yesterday_log = DayLog.objects.filter(user=user, log_date=yesterday).first()
@@ -169,7 +169,7 @@ def schedule_inactive_reminders():
             except NotificationPreference.DoesNotExist:
                 pass  # No preference set → send by default
 
-            overall_streak = StreakRecord.objects.filter(user=user, routine__isnull=True).first()
+            overall_streak = StreakRecord.objects.filter(user=user).first()
             longest = overall_streak.longest_streak if overall_streak else 0
 
             key = f"inactive_{days}_{user.id}_{target_date}"

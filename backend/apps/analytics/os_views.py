@@ -47,7 +47,7 @@ def motivation_view(request):
     local_date = get_user_local_date(user)
 
     today_log = DayLog.objects.filter(user=user, log_date=local_date).first()
-    streak_rec = StreakRecord.objects.filter(user=user, routine__isnull=True).first()
+    streak_rec = StreakRecord.objects.filter(user=user).first()
 
     completion_rate = float(today_log.completion_rate) if today_log else 0.0
     streak_val = streak_rec.current_streak if streak_rec else 0
@@ -128,7 +128,7 @@ def smart_reports_view(request):
         for log in logs
     ]
 
-    streak_rec = StreakRecord.objects.filter(user=user, routine__isnull=True).first()
+    streak_rec = StreakRecord.objects.filter(user=user).first()
     current_streak = streak_rec.current_streak if streak_rec else 0
     longest_streak = streak_rec.longest_streak if streak_rec else 0
     perfect_days = sum(1 for log in logs if float(log.completion_rate) == 100.0)

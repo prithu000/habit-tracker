@@ -85,22 +85,33 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   if (!hasHydrated) {
     if (isTimedOut) {
       return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0c] text-white p-6 relative overflow-hidden">
-          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="relative z-10 flex flex-col items-center text-center space-y-6 max-w-md glass-card p-8 rounded-3xl border border-white/10 shadow-2xl">
-            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+        <div
+          className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden"
+          style={{ background: "var(--bg)", color: "var(--fg)" }}
+        >
+          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full blur-3xl pointer-events-none opacity-20" style={{ background: "var(--accent)" }} />
+          <div
+            className="relative z-10 flex flex-col items-center text-center space-y-6 max-w-md p-8 rounded-3xl border shadow-2xl"
+            style={{
+              background: "var(--surface)",
+              borderColor: "var(--border)",
+              boxShadow: "var(--card-shadow-hover)",
+            }}
+          >
+            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500">
               <AlertTriangle className="w-7 h-7" />
             </div>
             <div className="space-y-2">
-              <h2 className="text-xl font-display font-black tracking-tight text-white">Something took longer than expected.</h2>
-              <p className="text-xs text-zinc-400 leading-relaxed">
+              <h2 className="text-xl font-display font-bold tracking-tight" style={{ color: "var(--fg)" }}>Something took longer than expected.</h2>
+              <p className="text-xs leading-relaxed" style={{ color: "var(--fg-muted)" }}>
                 We encountered a delay initializing your session state or connecting to the telemetry engine.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full pt-2">
               <button
                 onClick={() => window.location.reload()}
-                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-forge-500 hover:bg-forge-400 text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-lg"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-lg"
+                style={{ background: "var(--accent)", color: "var(--accent-fg)" }}
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Retry</span>
@@ -110,7 +121,12 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
                   setHasHydrated(true);
                   router.push("/dashboard");
                 }}
-                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all"
+                style={{
+                  background: "var(--surface-raised)",
+                  borderColor: "var(--border)",
+                  color: "var(--fg)",
+                }}
               >
                 <LayoutDashboard className="w-3.5 h-3.5" />
                 <span>Go to Dashboard</span>
@@ -120,7 +136,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
                   await performLogout();
                   window.location.href = "/login";
                 }}
-                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-xs font-semibold flex items-center justify-center gap-2 transition-all"
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 text-xs font-semibold flex items-center justify-center gap-2 transition-all"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>Refresh Session</span>
@@ -132,26 +148,35 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     }
 
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0c] text-white p-6 relative overflow-hidden">
+      <div
+        className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden"
+        style={{ background: "var(--bg)", color: "var(--fg)" }}
+      >
         {/* Background mesh glow */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none animate-pulse" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full blur-3xl pointer-events-none opacity-20 animate-pulse" style={{ background: "var(--accent-subtle)" }} />
         <div className="relative z-10 flex flex-col items-center text-center space-y-6 max-w-sm">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-forge-500 to-purple-600 p-[1px] shadow-[0_0_40px_rgba(139,92,246,0.3)]">
-            <div className="w-full h-full bg-[#0a0a0c] rounded-[15px] flex items-center justify-center font-black text-xl tracking-tighter text-white">
+          <div
+            className="w-16 h-16 rounded-2xl p-[1px] shadow-sm flex items-center justify-center border"
+            style={{
+              background: "var(--surface-raised)",
+              borderColor: "var(--accent-border)",
+            }}
+          >
+            <span className="font-bold text-xl tracking-tight" style={{ color: "var(--accent)" }}>
               YvY
-            </div>
+            </span>
           </div>
           <div className="space-y-2">
-            <h2 className="text-xl font-display font-black tracking-tight text-white uppercase">YOU VS YOU</h2>
-            <p className="text-xs font-bold uppercase tracking-widest text-forge-400">
+            <h2 className="text-xl font-display font-bold tracking-tight uppercase" style={{ color: "var(--fg)" }}>YOU VS YOU</h2>
+            <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--accent)" }}>
               Loading Your Personal Operating System...
             </p>
-            <p className="text-xs text-zinc-500 font-medium">
+            <p className="text-xs font-medium" style={{ color: "var(--fg-muted)" }}>
               Preparing your intelligence engine...
             </p>
           </div>
-          <div className="w-48 h-1 bg-white/10 rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-forge-500 to-cyan-400 w-1/2 animate-pulse rounded-full" />
+          <div className="w-48 h-1 rounded-full overflow-hidden" style={{ background: "var(--border)" }}>
+            <div className="h-full w-1/2 animate-pulse rounded-full" style={{ background: "var(--accent)" }} />
           </div>
         </div>
       </div>
@@ -161,10 +186,13 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   // If unauthenticated on a protected path, do NOT mount children during the redirect transition
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0c] text-white p-6">
+      <div
+        className="min-h-screen flex flex-col items-center justify-center p-6"
+        style={{ background: "var(--bg)", color: "var(--fg)" }}
+      >
         <div className="flex items-center gap-3">
-          <div className="w-5 h-5 rounded-full border-2 border-forge-500 border-t-transparent animate-spin" />
-          <p className="text-xs font-mono text-zinc-400 uppercase tracking-widest">Redirecting to login...</p>
+          <div className="w-5 h-5 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }} />
+          <p className="text-xs font-mono uppercase tracking-widest" style={{ color: "var(--fg-muted)" }}>Redirecting to login...</p>
         </div>
       </div>
     );
@@ -173,10 +201,13 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   // If authenticated on an auth-only path (/login or /register), do NOT mount login/register children while redirecting
   if (isAuthOnlyPath) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0c] text-white p-6">
+      <div
+        className="min-h-screen flex flex-col items-center justify-center p-6"
+        style={{ background: "var(--bg)", color: "var(--fg)" }}
+      >
         <div className="flex items-center gap-3">
-          <div className="w-5 h-5 rounded-full border-2 border-forge-500 border-t-transparent animate-spin" />
-          <p className="text-xs font-mono text-zinc-400 uppercase tracking-widest">Redirecting to workspace...</p>
+          <div className="w-5 h-5 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: "var(--accent)", borderTopColor: "transparent" }} />
+          <p className="text-xs font-mono uppercase tracking-widest" style={{ color: "var(--fg-muted)" }}>Redirecting to workspace...</p>
         </div>
       </div>
     );

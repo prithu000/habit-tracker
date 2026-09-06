@@ -23,7 +23,7 @@ def daily_auto_reset_task(self, user_id: str = None):
     """
     try:
         from django.contrib.auth import get_user_model
-        from apps.routines.models import RoutineSchedule, Task
+        from apps.routines.models import Task
         from apps.completions.models import DayLog, Completion
         from apps.streaks.models import StreakRecord
         from apps.rewards.models import StreakFreeze
@@ -41,7 +41,7 @@ def daily_auto_reset_task(self, user_id: str = None):
 
             # ── 1. Evaluate Yesterday's Unfinished Tasks & Streak ──
             yesterday_log = DayLog.objects.filter(user=user, log_date=yesterday).first()
-            overall_streak = StreakRecord.objects.filter(user=user, routine__isnull=True).first()
+            overall_streak = StreakRecord.objects.filter(user=user).first()
 
             if yesterday_log and yesterday_log.completion_rate < 100 and yesterday_log.tasks_scheduled > 0:
                 # Check if user has an equipped Streak Freeze

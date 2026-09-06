@@ -1,6 +1,6 @@
 """
 FORGE — Streak / Chain Engine (Production)
-Handles streak calculation with grace periods, milestone detection, per-routine tracking.
+Handles streak calculation with grace periods, milestone detection.
 """
 from datetime import date, timedelta
 from typing import Optional, Tuple
@@ -28,73 +28,66 @@ class StreakService:
         routine=None,
     ) -> Optional[int]:
         """
-        Records a completion event and updates the streak.
-        Called both for overall streak (routine=None) and per-routine.
+        Records a completion event and updates the overall user streak.
         Returns the milestone hit (int) or None.
         """
         from apps.streaks.models import StreakRecord
 
-        targets = [None]
-        if routine is not None:
-            targets.append(routine)
+        record, _ = StreakRecord.objects.select_for_update().get_or_create(
+            user=user,
+            defaults={"current_streak": 0, "longest_streak": 0},
+        )
 
-        milestone_hit = None
+        old_streak = record.current_streak
+        prev_date = record.last_completed_date
 
-        for target in targets:
-            record, _ = StreakRecord.objects.select_for_update().get_or_create(
-                user=user, routine=target,
-                defaults={"current_streak": 0, "longest_streak": 0},
+        if prev_date is None:
+            # First ever completion
+            record.current_streak = 1
+            record.grace_period_used = False
+
+        elif prev_date == local_date:
+            # Already counted today — no change
+            return None
+
+        elif prev_date == local_date - timedelta(days=1):
+            # Perfect consecutive day
+            record.current_streak += 1
+            record.grace_period_used = False  # Reset grace usage
+
+        elif (
+            prev_date == local_date - timedelta(days=2)
+            and not record.grace_period_used
+        ):
+            # Grace period: 1 missed day, grace not yet used
+            record.current_streak += 1
+            record.grace_period_used = True
+            logger.info(
+                "Grace period applied for user %s, streak=%d",
+                user.id, record.current_streak
             )
 
-            old_streak = record.current_streak
-            prev_date = record.last_completed_date
+        else:
+            # Streak broken
+            logger.info(
+                "Streak broken for user %s. Was %d, restarting.",
+                user.id, record.current_streak
+            )
+            record.current_streak = 1
+            record.grace_period_used = False
 
-            if prev_date is None:
-                # First ever completion
-                record.current_streak = 1
-                record.grace_period_used = False
+        record.last_completed_date = local_date
 
-            elif prev_date == local_date:
-                # Already counted today — no change
-                continue
+        if record.current_streak > record.longest_streak:
+            record.longest_streak = record.current_streak
 
-            elif prev_date == local_date - timedelta(days=1):
-                # Perfect consecutive day
-                record.current_streak += 1
-                record.grace_period_used = False  # Reset grace usage
+        record.save()
 
-            elif (
-                prev_date == local_date - timedelta(days=2)
-                and not record.grace_period_used
-            ):
-                # Grace period: 1 missed day, grace not yet used
-                record.current_streak += 1
-                record.grace_period_used = True
-                logger.info(
-                    "Grace period applied for user %s (routine=%s), streak=%d",
-                    user.id, target, record.current_streak
-                )
-
-            else:
-                # Streak broken
-                logger.info(
-                    "Streak broken for user %s (routine=%s). Was %d, restarting.",
-                    user.id, target, record.current_streak
-                )
-                record.current_streak = 1
-                record.grace_period_used = False
-
-            record.last_completed_date = local_date
-
-            if record.current_streak > record.longest_streak:
-                record.longest_streak = record.current_streak
-
-            record.save()
-
-            # Check milestones — only for overall streak
-            if target is None and record.current_streak in STREAK_MILESTONES:
-                milestone_hit = record.current_streak
-                StreakService._award_streak_milestone_xp(user, record.current_streak)
+        # Check milestones for overall streak
+        milestone_hit = None
+        if record.current_streak in STREAK_MILESTONES and record.current_streak > old_streak:
+            milestone_hit = record.current_streak
+            StreakService._award_streak_milestone_xp(user, record.current_streak)
 
         return milestone_hit
 
@@ -129,12 +122,10 @@ class StreakService:
     def get_streak_data(user) -> dict:
         """Returns full streak data for a user."""
         from apps.streaks.models import StreakRecord
-        records = StreakRecord.objects.filter(user=user).select_related("routine")
-        overall = next((r for r in records if r.routine is None), None)
-        per_routine = [r for r in records if r.routine is not None]
+        overall = StreakRecord.objects.filter(user=user).first()
         return {
             "overall": overall,
-            "per_routine": per_routine,
+            "per_routine": [],
         }
 
     @staticmethod
@@ -152,8 +143,8 @@ class StreakService:
         )
         for record in broken:
             logger.info(
-                "Auto-breaking streak for user %s (routine=%s), was %d",
-                user.id, record.routine_id, record.current_streak,
+                "Auto-breaking streak for user %s, was %d",
+                user.id, record.current_streak,
             )
             record.current_streak = 0
             record.grace_period_used = False

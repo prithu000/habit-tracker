@@ -55,7 +55,7 @@ class DisciplineEngine:
 
         # ── 2. Streak: current streak (diminishing returns) ──
         streak_record = StreakRecord.objects.filter(
-            user=user, routine__isnull=True
+            user=user
         ).first()
         current_streak = streak_record.current_streak if streak_record else 0
         # Logarithmic scale: 7-day streak = 50% max, 30-day = 80%, 100+ = 100%
@@ -146,7 +146,6 @@ class DisciplineEngine:
         Returns 5 named attributes with their scores.
         """
         from apps.completions.models import DayLog, Completion
-        from apps.routines.models import Routine
         from django.db.models import Avg, Count
         from django.utils import timezone as tz
         import pytz

@@ -10,6 +10,7 @@ from django.contrib import messages
 from datetime import timedelta
 from apps.users.models import User
 from apps.core.admin import ForgeBaseAdmin
+from services.xp_service import XPService
 
 from django.contrib.auth.forms import UserChangeForm as BaseUserChangeForm, UserCreationForm as BaseUserCreationForm
 
@@ -30,12 +31,14 @@ class UserAdmin(BaseUserAdmin):
     add_form = UserCreationForm
     model = User
     list_display = [
-        "email", "display_name", "subscription_badge", "plan_display",
-        "current_level", "total_xp", "is_active", "date_joined"
+        "email", "username", "display_name", "total_xp", "is_seed", 
+        "show_on_leaderboard", "subscription_badge", "current_level", 
+        "is_active", "date_joined"
     ]
+    list_editable = ["total_xp", "is_seed", "show_on_leaderboard"]
     list_filter = [
-        "subscription_status", "plan_type", "is_active", "is_staff", 
-        "onboarding_completed", "time_preference", "auto_renew"
+        "is_seed", "show_on_leaderboard", "subscription_status", "plan_type", 
+        "is_active", "is_staff", "onboarding_completed", "time_preference", "auto_renew"
     ]
     search_fields = ["email", "display_name", "username", "invoice_number", "order_id"]
     ordering = ["-date_joined"]
@@ -47,6 +50,10 @@ class UserAdmin(BaseUserAdmin):
     list_per_page = 50
     
     actions = [
+        "adjust_xp_add_100",
+        "adjust_xp_subtract_100",
+        "adjust_xp_add_500",
+        "toggle_leaderboard_visibility",
         "grant_trial",
         "grant_1_month_premium",
         "grant_6_month_premium",
@@ -61,7 +68,7 @@ class UserAdmin(BaseUserAdmin):
         (None, {"fields": ("id", "email", "password")}),
         (_("Personal Info"), {"fields": ("display_name", "username", "avatar_url", "timezone")}),
         (_("FORGE Identity"), {"fields": ("identity_statement", "time_preference", "onboarding_completed")}),
-        (_("Gamification"), {"fields": ("current_level", "total_xp")}),
+        (_("Gamification & Arena"), {"fields": ("current_level", "total_xp", "is_seed", "show_on_leaderboard")}),
         (_("💳 Subscription Management"), {
             "fields": (
                 "subscription_status_display",
@@ -378,6 +385,45 @@ class UserAdmin(BaseUserAdmin):
     # ADMIN ACTIONS
     # ═══════════════════════════════════════════════════════════════
     
+    @admin.action(description="⚡ Add +100 XP to selected users")
+    def adjust_xp_add_100(self, request, queryset):
+        count = 0
+        for user in queryset:
+            user.total_xp += 100
+            user.current_level = XPService.calculate_level(user.total_xp)
+            user.save(update_fields=["total_xp", "current_level"])
+            count += 1
+        self.message_user(request, f"✅ Added +100 XP to {count} user(s).", messages.SUCCESS)
+
+    @admin.action(description="🔻 Deduct -100 XP from selected users")
+    def adjust_xp_subtract_100(self, request, queryset):
+        count = 0
+        for user in queryset:
+            user.total_xp = max(0, user.total_xp - 100)
+            user.current_level = XPService.calculate_level(user.total_xp)
+            user.save(update_fields=["total_xp", "current_level"])
+            count += 1
+        self.message_user(request, f"✅ Deducted -100 XP from {count} user(s).", messages.SUCCESS)
+
+    @admin.action(description="⚡ Add +500 XP to selected users")
+    def adjust_xp_add_500(self, request, queryset):
+        count = 0
+        for user in queryset:
+            user.total_xp += 500
+            user.current_level = XPService.calculate_level(user.total_xp)
+            user.save(update_fields=["total_xp", "current_level"])
+            count += 1
+        self.message_user(request, f"✅ Added +500 XP to {count} user(s).", messages.SUCCESS)
+
+    @admin.action(description="👁️ Toggle leaderboard visibility")
+    def toggle_leaderboard_visibility(self, request, queryset):
+        count = 0
+        for user in queryset:
+            user.show_on_leaderboard = not user.show_on_leaderboard
+            user.save(update_fields=["show_on_leaderboard"])
+            count += 1
+        self.message_user(request, f"✅ Toggled leaderboard visibility for {count} user(s).", messages.SUCCESS)
+
     @admin.action(description="✨ Grant 14-Day Trial")
     def grant_trial(self, request, queryset):
         """Grant 14-day trial to selected users"""

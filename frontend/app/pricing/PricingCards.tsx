@@ -42,15 +42,31 @@ function CountdownTimer({ expiresAt, serverTime }: { expiresAt: string, serverTi
   const pad = (n: number) => n.toString().padStart(2, "0");
 
   return (
-    <div className="flex flex-col items-center justify-center p-4 mb-8 bg-[#1a1423] border border-purple-500/30 rounded-2xl max-w-md mx-auto shadow-[0_0_30px_rgba(139,92,246,0.15)] relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-600 via-forge-500 to-amber-500 animate-pulse" />
-      <span className="text-xs font-bold uppercase tracking-widest text-forge-400 mb-2">Special Launch Offer Ends In</span>
-      <div className="flex items-center gap-3 text-3xl font-black text-white tracking-widest">
-        <div className="flex flex-col items-center"><span className="bg-white/5 px-3 py-1.5 rounded-lg border border-white/10 shadow-inner">{pad(h)}</span><span className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">HRS</span></div>
-        <span className="text-forge-500/50 pb-4">:</span>
-        <div className="flex flex-col items-center"><span className="bg-white/5 px-3 py-1.5 rounded-lg border border-white/10 shadow-inner">{pad(m)}</span><span className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">MIN</span></div>
-        <span className="text-forge-500/50 pb-4">:</span>
-        <div className="flex flex-col items-center"><span className="bg-white/5 px-3 py-1.5 rounded-lg border border-white/10 shadow-inner">{pad(s)}</span><span className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">SEC</span></div>
+    <div
+      className="flex flex-col items-center justify-center p-4 mb-8 rounded-2xl max-w-md mx-auto relative overflow-hidden"
+      style={{
+        background: "var(--surface)",
+        border: "1px solid var(--accent-border)",
+        boxShadow: "var(--card-shadow)",
+      }}
+    >
+      <div className="absolute top-0 left-0 w-full h-1" style={{ background: "var(--accent)" }} />
+      <span className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "var(--accent)" }}>Special Launch Offer Ends In</span>
+      <div className="flex items-center gap-3 text-3xl font-black tracking-widest" style={{ color: "var(--fg)" }}>
+        <div className="flex flex-col items-center">
+          <span className="px-3 py-1.5 rounded-lg border shadow-inner" style={{ background: "var(--surface-raised)", borderColor: "var(--border)" }}>{pad(h)}</span>
+          <span className="text-[10px] mt-1 uppercase tracking-wider" style={{ color: "var(--fg-faint)" }}>HRS</span>
+        </div>
+        <span className="pb-4 opacity-50" style={{ color: "var(--accent)" }}>:</span>
+        <div className="flex flex-col items-center">
+          <span className="px-3 py-1.5 rounded-lg border shadow-inner" style={{ background: "var(--surface-raised)", borderColor: "var(--border)" }}>{pad(m)}</span>
+          <span className="text-[10px] mt-1 uppercase tracking-wider" style={{ color: "var(--fg-faint)" }}>MIN</span>
+        </div>
+        <span className="pb-4 opacity-50" style={{ color: "var(--accent)" }}>:</span>
+        <div className="flex flex-col items-center">
+          <span className="px-3 py-1.5 rounded-lg border shadow-inner" style={{ background: "var(--surface-raised)", borderColor: "var(--border)" }}>{pad(s)}</span>
+          <span className="text-[10px] mt-1 uppercase tracking-wider" style={{ color: "var(--fg-faint)" }}>SEC</span>
+        </div>
       </div>
     </div>
   );
@@ -330,10 +346,13 @@ export function PricingCards() {
             key={plan.id}
             className={cn(
               "relative rounded-3xl p-6 sm:p-8 flex flex-col justify-between transition-all duration-300",
-              plan.popular
-                ? "bg-[#0b0410] border-2 border-purple-500 shadow-[0_0_50px_rgba(168,85,247,0.4)] lg:-translate-y-3 ring-2 ring-purple-500/50"
-                : "bg-[#111116] border border-white/10 hover:border-white/20 shadow-[0_10px_30px_rgba(0,0,0,0.3)]"
+              plan.popular ? "lg:-translate-y-3" : ""
             )}
+            style={{
+              background: "var(--surface)",
+              border: plan.popular ? "2px solid var(--accent)" : "1px solid var(--border)",
+              boxShadow: plan.popular ? "var(--card-shadow-hover)" : "var(--card-shadow)",
+            }}
           >
             {/* Top Badge */}
             {plan.badge && (
@@ -352,22 +371,22 @@ export function PricingCards() {
             <div>
               {/* Plan Title & Savings */}
               <div className="flex items-center justify-between gap-2 mb-2">
-                <h3 className="text-xl font-bold text-white tracking-tight">{plan.name}</h3>
+                <h3 className="text-xl font-bold tracking-tight" style={{ color: "var(--fg)" }}>{plan.name}</h3>
                 {plan.savings && (
-                  <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-extrabold shadow-sm">
+                  <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 text-xs font-extrabold shadow-sm">
                     {plan.savings}
                   </span>
                 )}
               </div>
 
-              <p className="text-xs text-muted-foreground min-h-[32px] mb-5">{plan.description}</p>
+              <p className="text-xs min-h-[32px] mb-5" style={{ color: "var(--fg-muted)" }}>{plan.description}</p>
 
               {/* Price Display */}
               <div className="mb-6 relative">
                 {plan.id === "monthly" && (
                   <div className="absolute -left-12 top-4 opacity-80 hidden sm:block animate-pulse">
                     {/* Hand-drawn arrow SVG */}
-                    <svg width="40" height="40" viewBox="0 0 100 100" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" className="rotate-[15deg]">
+                    <svg width="40" height="40" viewBox="0 0 100 100" fill="none" stroke="var(--accent)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" className="rotate-[15deg]">
                       <path d="M10,80 Q30,20 90,50 M70,30 L90,50 L60,70" />
                     </svg>
                   </div>
@@ -379,53 +398,55 @@ export function PricingCards() {
                 )}
                 {plan.originalPrice && (
                   <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
+                    <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--fg-faint)" }}>
                       Original Price
                     </span>
-                    <span className="text-sm font-bold text-red-400/90 line-through decoration-red-500/70">
+                    <span className="text-sm font-bold text-red-500 line-through">
                       ₹{plan.originalPrice}
                     </span>
                   </div>
                 )}
                 <div className="flex items-baseline gap-2 mb-1.5">
-                  <span className={cn(
-                    "font-black tracking-tight",
-                    plan.id === "monthly" ? "text-7xl sm:text-8xl text-white drop-shadow-[0_0_25px_rgba(255,255,255,0.6)]" : "text-4xl sm:text-5xl text-white"
-                  )}>
+                  <span
+                    className={cn(
+                      "font-black tracking-tight",
+                      plan.id === "monthly" ? "text-6xl sm:text-7xl" : "text-4xl sm:text-5xl"
+                    )}
+                    style={{ color: "var(--fg)" }}
+                  >
                     {activeOffer ? `₹${Math.max(0, plan.price - activeOffer.discount_value_inr)}` : `₹${plan.price}`}
                   </span>
-                  <span className={cn(
-                    "font-medium", 
-                    plan.id === "monthly" ? "text-lg text-white/90" : "text-xs text-muted-foreground"
-                  )}>/ {plan.period}</span>
+                  <span className="font-medium text-xs" style={{ color: "var(--fg-muted)" }}>
+                    / {plan.period}
+                  </span>
                 </div>
                 {activeOffer && (
-                   <div className="text-xs font-bold text-green-400 mb-1.5 bg-green-500/10 px-2 py-1 rounded inline-block">
+                   <div className="text-xs font-bold text-green-500 mb-1.5 bg-green-500/10 px-2 py-1 rounded inline-block">
                      🎉 Special Offer Applied: {activeOffer.name}
                    </div>
                 )}
                 {plan.monthlyEquivalent ? (
-                  <div className="text-xs font-bold text-forge-400 tracking-wide">
+                  <div className="text-xs font-bold tracking-wide" style={{ color: "var(--accent)" }}>
                     {plan.monthlyEquivalent} · Billed upfront
                   </div>
                 ) : (
-                  <div className="text-xs font-semibold text-muted-foreground">
+                  <div className="text-xs font-semibold" style={{ color: "var(--fg-muted)" }}>
                     Billed monthly · Cancel anytime
                   </div>
                 )}
               </div>
 
-              <div className="w-full h-px bg-white/[0.08] mb-6" />
+              <div className="w-full h-px mb-6" style={{ background: "var(--border)" }} />
 
               {/* Feature List */}
               <div className="space-y-3.5 mb-8">
-                <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--fg-faint)" }}>
                   Included Features:
                 </div>
                 {plan.features.map((feat, idx) => (
-                  <div key={idx} className="flex items-start gap-2.5 text-xs text-white/90">
+                  <div key={idx} className="flex items-start gap-2.5 text-xs" style={{ color: "var(--fg)" }}>
                     <div className="w-4 h-4 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                      <Check className="w-3 h-3 text-emerald-400 stroke-[3]" />
+                      <Check className="w-3 h-3 text-emerald-500 stroke-[3]" />
                     </div>
                     <span className="leading-snug">{feat}</span>
                   </div>
@@ -436,7 +457,7 @@ export function PricingCards() {
             {/* Button */}
             <div>
               {buttonState.isCurrent ? (
-                <div className="w-full py-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-xs flex items-center justify-center gap-2">
+                <div className="w-full py-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 font-bold text-xs flex items-center justify-center gap-2">
                   <Award className="w-4 h-4" />
                   <span>{buttonState.text}</span>
                 </div>
@@ -445,31 +466,41 @@ export function PricingCards() {
                   <button
                     onClick={() => handleSelectPlan(plan)}
                     disabled={isLoading || buttonState.disabled}
-                  className={cn(
-                    "w-full py-4 px-6 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 group",
-                    plan.popular
-                      ? "bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 text-red-950 shadow-[0_0_30px_rgba(245,158,11,0.6)] hover:shadow-[0_0_45px_rgba(245,158,11,0.8)] scale-105"
-                      : "bg-white/[0.06] hover:bg-white/[0.1] text-white border border-white/10",
-                    (isLoading || buttonState.disabled) && "opacity-70 cursor-not-allowed"
+                    className={cn(
+                      "w-full py-4 px-6 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 group shadow-sm",
+                      (isLoading || buttonState.disabled) && "opacity-70 cursor-not-allowed"
+                    )}
+                    style={
+                      plan.popular
+                        ? {
+                            background: "var(--accent)",
+                            color: "var(--accent-fg)",
+                            boxShadow: "var(--card-shadow-hover)",
+                          }
+                        : {
+                            background: "var(--surface-raised)",
+                            color: "var(--fg)",
+                            border: "1px solid var(--border)",
+                          }
+                    }
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Initiating Checkout...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>{buttonState.text}</span>
+                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </>
+                    )}
+                  </button>
+                  {plan.id === "monthly" && (
+                    <p className="text-center text-[11px] mt-3 font-medium" style={{ color: "var(--fg-faint)" }}>
+                      Secure Razorpay checkout &bull; Cancel anytime
+                    </p>
                   )}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Initiating Checkout...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>{buttonState.text}</span>
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </>
-                  )}
-                </button>
-                {plan.id === "monthly" && (
-                  <p className="text-center text-[11px] text-muted-foreground mt-3 font-medium">
-                    Secure Razorpay checkout &bull; Cancel anytime
-                  </p>
-                )}
                 </>
               )}
             </div>

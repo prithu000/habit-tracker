@@ -28,11 +28,11 @@ BADGE_CATALOG: List[Dict] = [
     {
         "slug": "first_routine",
         "name": "Routine Starter",
-        "description": "Complete an entire routine for the first time.",
+        "description": "Complete all tasks in a category for the first time.",
         "icon": "📋",
         "rarity": "common",
         "xp_reward": 20,
-        "check": lambda u, ctx: ctx["routines_fully_completed"] >= 1,
+        "check": lambda u, ctx: ctx["categories_fully_completed"] >= 1,
     },
 
     # ── Streak Badges ──
@@ -225,15 +225,15 @@ BADGE_CATALOG: List[Dict] = [
         "check": lambda u, ctx: ctx["early_morning_completions"] >= 50,
     },
 
-    # ── Routines ──
+    # ── Categories ──
     {
         "slug": "three_routines",
         "name": "Multi-Track",
-        "description": "Run 3 or more active routines.",
+        "description": "Have tasks in 3 or more active categories.",
         "icon": "🔁",
         "rarity": "common",
         "xp_reward": 30,
-        "check": lambda u, ctx: ctx["active_routine_count"] >= 3,
+        "check": lambda u, ctx: ctx["active_category_count"] >= 3,
     },
 ]
 
@@ -254,7 +254,7 @@ class AchievementEngine:
         from apps.rewards.models import Badge, UserBadge
         from apps.streaks.models import StreakRecord
         from apps.completions.models import Completion, DayLog
-        from apps.routines.models import Routine
+        from apps.routines.models import Task
         from apps.rewards.models import XPTransaction
         from django.db.models import Count, Sum, Max
         from django.utils import timezone as dtz
@@ -271,34 +271,40 @@ class AchievementEngine:
         # ── Build context — all via DB aggregation, zero Python loops ──
         overall_streak = (
             StreakRecord.objects
-            .filter(user=user, routine__isnull=True)
+            .filter(user=user)
             .only("current_streak", "longest_streak")
             .first()
         )
 
         total_completions = Completion.objects.filter(user=user).count()
         perfect_days = DayLog.objects.filter(user=user, completion_rate=100).count()
-        active_routines = Routine.objects.filter(user=user, is_active=True).count()
 
-        # Routines fully completed: use DB GROUP BY + HAVING instead of nested Python loops
+        # Count distinct categories with active tasks
         from django.db.models import Count as DCount
-        routines_fully_done = 0
-        for routine in Routine.objects.filter(user=user, is_active=True).prefetch_related("tasks"):
-            task_ids = list(routine.tasks.filter(is_active=True).values_list("id", flat=True))
-            task_count = len(task_ids)
-            if not task_count:
+        active_categories = (
+            Task.objects.filter(user=user, is_active=True)
+            .values("category")
+            .annotate(n=DCount("id"))
+            .count()
+        )
+
+        # Categories fully completed: any day where all tasks in a category were done
+        categories_done = 0
+        for row in Task.objects.filter(user=user, is_active=True).values("category").annotate(n=DCount("id")):
+            cat = row["category"]
+            task_count = row["n"]
+            if task_count == 0:
                 continue
-            # Single DB query: find any day where task_count distinct tasks were completed
             fully_done_day = (
                 Completion.objects
-                .filter(user=user, task__in=task_ids)
+                .filter(user=user, task__category=cat)
                 .values("local_date")
                 .annotate(done=DCount("id"))
-                .filter(done=task_count)
+                .filter(done__gte=task_count)
                 .exists()
             )
             if fully_done_day:
-                routines_fully_done += 1
+                categories_done += 1
 
         # Perfect day streak — single ordered query, stop at first gap in Python
         import datetime
@@ -341,8 +347,8 @@ class AchievementEngine:
             "current_level": user.current_level,
             "perfect_days": perfect_days,
             "perfect_days_streak": perfect_day_streak,
-            "active_routine_count": active_routines,
-            "routines_fully_completed": routines_fully_done,
+            "active_category_count": active_categories,
+            "categories_fully_completed": categories_done,
             "early_morning_completions": early_completions,
         }
 
@@ -385,7 +391,7 @@ class AchievementEngine:
                     )
 
                     # Send notification
-                                        pass
+                    pass
 
                     logger.info("Badge '%s' awarded to user %s", slug, user.id)
 

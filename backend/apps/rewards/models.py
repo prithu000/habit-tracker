@@ -153,3 +153,20 @@ class UserHardcoreAchievement(BaseModel):
     def __str__(self):
         return f"{self.user.email} — {self.achievement.name} ({self.progress}/{self.achievement.target_value})"
 
+
+class LeaderboardTitle(models.Model):
+    """
+    Title and flavor description associated with Arena top rank positions (1–5).
+    Database-driven so titles can be updated from Django Admin without deploying code.
+    """
+    rank_position = models.PositiveSmallIntegerField(unique=True)
+    title_name = models.CharField(max_length=50)
+    description = models.CharField(max_length=120, blank=True)
+
+    class Meta:
+        db_table = "rewards_leaderboardtitle"
+        ordering = ["rank_position"]
+
+    def __str__(self):
+        return f"#{self.rank_position} — {self.title_name}"
+

@@ -10,7 +10,7 @@ import { DesktopExperienceBanner } from "@/components/shared/DesktopExperienceBa
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#0a0a0c] text-foreground relative selection:bg-forge-500/30 selection:text-forge-200">
+    <div className="flex h-screen w-screen overflow-hidden relative selection:bg-[#8B5CF6]/30 selection:text-[#F5F5F7]" style={{ background: "var(--bg)", color: "var(--fg)" }}>
       {/* Client Background & Focus Player Wrapper */}
       <StudioBackgroundWrapper />
 

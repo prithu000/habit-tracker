@@ -26,7 +26,7 @@ Invalidated on: task completion, undo, midnight rollover.
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from django.db.models import Sum, Count, Q, Prefetch
+from django.db.models import Sum, Count, Q
 from drf_spectacular.utils import extend_schema
 import logging
 
@@ -43,26 +43,32 @@ def _build_dashboard(user, local_date) -> dict:
     Core dashboard computation. Called only on cache miss.
     All DB access happens here — designed for minimum round trips.
     """
-    from apps.routines.models import Routine, Task
+    from apps.routines.models import Task
     from apps.completions.models import Completion, DayLog
     from apps.streaks.models import StreakRecord
     from apps.rewards.models import XPTransaction, UserBadge
     from apps.analytics.models import UserOSGoals, DailyOSMetrics, CustomWidget, WidgetLog
 
-    # ── Query 1: Routines + tasks (2 DB hits via prefetch) ──
-    # Use Prefetch with queryset to filter tasks in-DB, not Python
-    active_tasks_qs = Task.objects.filter(is_active=True).only(
-        "id", "name", "description", "duration_minutes",
-        "sort_order", "routine_id"
-    )
-    routines = list(
-        Routine.objects.filter(user=user, is_active=True)
-        .prefetch_related(
-            Prefetch("tasks", queryset=active_tasks_qs, to_attr="active_tasks"),
-            "schedule",
+    CATEGORY_LABELS = {
+        "fitness":       "Fitness",
+        "learning":      "Learning",
+        "work":          "Work",
+        "mental_health": "Mental Health",
+        "health":        "Health",
+        "sleep":         "Sleep",
+        "finance":       "Finance",
+        "personal":      "Personal",
+        "discipline":    "Discipline",
+    }
+
+    # ── Query 1: All active tasks for this user ──
+    tasks = list(
+        Task.objects.filter(user=user, is_active=True)
+        .only(
+            "id", "name", "description", "duration_minutes",
+            "sort_order", "category", "frequency",
         )
-        .only("id", "name", "icon", "color", "time_of_day", "sort_order")
-        .order_by("sort_order")
+        .order_by("category", "sort_order")
     )
 
     # ── Query 2: All of today's completions in one shot ──
@@ -88,7 +94,7 @@ def _build_dashboard(user, local_date) -> dict:
 
     streak_record = (
         StreakRecord.objects
-        .filter(user=user, routine__isnull=True)
+        .filter(user=user)
         .only("current_streak", "longest_streak", "last_completed_date", "grace_period_used")
         .first()
     )
@@ -110,26 +116,27 @@ def _build_dashboard(user, local_date) -> dict:
         .values("badge__slug", "badge__name", "badge__icon", "badge__rarity")
     )
 
-    # ── Assemble routine blocks ──
-    routine_blocks = []
+    # ── Group tasks by category ──
+    from collections import defaultdict
+    category_map = defaultdict(list)
+    for task in tasks:
+        category_map[task.category].append(task)
+
+    category_blocks = []
     total_tasks = 0
     total_done = 0
 
-    for routine in routines:
-        if not routine.is_scheduled_for(local_date):
-            continue
-
-        tasks_for_routine = getattr(routine, "active_tasks", [])
-
+    for category in sorted(category_map.keys()):
+        cat_tasks = category_map[category]
         tasks_out = []
-        r_done = 0
+        cat_done = 0
 
-        for task in sorted(tasks_for_routine, key=lambda t: t.sort_order):
+        for task in sorted(cat_tasks, key=lambda t: t.sort_order):
             tid = str(task.id)
             comp = completed_map.get(tid)
             is_done = comp is not None
             if is_done:
-                r_done += 1
+                cat_done += 1
                 total_done += 1
             total_tasks += 1
             tasks_out.append({
@@ -138,6 +145,8 @@ def _build_dashboard(user, local_date) -> dict:
                 "description": task.description,
                 "duration_minutes": task.duration_minutes,
                 "sort_order": task.sort_order,
+                "category": task.category,
+                "frequency": task.frequency,
                 "is_completed": is_done,
                 "completed_at": comp.completed_at.isoformat() if comp else None,
                 "note": comp.note if comp else "",
@@ -145,18 +154,14 @@ def _build_dashboard(user, local_date) -> dict:
                 "completion_id": str(comp.id) if comp else None,
             })
 
-        task_count = len(tasks_for_routine)
-        routine_blocks.append({
-            "id": str(routine.id),
-            "name": routine.name,
-            "icon": routine.icon,
-            "color": routine.color,
-            "time_of_day": routine.time_of_day,
-            "sort_order": routine.sort_order,
-            "is_complete": r_done == task_count and task_count > 0,
-            "task_count": task_count,
-            "completed_count": r_done,
-            "completion_rate": round(r_done / task_count * 100, 1) if task_count else 0.0,
+        tc = len(cat_tasks)
+        category_blocks.append({
+            "category": category,
+            "label": CATEGORY_LABELS.get(category, category.title()),
+            "is_complete": cat_done == tc and tc > 0,
+            "task_count": tc,
+            "completed_count": cat_done,
+            "completion_rate": round(cat_done / tc * 100, 1) if tc else 0.0,
             "tasks": tasks_out,
         })
 
@@ -261,7 +266,9 @@ def _build_dashboard(user, local_date) -> dict:
                 "xp_earned_today": xp_today,
                 "current_streak": current_streak,
             },
-            "routines": routine_blocks,
+            "categories": category_blocks,
+            # Empty list for any legacy consumers
+            "routines": [],
         },
         # ── Sidebar widgets ──
         "widgets": {

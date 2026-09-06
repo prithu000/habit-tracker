@@ -84,20 +84,25 @@ export function MobileAddTaskSheet({
                 onClose();
               }
             }}
-            className="fixed bottom-0 left-0 right-0 z-[101] bg-[#0a0a0c]/95 border-t border-white/10 rounded-t-[24px] shadow-2xl flex flex-col max-h-[80vh] overflow-hidden backdrop-blur-xl"
+            className="fixed bottom-0 left-0 right-0 z-[101] border-t rounded-t-[24px] shadow-2xl flex flex-col max-h-[80vh] overflow-hidden backdrop-blur-xl"
+            style={{
+              background: "var(--surface)",
+              borderColor: "var(--border)",
+              color: "var(--fg)",
+            }}
           >
             {/* Drag Handle */}
             <div 
               className="w-full flex justify-center pt-4 pb-2 cursor-grab touch-none"
               onPointerDown={(e) => dragControls.start(e)}
             >
-              <div className="w-12 h-1.5 rounded-full bg-white/20" />
+              <div className="w-12 h-1.5 rounded-full bg-[var(--border)]" />
             </div>
 
             {/* Content (Scrollable) */}
             <div className="flex-1 overflow-y-auto px-5 pb-8 pt-2 no-scrollbar">
-              <h2 className="text-xl font-bold text-white mb-1">Add New Task</h2>
-              <p className="text-sm text-muted-foreground mb-6">Create a new task for <span className="font-semibold text-white/80">{routineName}</span>.</p>
+              <h2 className="text-xl font-bold mb-1" style={{ color: "var(--fg)" }}>Add New Task</h2>
+              <p className="text-sm mb-6" style={{ color: "var(--fg-muted)" }}>Create a new task for <span className="font-semibold" style={{ color: "var(--fg)" }}>{routineName}</span>.</p>
 
               {/* Task Name */}
               <div className="space-y-4">
@@ -108,7 +113,12 @@ export function MobileAddTaskSheet({
                   value={taskName}
                   onChange={(e) => setTaskName(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-base text-white placeholder:text-white/30 focus:outline-none focus:border-forge-500/50 focus:ring-1 focus:ring-forge-500/50 transition-all"
+                  className="w-full rounded-xl px-4 py-3 text-base border focus:outline-none transition-colors"
+                  style={{
+                    background: "var(--surface-raised)",
+                    borderColor: "var(--border)",
+                    color: "var(--fg)",
+                  }}
                 />
 
                 {/* Options Accordion */}

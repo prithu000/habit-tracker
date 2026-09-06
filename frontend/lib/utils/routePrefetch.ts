@@ -145,10 +145,10 @@ export function prewarmBundles() {
 
   scheduleIdlePrefetch(async () => {
     try {
-      // Prewarm Calendar page
-      await import("@/app/(app)/calendar/page");
+      // Prewarm Tasks page
+      await import("@/app/(app)/tasks/page");
     } catch (error) {
-      console.warn("[Prewarm] Failed to prewarm calendar:", error);
+      console.warn("[Prewarm] Failed to prewarm tasks:", error);
     }
   });
 }

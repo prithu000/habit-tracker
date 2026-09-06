@@ -145,46 +145,44 @@ def custom_widget_log_view(request, pk):
 @permission_classes([IsAuthenticated])
 def report_settings_view(request):
     """
-    GET: Retrieve user's report settings (which Routines to show in Habit Breakdown).
-    PUT/PATCH: Update the selected Routines.
-
-    selected_habit_breakdown now stores Routine UUIDs — the same identifiers the
-    Dashboard uses for per-routine progress. This ensures Dashboard and Reports
-    derive habit completion from the same Completion records.
+    GET: Retrieve user's report settings (which categories to highlight in Habit Breakdown).
+    PUT/PATCH: Update selected categories.
     """
-    from apps.routines.models import Routine as _Routine
+    VALID_CATEGORIES = {
+        "fitness", "learning", "work", "mental_health",
+        "health", "sleep", "finance", "personal", "discipline",
+    }
+    CATEGORY_META = {
+        "fitness":       {"label": "Fitness",       "icon": "🏋️"},
+        "learning":      {"label": "Learning",      "icon": "📚"},
+        "work":          {"label": "Work",           "icon": "💼"},
+        "mental_health": {"label": "Mental Health",  "icon": "🧠"},
+        "health":        {"label": "Health",         "icon": "❤️"},
+        "sleep":         {"label": "Sleep",          "icon": "🌙"},
+        "finance":       {"label": "Finance",        "icon": "💰"},
+        "personal":      {"label": "Personal",       "icon": "⭐"},
+        "discipline":    {"label": "Discipline",     "icon": "🎯"},
+    }
+
     user = request.user
     settings, _ = ReportSettings.objects.get_or_create(user=user)
 
     if request.method in ["PUT", "PATCH"]:
         data = request.data
-        # Accept either key name for backward compatibility
-        if "selected_widget_ids" in data:
-            selected = data["selected_widget_ids"]
-        elif "selected_habit_breakdown" in data:
-            selected = data["selected_habit_breakdown"]
-        else:
-            selected = None
+        selected = data.get("selected_widget_ids") or data.get("selected_habit_breakdown")
 
         if selected is not None:
             if not isinstance(selected, list):
                 return Response({"error": "selected_widget_ids must be a list"}, status=400)
             if len(selected) > 4:
-                return Response({"error": "Maximum 4 habits can be selected"}, status=400)
+                return Response({"error": "Maximum 4 categories can be selected"}, status=400)
 
-            str_ids = [str(sid) for sid in selected]
+            # Validate that submitted values are valid category slugs
+            valid = [s for s in selected if s in VALID_CATEGORIES]
 
-            # Validate that IDs belong to the user's active Routines
-            valid_qs = _Routine.objects.filter(
-                id__in=str_ids, user=user, is_active=True
-            ).values_list("id", flat=True)
-            valid_id_strs = [str(vid) for vid in valid_qs]
-
-            # Preserve the user's chosen order
-            ordered_valid = [sid for sid in str_ids if sid in valid_id_strs]
-
-            settings.selected_habit_breakdown = ordered_valid
+            settings.selected_habit_breakdown = valid
             settings.save()
+            CacheService.invalidate_reports(str(user.id))
             CacheService.invalidate_all(str(user.id))
 
             return Response({
@@ -193,28 +191,17 @@ def report_settings_view(request):
             })
         return Response({"error": "Missing selected_widget_ids"}, status=400)
 
-    # GET — return saved routine IDs with metadata so the frontend can render the modal
-    raw_ids = settings.selected_habit_breakdown or []
-    str_ids = [str(sid) for sid in raw_ids]
-
-    # Validate that selected routines still exist and are active
-    valid_routines = _Routine.objects.filter(
-        id__in=str_ids, user=user, is_active=True
-    ).only("id", "name", "icon", "color")
-    valid_by_id = {str(r.id): r for r in valid_routines}
-
-    ordered_valid = [sid for sid in str_ids if sid in valid_by_id]
+    # GET — return saved category slugs with metadata
+    selected = [s for s in (settings.selected_habit_breakdown or []) if s in VALID_CATEGORIES]
 
     return Response({
-        "selected_widget_ids": ordered_valid,
-        # Include routine metadata so the ReportSettingsModal can render without a second request
-        "selected_routines": [
+        "selected_widget_ids": selected,
+        "selected_categories": [
             {
-                "id": sid,
-                "name": valid_by_id[sid].name,
-                "icon": valid_by_id[sid].icon,
-                "color": valid_by_id[sid].color,
+                "id": slug,
+                "name": CATEGORY_META[slug]["label"],
+                "icon": CATEGORY_META[slug]["icon"],
             }
-            for sid in ordered_valid
+            for slug in selected
         ],
     })

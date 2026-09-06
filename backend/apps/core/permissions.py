@@ -50,12 +50,12 @@ class IsAuthenticatedAndOnboarded(BasePermission):
         return request.user.onboarding_completed
 
 
-class IsRoutineOwner(IsOwner):
+class IsTaskOwner(IsOwner):
     """
-    Specifically for Routine objects.
-    Also covers Task access through routine ownership.
+    Object-level permission for Task objects.
+    Task now has a direct `user` FK, so IsOwner handles it.
     """
-    message = "You do not own this routine."
+    message = "You do not own this task."
 
 
 class IsSelf(BasePermission):

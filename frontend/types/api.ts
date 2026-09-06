@@ -59,10 +59,26 @@ export interface ApiResponse<T> {
   } | null;
 }
 
+export type TaskCategory =
+  | "fitness"
+  | "learning"
+  | "work"
+  | "mental_health"
+  | "health"
+  | "sleep"
+  | "finance"
+  | "personal"
+  | "discipline";
+
+export type TaskFrequency = "daily" | "weekly" | "anytime";
+
 export interface Task {
   id: string;
   name: string;
   description: string;
+  category?: TaskCategory;
+  frequency?: TaskFrequency;
+  due_date?: string | null;
   duration_minutes: number;
   sort_order: number;
   is_completed: boolean;
@@ -70,6 +86,18 @@ export interface Task {
   note: string;
   mood: number | null;
   completion_id: string | null;
+  is_active?: boolean;
+  created_at?: string;
+}
+
+export interface CategoryBlock {
+  category: TaskCategory;
+  label: string;
+  is_complete: boolean;
+  task_count: number;
+  completed_count: number;
+  completion_rate: number;
+  tasks: Task[];
 }
 
 export interface RoutineBlock {
@@ -98,7 +126,8 @@ export interface DashboardData {
       xp_earned_today: number;
       current_streak: number;
     };
-    routines: RoutineBlock[];
+    categories: CategoryBlock[];
+    routines?: RoutineBlock[];
   };
   widgets: {
     streak: {

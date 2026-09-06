@@ -2,8 +2,15 @@
 FORGE — Rewards Admin
 """
 from django.contrib import admin
-from apps.rewards.models import Badge, UserBadge, XPTransaction
+from apps.rewards.models import Badge, UserBadge, XPTransaction, LeaderboardTitle
 from apps.core.admin import ForgeBaseAdmin
+
+
+@admin.register(LeaderboardTitle)
+class LeaderboardTitleAdmin(admin.ModelAdmin):
+    list_display = ["rank_position", "title_name", "description"]
+    list_editable = ["title_name", "description"]
+    ordering = ["rank_position"]
 
 
 @admin.register(Badge)

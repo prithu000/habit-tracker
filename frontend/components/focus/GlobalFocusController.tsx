@@ -198,27 +198,39 @@ export function GlobalFocusController() {
             }
           }}
           className={cn(
-            "p-4 rounded-2xl bg-[#0a0a0c]/90 backdrop-blur-2xl border border-purple-500/40 hover:border-purple-500/80 shadow-[0_10px_40px_rgba(139,92,246,0.3)] transition-all cursor-pointer group flex items-center justify-between gap-3 relative overflow-hidden",
-            status === "completed" && "border-emerald-500/60 shadow-[0_10px_40px_rgba(16,185,129,0.3)]"
+            "p-4 rounded-2xl backdrop-blur-2xl border transition-all cursor-pointer group flex items-center justify-between gap-3 relative overflow-hidden",
+            status === "completed" ? "border-emerald-500/60 shadow-[0_10px_40px_rgba(16,185,129,0.2)]" : "border-[var(--accent)]/40 hover:border-[var(--accent)] shadow-[0_10px_40px_rgba(0,0,0,0.15)]"
           )}
+          style={{
+            background: "var(--surface)",
+            borderColor: status === "completed" ? undefined : "var(--border)",
+            color: "var(--fg)",
+          }}
         >
           {/* Subtle animated background glow */}
-          <div className="absolute -left-10 -bottom-10 w-28 h-28 bg-purple-600/20 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-700" />
+          <div className="absolute -left-10 -bottom-10 w-28 h-28 bg-[var(--accent)]/10 rounded-full blur-2xl pointer-events-none group-hover:scale-125 transition-transform duration-700" />
           
           <div className="flex items-center gap-3 min-w-0 flex-1 relative z-10">
-            <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center shrink-0 shadow-inner group-hover:bg-purple-500/20 transition-colors">
+            <div 
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border transition-colors"
+              style={{
+                background: "var(--accent-subtle)",
+                borderColor: "var(--accent-border)",
+                color: "var(--accent)",
+              }}
+            >
               {getModeIcon()}
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-purple-300 truncate flex items-center gap-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider truncate flex items-center gap-1" style={{ color: "var(--accent)" }}>
                   🍅 Focus Session
                 </span>
                 {pathname !== "/focus" && (
-                  <ArrowUpRight className="w-3 h-3 text-muted-foreground group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0" />
+                  <ArrowUpRight className="w-3 h-3 text-[var(--fg-muted)] group-hover:text-[var(--fg)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0" />
                 )}
               </div>
-              <p className="text-xs text-white font-medium truncate mt-0.5" title={selectedTask}>
+              <p className="text-xs font-medium truncate mt-0.5" style={{ color: "var(--fg)" }} title={selectedTask}>
                 {selectedTask}
               </p>
             </div>
@@ -226,10 +238,10 @@ export function GlobalFocusController() {
 
           <div className="flex items-center gap-2 relative z-10 shrink-0">
             <div className="text-right mr-1">
-              <span className="text-lg font-mono font-black tracking-tight text-white block leading-none">
+              <span className="text-lg font-mono font-black tracking-tight block leading-none" style={{ color: "var(--fg)" }}>
                 {formatTime(remainingTime)}
               </span>
-              <span className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground block mt-0.5">
+              <span className="text-[9px] font-mono uppercase tracking-widest text-[var(--fg-muted)] block mt-0.5">
                 {status === "paused" ? "PAUSED" : status === "completed" ? "DONE" : "LIVE"}
               </span>
             </div>

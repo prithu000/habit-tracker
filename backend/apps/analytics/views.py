@@ -113,7 +113,7 @@ def weekly_analytics(request):
 
     streak = (
         StreakRecord.objects
-        .filter(user=user, routine__isnull=True)
+        .filter(user=user)
         .only("current_streak")
         .first()
     )
@@ -148,7 +148,7 @@ def weekly_analytics(request):
 def monthly_analytics(request):
     """GET /api/v1/analytics/monthly/?year=2026&month=7 — Cached 600s"""
     from apps.completions.models import DayLog, Completion
-    from apps.routines.models import Routine, Task
+    from apps.routines.models import Task
     from django.db.models import Avg, Sum, Count
     from apps.core.utils import get_month_bounds, safe_percentage
     from services.calendar_engine import CalendarEngine
@@ -183,22 +183,21 @@ def monthly_analytics(request):
     active_days = sum(1 for l in logs if l.tasks_completed > 0)
     perfect_days = sum(1 for l in logs if float(l.completion_rate) == 100)
 
-    # Routine breakdown — uses annotated aggregate, not Python loops
-    routine_stats = (
+    # Category breakdown — uses annotated aggregate, not Python loops
+    category_stats = (
         Completion.objects
         .filter(user=user, local_date__range=[first_day, last_day])
-        .values("task__routine_id", "task__routine__name", "task__routine__icon")
+        .values("task__category")
         .annotate(done=Count("id"))
         .order_by("-done")
     )
-    routines_breakdown = [
+    categories_breakdown = [
         {
-            "routine_id": str(r["task__routine_id"]),
-            "routine_name": r["task__routine__name"],
-            "routine_icon": r["task__routine__icon"],
+            "category": r["task__category"] or "personal",
+            "label": (r["task__category"] or "personal").replace("_", " ").title(),
             "tasks_completed": r["done"],
         }
-        for r in routine_stats
+        for r in category_stats
     ]
 
     # Day-of-week averages (in Python from already-fetched logs)
@@ -229,7 +228,7 @@ def monthly_analytics(request):
             "perfect_days": perfect_days,
             "total_days": (last_day - first_day).days + 1,
         },
-        "routines_breakdown": routines_breakdown,
+        "categories_breakdown": categories_breakdown,
         "weekday_averages": weekday_chart,
         "calendar_grid": calendar_grid,
     }
@@ -299,7 +298,7 @@ def year_analytics(request):
 
     streak = (
         StreakRecord.objects
-        .filter(user=user, routine__isnull=True)
+        .filter(user=user)
         .only("longest_streak")
         .first()
     )

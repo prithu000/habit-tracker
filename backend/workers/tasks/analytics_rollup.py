@@ -16,7 +16,7 @@ def run_daily_rollup():
     Materializes yesterday's completions into DayLog for every user.
     """
     from django.contrib.auth import get_user_model
-    from apps.routines.models import Routine, Task
+    from apps.routines.models import Task
     from apps.completions.models import Completion, DayLog
     from apps.rewards.models import XPTransaction
     from django.db.models import Count, Sum
@@ -27,9 +27,7 @@ def run_daily_rollup():
     users = User.objects.filter(is_active=True)
     for user in users:
         try:
-            # Get all active tasks for scheduled routines
-            routines = Routine.objects.filter(user=user, is_active=True)
-            total_tasks = Task.objects.filter(routine__in=routines, is_active=True).count()
+            total_tasks = Task.objects.filter(user=user, is_active=True).count()
 
             completions = Completion.objects.filter(user=user, local_date=yesterday)
             completed_count = completions.count()
@@ -38,15 +36,17 @@ def run_daily_rollup():
                 user=user, created_at__date=yesterday
             ).aggregate(total=Sum("amount"))["total"] or 0
 
-            # Count routines where all tasks were completed
-            routines_done = 0
-            for routine in routines:
-                routine_tasks = list(Task.objects.filter(routine=routine, is_active=True).values_list("id", flat=True))
-                if not routine_tasks:
+            # Count categories where all tasks were completed
+            from django.db.models import Count as _Count
+            categories_done = 0
+            for row in Task.objects.filter(user=user, is_active=True).values("category").annotate(n=_Count("id")):
+                cat = row["category"]
+                task_count = row["n"]
+                if task_count == 0:
                     continue
-                done = completions.filter(task_id__in=routine_tasks).count()
-                if done == len(routine_tasks):
-                    routines_done += 1
+                done = completions.filter(task__category=cat).count()
+                if done >= task_count:
+                    categories_done += 1
 
             rate = round((completed_count / total_tasks * 100) if total_tasks else 0, 2)
 
@@ -58,7 +58,7 @@ def run_daily_rollup():
                     "tasks_completed": completed_count,
                     "completion_rate": rate,
                     "xp_earned": xp,
-                    "routines_completed": routines_done,
+                    "routines_completed": categories_done,
                 },
             )
         except Exception as e:
@@ -74,10 +74,10 @@ def generate_weekly_insights():
     Generates WeeklyInsight records with trend analysis.
     """
     from django.contrib.auth import get_user_model
-    from apps.completions.models import DayLog
+    from apps.completions.models import DayLog, Completion
     from apps.analytics.models import WeeklyInsight
-    from apps.routines.models import Routine
-    from django.db.models import Avg
+    from apps.routines.models import Task
+    from django.db.models import Avg, Count as _Count
 
     User = get_user_model()
     today = date.today()
@@ -111,23 +111,22 @@ def generate_weekly_insights():
             else:
                 trend = "stable"
 
-            # Best routine
-            best_routine = None
+            # Best category this week
+            best_category = None
             best_rate = 0
-            for routine in Routine.objects.filter(user=user, is_active=True):
-                from apps.completions.models import Completion
-                from apps.routines.models import Task
-                tasks = Task.objects.filter(routine=routine, is_active=True)
-                if not tasks.exists():
+            for row in Task.objects.filter(user=user, is_active=True).values("category").annotate(n=_Count("id")):
+                cat = row["category"]
+                active_count = row["n"]
+                if active_count == 0:
                     continue
                 done = Completion.objects.filter(
-                    user=user, task__in=tasks, local_date__range=[week_start, today]
+                    user=user, task__category=cat, local_date__range=[week_start, today]
                 ).count()
-                possible = tasks.count() * 7
+                possible = active_count * 7
                 rate = (done / possible * 100) if possible else 0
                 if rate > best_rate:
                     best_rate = rate
-                    best_routine = routine
+                    best_category = cat
 
             # Select insight text
             highlight = INSIGHT_RULES[-1][1]
@@ -140,7 +139,7 @@ def generate_weekly_insights():
                 user=user,
                 week_start=week_start,
                 defaults={
-                    "best_routine": best_routine,
+                    "best_category": best_category or "",
                     "completion_trend": trend,
                     "highlight_text": highlight,
                     "avg_completion_rate": avg_rate,

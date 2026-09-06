@@ -64,26 +64,46 @@ export function RightSidebar() {
         animate={{ x: 0, opacity: 1 }}
         exit={{ x: 380, opacity: 0 }}
         transition={{ type: "spring", damping: 28, stiffness: 300 }}
-        className="fixed right-0 top-[60px] bottom-0 w-full sm:w-[380px] bg-[#0a0a0c]/98 backdrop-blur-3xl border-l border-white/[0.08] shadow-[0_0_50px_rgba(0,0,0,0.8)] z-[60] flex flex-col overflow-hidden"
+        className="fixed right-0 top-[60px] bottom-0 w-full sm:w-[380px] backdrop-blur-3xl border-l z-[60] flex flex-col overflow-hidden"
+        style={{
+          background: "var(--surface)",
+          borderColor: "var(--border)",
+          boxShadow: "var(--card-shadow)",
+          color: "var(--fg)",
+        }}
       >
         {/* Header */}
-        <div className="p-5 border-b border-white/[0.08] flex items-center justify-between bg-white/[0.02]">
+        <div 
+          className="p-5 border-b flex items-center justify-between"
+          style={{
+            background: "var(--surface-raised)",
+            borderColor: "var(--border)",
+          }}
+        >
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-forge-500/10 border border-forge-500/20 flex items-center justify-center text-forge-400">
+            <div 
+              className="w-8 h-8 rounded-lg flex items-center justify-center border"
+              style={{
+                background: "var(--accent-subtle)",
+                borderColor: "var(--accent-border)",
+                color: "var(--accent)",
+              }}
+            >
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="font-display font-bold text-sm tracking-wide text-foreground">
+              <h2 className="font-display font-bold text-sm tracking-wide" style={{ color: "var(--fg)" }}>
                 YOU VS YOU CONTROL
               </h2>
-              <p className="text-[11px] text-muted-foreground uppercase tracking-widest">
+              <p className="text-[11px] uppercase tracking-widest" style={{ color: "var(--fg-muted)" }}>
                 YOU VS YOU Edition
               </p>
             </div>
           </div>
           <button
             onClick={toggleRightSidebar}
-            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="p-2 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+            style={{ color: "var(--fg-muted)" }}
             aria-label="Close Studio Control Panel"
           >
             <X className="w-4 h-4" />
@@ -91,15 +111,30 @@ export function RightSidebar() {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="grid grid-cols-2 p-2 gap-1 border-b border-white/[0.06] bg-black/40">
+        <div 
+          className="grid grid-cols-2 p-2 gap-1 border-b"
+          style={{
+            background: "var(--surface-raised)",
+            borderColor: "var(--border)",
+          }}
+        >
           <button
             onClick={() => setActiveTab("customize")}
             className={cn(
               "py-2.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all min-h-[44px]",
               activeTab === "customize"
-                ? "bg-forge-500/20 text-forge-300 border border-forge-500/30 shadow-[0_0_15px_rgba(139,92,246,0.15)]"
-                : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                ? "border shadow-sm font-bold"
+                : "hover:bg-[var(--surface-hover)]"
             )}
+            style={
+              activeTab === "customize"
+                ? {
+                    background: "var(--accent-subtle)",
+                    color: "var(--accent)",
+                    borderColor: "var(--accent-border)",
+                  }
+                : { color: "var(--fg-muted)" }
+            }
           >
             <Palette className="w-3.5 h-3.5" />
             Customize & Widgets
@@ -366,35 +401,35 @@ export function RightSidebar() {
                   Today&apos;s Agenda
                 </h3>
                 <div className="space-y-2">
-                  {!dashboard || dashboard.today.routines.length === 0 ? (
+                  {(!dashboard || ((dashboard.today.categories?.length || 0) === 0 && (dashboard.today.routines?.length || 0) === 0)) ? (
                     <div className="p-6 text-center text-xs text-muted-foreground bg-white/[0.02] rounded-xl border border-white/[0.05]">
-                      No scheduled routines for today.
+                      No scheduled tasks for today.
                     </div>
                   ) : (
-                    dashboard.today.routines.map((r) => (
+                    (dashboard.today.categories && dashboard.today.categories.length > 0
+                      ? dashboard.today.categories
+                      : (dashboard.today.routines || [])
+                    ).map((item: any) => (
                       <div
-                        key={r.id}
+                        key={item.category || item.id}
                         className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center justify-between"
                       >
                         <div className="flex items-center gap-2.5">
-                          <span
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-base"
-                            style={{ backgroundColor: `${r.color}15`, color: r.color }}
-                          >
-                            {r.icon}
+                          <span className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold bg-white/[0.04] text-zinc-300 border border-white/[0.06]">
+                            {item.label ? item.label.slice(0, 2).toUpperCase() : (item.icon || "✓")}
                           </span>
                           <div>
-                            <p className="text-xs font-semibold text-foreground">{r.name}</p>
+                            <p className="text-xs font-semibold text-foreground">{item.label || item.name}</p>
                             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                              {r.time_of_day} • {r.completed_count}/{r.task_count} tasks
+                              {item.completed_count}/{item.task_count} tasks
                             </p>
                           </div>
                         </div>
-                        {r.is_complete ? (
-                          <CheckCircle2 className="w-4 h-4 text-success" />
+                        {item.is_complete ? (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                         ) : (
-                          <span className="text-xs font-bold text-forge-400">
-                            {r.completion_rate}%
+                          <span className="text-xs font-bold text-amber-400">
+                            {Math.round(item.completion_rate)}%
                           </span>
                         )}
                       </div>

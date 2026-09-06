@@ -10,10 +10,6 @@ User = get_user_model()
 
 class StreakRecord(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="streaks")
-    routine = models.ForeignKey(
-        "routines.Routine", on_delete=models.CASCADE,
-        null=True, blank=True, related_name="streak_records"
-    )  # null = overall streak
     current_streak = models.PositiveIntegerField(default=0)
     longest_streak = models.PositiveIntegerField(default=0)
     last_completed_date = models.DateField(null=True, blank=True)
@@ -21,11 +17,10 @@ class StreakRecord(BaseModel):
 
     class Meta:
         db_table = "streaks_streakrecord"
-        unique_together = [("user", "routine")]
+        unique_together = [("user",)]
         indexes = [
-            models.Index(fields=["user", "routine"]),
+            models.Index(fields=["user"], name="streaks_str_user_id_idx"),
         ]
 
     def __str__(self):
-        label = self.routine.name if self.routine else "Overall"
-        return f"{self.user.email} — {label}: {self.current_streak} days"
+        return f"{self.user.email} — Overall: {self.current_streak} days"

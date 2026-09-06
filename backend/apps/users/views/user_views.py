@@ -136,7 +136,7 @@ def user_stats_view(request):
     user = request.user
 
     # Streak
-    streak = StreakRecord.objects.filter(user=user, routine__isnull=True).first()
+    streak = StreakRecord.objects.filter(user=user).first()
 
     # Completions
     total_completions = Completion.objects.filter(user=user).count()

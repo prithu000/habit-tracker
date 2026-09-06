@@ -11,7 +11,6 @@ import {
   Settings,
   Sparkles,
   Timer,
-  Calendar,
   FileText,
   HelpCircle,
   User,
@@ -29,11 +28,10 @@ import { cn } from "@/lib/utils/cn";
 const navItems = [
   { href: "/dashboard",  label: "Dashboard",   icon: LayoutDashboard },
   { href: "/life-score", label: "Life Score",   icon: Sparkles },
-  { href: "/routines",   label: "Routines",     icon: ListTodo },
+  { href: "/tasks",      label: "Tasks",        icon: ListTodo },
   { href: "/focus",      label: "Focus Mode",   icon: Timer, locked: true },
-  { href: "/calendar",   label: "Planner",      icon: Calendar, locked: true },
   { href: "/analytics",  label: "Analytics",    icon: BarChart3, locked: true },
-  { href: "/leagues",    label: "Arena",        icon: Trophy, locked: true },
+  { href: "/leagues",    label: "Arena (Leagues)", icon: Trophy, locked: true },
   { href: "/reports",    label: "Reports",      icon: FileText, locked: true },
   { href: "/about",      label: "About YvY",    icon: Sparkles },
   { href: "/help",       label: "Help & Bugs",  icon: HelpCircle },
@@ -116,41 +114,54 @@ export const MobileSidebarDrawer = memo(function MobileSidebarDrawer() {
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ type: "spring", stiffness: 320, damping: 32, mass: 0.8 }}
-            className="fixed left-0 top-0 bottom-0 z-[70] w-[280px] flex flex-col lg:hidden
-                       bg-[#0a0a0c]/97 backdrop-blur-2xl border-r border-white/[0.08]
-                       shadow-[4px_0_40px_rgba(0,0,0,0.8)]"
+            className="fixed left-0 top-0 bottom-0 z-[70] w-[270px] flex flex-col lg:hidden border-r shadow-2xl"
+            style={{
+              background: "var(--surface)",
+              borderColor: "var(--border)",
+              color: "var(--fg)",
+            }}
             role="dialog"
             aria-modal="true"
             aria-label="Navigation menu"
             id="mobile-sidebar-drawer"
           >
             {/* Header */}
-            <div className="h-[64px] min-h-[64px] flex items-center justify-between px-4 border-b border-white/[0.08] shrink-0">
+            <div 
+              className="h-[60px] min-h-[60px] flex items-center justify-between px-4 border-b shrink-0"
+              style={{ borderColor: "var(--border)" }}
+            >
               <Link
                 href="/dashboard"
                 className="flex items-center gap-3 group"
                 onClick={closeMobileDrawer}
               >
-                <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-forge-500/20 to-purple-600/10 border border-forge-500/30 group-hover:border-forge-500/60 shadow-[0_0_15px_rgba(139,92,246,0.15)] transition-all">
-                  <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-forge-400">
-                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <div 
+                  className="flex items-center justify-center w-8 h-8 rounded-lg border"
+                  style={{
+                    background: "var(--accent-subtle)",
+                    borderColor: "var(--accent-border)",
+                    color: "var(--accent)",
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4" stroke="currentColor">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M2 17L12 22L22 17" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M2 12L12 17L22 12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-display font-black text-sm tracking-wider text-foreground flex items-center gap-1">
+                  <span className="font-bold text-sm tracking-tight" style={{ color: "var(--fg)" }}>
                     YOU VS YOU
-                    <Sparkles className="w-3 h-3 text-forge-400" />
                   </span>
-                  <span className="text-[9px] font-mono uppercase tracking-widest text-muted-foreground -mt-0.5">
+                  <span className="text-[9px] font-mono tracking-wider -mt-0.5" style={{ color: "var(--fg-muted)" }}>
                     PERSONAL OS
                   </span>
                 </div>
               </Link>
               <button
                 onClick={closeMobileDrawer}
-                className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-colors border border-transparent hover:border-white/[0.08]"
+                className="p-1.5 rounded-lg hover:bg-[var(--surface-hover)] transition-colors"
+                style={{ color: "var(--fg-muted)" }}
                 aria-label="Close navigation"
               >
                 <X className="w-4 h-4" />
@@ -159,47 +170,57 @@ export const MobileSidebarDrawer = memo(function MobileSidebarDrawer() {
 
             {/* User Card */}
             {user && (
-              <div className="px-4 py-3 border-b border-white/[0.06] bg-white/[0.01] shrink-0">
+              <div 
+                className="px-4 py-3 border-b shrink-0"
+                style={{
+                  background: "var(--surface-raised)",
+                  borderColor: "var(--border)",
+                }}
+              >
                 <Link
                   href="/profile"
                   onClick={closeMobileDrawer}
                   className="flex items-center gap-3 group"
                 >
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-forge-500 to-purple-600 p-[1px] shadow-[0_0_12px_rgba(139,92,246,0.3)] shrink-0">
-                    <div className="w-full h-full bg-[#0a0a0c] rounded-[10px] flex items-center justify-center text-forge-300 font-bold text-sm group-hover:bg-transparent group-hover:text-white transition-all">
-                      {user.display_name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || "U"}
-                    </div>
+                  <div 
+                    className="w-8 h-8 rounded-lg border flex items-center justify-center font-bold text-xs"
+                    style={{
+                      background: "var(--accent-subtle)",
+                      borderColor: "var(--accent-border)",
+                      color: "var(--accent)",
+                    }}
+                  >
+                    {user.display_name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || "U"}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-foreground truncate">{user.display_name || "Operator"}</p>
-                    <p className="text-[10px] font-mono text-muted-foreground truncate">{user.email}</p>
+                    <p className="text-xs font-semibold truncate" style={{ color: "var(--fg)" }}>{user.display_name || "Operator"}</p>
+                    <p className="text-[10px] font-mono truncate" style={{ color: "var(--fg-muted)" }}>{user.email}</p>
                   </div>
                 </Link>
               </div>
             )}
 
             {/* Navigation */}
-            <nav className="flex-1 px-3 py-4 flex flex-col gap-1 overflow-y-auto custom-scrollbar">
-              {/* Quick Actions (only visible on iPhone SE where Studio/Notifications are hidden) */}
+            <nav className="flex-1 px-3 py-3 flex flex-col gap-1 overflow-y-auto custom-scrollbar">
+              {/* Quick Actions */}
               <div className="min-[380px]:hidden mb-2 space-y-1">
                 <button
                   onClick={() => {
                     toggleRightSidebar();
                     closeMobileDrawer();
                   }}
-                  className={cn(
-                    "w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-colors select-none",
-                    isRightSidebarOpen
-                      ? "bg-gradient-to-r from-forge-500/20 via-forge-500/10 to-transparent text-forge-200"
-                      : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
-                  )}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors select-none"
+                  style={{
+                    background: isRightSidebarOpen ? "var(--accent-subtle)" : undefined,
+                    color: isRightSidebarOpen ? "var(--accent)" : "var(--fg-muted)",
+                    border: isRightSidebarOpen ? "1px solid var(--accent-border)" : "1px solid transparent",
+                  }}
                 >
-                  <PanelRight className="w-4 h-4 shrink-0 text-forge-400" />
+                  <PanelRight className="w-4 h-4 shrink-0" style={{ color: "var(--accent)" }} />
                   <span>Studio Customization</span>
-                  <Sparkles className="w-3 h-3 text-forge-400 ml-auto" />
                 </button>
 
-                <div className="h-px bg-white/[0.08] my-2" />
+                <div className="h-px my-2" style={{ background: "var(--border)" }} />
               </div>
 
               {navItems.map((item) => {
@@ -222,25 +243,28 @@ export const MobileSidebarDrawer = memo(function MobileSidebarDrawer() {
                   >
                     <div
                       className={cn(
-                        "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-colors select-none",
-                        isActive
-                          ? "bg-gradient-to-r from-forge-500/20 via-forge-500/10 to-transparent text-forge-200 border-l-2 border-forge-500 shadow-[0_0_20px_rgba(139,92,246,0.1)]"
-                          : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]",
-                        isLocked && "opacity-65 hover:opacity-90"
+                        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors select-none",
+                        !isActive && "hover:bg-[var(--surface-hover)]",
+                        isLocked && "opacity-60 hover:opacity-85"
                       )}
+                      style={{
+                        background: isActive ? "var(--accent-subtle)" : undefined,
+                        color: isActive ? "var(--accent)" : "var(--fg-muted)",
+                        border: isActive ? "1px solid var(--accent-border)" : "1px solid transparent",
+                      }}
                     >
                       <Icon
-                        className={cn(
-                          "w-4 h-4 shrink-0",
-                          isActive ? "text-forge-400 drop-shadow-[0_0_8px_rgba(139,92,246,0.8)]" : "text-muted-foreground"
-                        )}
+                        className="w-4 h-4 shrink-0 transition-colors"
+                        style={{
+                          color: isActive ? "var(--accent)" : "var(--fg-faint)",
+                        }}
                       />
                       <span className="flex-1">{item.label}</span>
                       {isLocked && (
-                        <Lock className="w-3.5 h-3.5 text-amber-400/90 shrink-0 ml-auto" />
+                        <Lock className="w-3 h-3 shrink-0 ml-auto" style={{ color: "var(--warning)" }} />
                       )}
                       {isActive && !isLocked && (
-                        <span className="ml-auto w-1.5 h-1.5 rounded-full bg-forge-500 shadow-[0_0_8px_#8b5cf6]" />
+                        <span className="ml-auto w-1.5 h-1.5 rounded-full" style={{ background: "var(--accent)" }} />
                       )}
                     </div>
                   </Link>
@@ -249,7 +273,10 @@ export const MobileSidebarDrawer = memo(function MobileSidebarDrawer() {
             </nav>
 
             {/* Bottom — Settings */}
-            <div className="p-3 border-t border-white/[0.08] shrink-0 pb-[max(12px,env(safe-area-inset-bottom))]">
+            <div 
+              className="p-3 border-t shrink-0 pb-[max(12px,env(safe-area-inset-bottom))] space-y-1"
+              style={{ borderColor: "var(--border)" }}
+            >
               <Link
                 href="/settings"
                 prefetch={true}
@@ -257,13 +284,19 @@ export const MobileSidebarDrawer = memo(function MobileSidebarDrawer() {
               >
                 <div
                   className={cn(
-                    "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-colors select-none",
-                    pathname.startsWith("/settings")
-                      ? "bg-gradient-to-r from-forge-500/20 via-forge-500/10 to-transparent text-forge-200 border-l-2 border-forge-500"
-                      : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
+                    "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors select-none",
+                    !pathname.startsWith("/settings") && "hover:bg-[var(--surface-hover)]"
                   )}
+                  style={{
+                    background: pathname.startsWith("/settings") ? "var(--accent-subtle)" : undefined,
+                    color: pathname.startsWith("/settings") ? "var(--accent)" : "var(--fg-muted)",
+                    border: pathname.startsWith("/settings") ? "1px solid var(--accent-border)" : "1px solid transparent",
+                  }}
                 >
-                  <Settings className="w-4 h-4 shrink-0 text-muted-foreground" />
+                  <Settings 
+                    className="w-4 h-4 shrink-0" 
+                    style={{ color: pathname.startsWith("/settings") ? "var(--accent)" : "var(--fg-faint)" }} 
+                  />
                   <span>Settings</span>
                 </div>
               </Link>
@@ -275,13 +308,19 @@ export const MobileSidebarDrawer = memo(function MobileSidebarDrawer() {
               >
                 <div
                   className={cn(
-                    "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-colors select-none",
-                    pathname.startsWith("/profile")
-                      ? "bg-gradient-to-r from-forge-500/20 via-forge-500/10 to-transparent text-forge-200 border-l-2 border-forge-500"
-                      : "text-muted-foreground hover:text-foreground hover:bg-white/[0.04]"
+                    "flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors select-none",
+                    !pathname.startsWith("/profile") && "hover:bg-[var(--surface-hover)]"
                   )}
+                  style={{
+                    background: pathname.startsWith("/profile") ? "var(--accent-subtle)" : undefined,
+                    color: pathname.startsWith("/profile") ? "var(--accent)" : "var(--fg-muted)",
+                    border: pathname.startsWith("/profile") ? "1px solid var(--accent-border)" : "1px solid transparent",
+                  }}
                 >
-                  <User className="w-4 h-4 shrink-0 text-muted-foreground" />
+                  <User 
+                    className="w-4 h-4 shrink-0" 
+                    style={{ color: pathname.startsWith("/profile") ? "var(--accent)" : "var(--fg-faint)" }} 
+                  />
                   <span>Profile</span>
                 </div>
               </Link>

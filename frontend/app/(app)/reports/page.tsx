@@ -174,39 +174,36 @@ function ReportsPageContent() {
   ];
 
   return (
-    <PageTransition className="space-y-6 md:space-y-8 lg:space-y-12 max-w-6xl mx-auto pb-16 md:pb-28 p-4 sm:p-8">
+    <PageTransition className="space-y-6 md:space-y-8 lg:space-y-10 max-w-6xl mx-auto pb-16 md:pb-24 p-4 sm:p-6">
       {/* ── TOP HEADING & BADGE ── */}
-      <div className="flex flex-col md:flex-row justify-between gap-6 pb-6 border-b border-white/[0.08]">
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white uppercase">
-              PERFORMANCE{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-indigo-400 to-purple-400">
-                REPORTS
-              </span>
+      <div className="flex flex-col md:flex-row justify-between gap-6 pb-4" style={{ borderBottom: "1px solid var(--border)" }}>
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <h1 className="text-2xl sm:text-3xl font-display font-bold tracking-tight" style={{ color: "var(--fg)" }}>
+              Performance Reports
             </h1>
-            <p className="text-sm sm:text-base text-zinc-400 leading-relaxed max-w-xl font-medium">
-              Understand your consistency through daily, weekly and monthly analytics. Generate beautiful printable reports and customize which habits appear in your Habit Breakdown using Report Settings.
+            <p className="text-xs sm:text-sm leading-relaxed max-w-xl" style={{ color: "var(--fg-muted)" }}>
+              Understand your consistency through daily, weekly and monthly analytics. Generate printable reports and customize which habits appear in your Habit Breakdown.
             </p>
           </div>
 
           {/* Info Card */}
-          <div className="bg-zinc-900/60 border border-zinc-800/80 p-4 rounded-2xl max-w-xl shadow-inner">
-            <h3 className="text-xs font-bold text-white mb-2 uppercase tracking-wider flex items-center gap-1.5">
-              <Settings className="w-4 h-4 text-purple-400" />
+          <div className="p-3.5 rounded-xl max-w-xl" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+            <h3 className="text-xs font-medium mb-1.5 uppercase tracking-wider flex items-center gap-1.5" style={{ color: "var(--fg)" }}>
+              <Settings className="w-3.5 h-3.5 text-[#8B5CF6]" />
               Report Settings allows you to:
             </h3>
-            <ul className="space-y-1.5">
-              <li className="flex items-start gap-2 text-xs text-zinc-400">
-                <div className="w-1.5 h-1.5 rounded-full bg-purple-500/50 mt-1.5 shrink-0" />
+            <ul className="space-y-1">
+              <li className="flex items-start gap-2 text-xs" style={{ color: "var(--fg-muted)" }}>
+                <div className="w-1 h-1 rounded-full bg-[#8B5CF6] mt-1.5 shrink-0" />
                 Choose up to 4 custom habits
               </li>
-              <li className="flex items-start gap-2 text-xs text-zinc-400">
-                <div className="w-1.5 h-1.5 rounded-full bg-purple-500/50 mt-1.5 shrink-0" />
+              <li className="flex items-start gap-2 text-xs" style={{ color: "var(--fg-muted)" }}>
+                <div className="w-1 h-1 rounded-full bg-[#8B5CF6] mt-1.5 shrink-0" />
                 Reorder habit priority
               </li>
-              <li className="flex items-start gap-2 text-xs text-zinc-400">
-                <div className="w-1.5 h-1.5 rounded-full bg-purple-500/50 mt-1.5 shrink-0" />
+              <li className="flex items-start gap-2 text-xs" style={{ color: "var(--fg-muted)" }}>
+                <div className="w-1 h-1 rounded-full bg-[#8B5CF6] mt-1.5 shrink-0" />
                 Personalize your PDF reports
               </li>
             </ul>
@@ -218,22 +215,23 @@ function ReportsPageContent() {
           {/* Report Settings Button */}
           <button 
             onClick={() => setIsSettingsOpen(true)}
-            className="flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 hover:border-zinc-700 transition-all shadow-md text-zinc-300"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl transition-colors text-xs font-medium"
+            style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--fg-muted)" }}
           >
-            <Settings className="w-4 h-4 text-zinc-400" />
-            <span className="text-xs sm:text-sm font-semibold tracking-wide">Report Settings</span>
+            <Settings className="w-3.5 h-3.5 text-[#71717A]" />
+            <span>Report Settings</span>
           </button>
 
           {/* 100% REAL DATA BADGE */}
-          <div className="flex items-center gap-3.5 px-5 py-3 rounded-2xl bg-zinc-900/80 border border-purple-500/30 shadow-lg backdrop-blur-md">
-            <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400 shrink-0">
-              <ShieldCheck className="w-5 h-5" />
+          <div className="flex items-center gap-3 px-3.5 py-2 rounded-xl" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: "var(--surface-raised)", border: "1px solid var(--border)", color: "var(--accent)" }}>
+              <ShieldCheck className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-xs sm:text-sm font-mono font-black text-purple-400 tracking-wider">
+              <div className="text-xs font-mono font-medium tracking-wider" style={{ color: "var(--fg)" }}>
                 100% REAL DATA
               </div>
-              <div className="text-[11px] text-zinc-400 font-medium">
+              <div className="text-[10px]" style={{ color: "var(--fg-faint)" }}>
                 No fake numbers. Only you.
               </div>
             </div>
@@ -243,7 +241,7 @@ function ReportsPageContent() {
 
       {/* ── SEGMENT CONTROL (Only one report visible at a time) ── */}
       <div className="flex justify-center">
-        <div className="inline-flex items-center p-1.5 rounded-2xl bg-zinc-900/90 border border-zinc-800 shadow-xl backdrop-blur-lg">
+        <div className="inline-flex items-center p-1 rounded-xl" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
           {tabs.map((tab) => {
             const IconComp = tab.icon;
             const isActive = activeTab === tab.id;
@@ -252,13 +250,14 @@ function ReportsPageContent() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all duration-300",
+                  "flex items-center gap-2 px-4 py-1.5 rounded-lg font-medium text-xs transition-colors",
                   isActive
-                    ? "bg-purple-600 text-white shadow-lg shadow-purple-500/25 scale-[1.02]"
-                    : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
+                    ? "bg-[var(--accent)] text-white shadow-sm"
+                    : "hover:opacity-80"
                 )}
+                style={!isActive ? { color: "var(--fg-muted)" } : {}}
               >
-                <IconComp className={cn("w-4 h-4", isActive ? "text-white" : "text-zinc-400")} />
+                <IconComp className={cn("w-3.5 h-3.5", isActive ? "text-white" : "text-[#71717A]")} />
                 <span>{tab.label}</span>
               </button>
             );
@@ -269,10 +268,10 @@ function ReportsPageContent() {
       {/* ── ACTIVE REPORT DISPLAY (Large A4 White Paper Card) ── */}
       <div className="min-h-[600px] flex items-center justify-center pt-2">
         {isLoading ? (
-          <div className="w-full max-w-3xl space-y-8 bg-white/[0.02] border border-white/[0.05] p-12 rounded-[32px]">
+          <div className="w-full max-w-3xl space-y-8 p-12 rounded-[32px]" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
             <div className="space-y-4 text-center flex flex-col items-center">
-              <Skeleton className="h-4 w-32 rounded-full bg-zinc-800" />
-              <Skeleton className="h-10 w-64 rounded-xl bg-zinc-800" />
+              <Skeleton className="h-4 w-32 rounded-full" />
+              <Skeleton className="h-10 w-64 rounded-xl" />
             </div>
             <div className="grid grid-cols-2 gap-8 py-6 border-y border-zinc-800">
               <Skeleton className="h-24 w-full rounded-2xl bg-zinc-800" />
@@ -338,12 +337,11 @@ function ReportsPageContent() {
         isOpen={isSettingsOpen} 
         onClose={() => setIsSettingsOpen(false)}
         onSaved={() => {
-          // Invalidate every query key that touches report data so the UI
-          // immediately reflects the new selection without a manual page refresh.
+          // Invalidate and immediately refetch report queries so the UI
+          // reflects the new breakdown selection without delay.
           queryClient.invalidateQueries({ queryKey: ["smartReports"] });
-          queryClient.invalidateQueries({ queryKey: ["smartReports", "daily"] });
-          queryClient.invalidateQueries({ queryKey: ["smartReports", "weekly"] });
-          queryClient.invalidateQueries({ queryKey: ["smartReports", "monthly"] });
+          queryClient.refetchQueries({ queryKey: ["smartReports"] });
+          queryClient.invalidateQueries({ queryKey: ["reports"] });
           queryClient.invalidateQueries({ queryKey: ["analytics"] });
           queryClient.invalidateQueries({ queryKey: ["dashboard"] });
           queryClient.invalidateQueries({ queryKey: ["reportSettings"] });

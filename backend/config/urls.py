@@ -26,11 +26,12 @@ urlpatterns = [
     # ── API v1 ──
     path("api/v1/auth/",          include("apps.users.urls.auth")),
     path("api/v1/users/",         include("apps.users.urls.users")),
-    path("api/v1/routines/",      include("apps.routines.urls")),
+    path("api/v1/tasks/",         include("apps.routines.urls")),
     path("api/v1/today/",         include("apps.completions.urls")),
     path("api/v1/streaks/",       include("apps.streaks.urls")),
     path("api/v1/analytics/",     include("apps.analytics.urls")),
     path("api/v1/rewards/",       include("apps.rewards.urls")),
+    path("api/v1/arena/",         include("apps.rewards.arena_urls")),
     path("api/v1/emails/",        include("apps.emails.urls")),
 
     path("api/v1/widgets/",       include("apps.integrations.urls")),

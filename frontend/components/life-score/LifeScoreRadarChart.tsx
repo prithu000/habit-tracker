@@ -24,23 +24,24 @@ export const LifeScoreRadarChart = memo(function LifeScoreRadarChart({
   return (
     <ResponsiveContainer width="100%" height="100%">
       <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarAxes}>
-        <PolarGrid stroke="#27272a" />
+        <PolarGrid stroke="#292930" />
         <PolarAngleAxis
           dataKey="subject"
-          stroke="#a1a1aa"
-          tick={{ fill: "#a1a1aa", fontSize: 10, cursor: "pointer" }}
+          stroke="#71717A"
+          tick={{ fill: "#A1A1AA", fontSize: 10, cursor: "pointer" }}
           onClick={(data) => {
             const found = radarAxes.find((a: any) => a.subject === data.value);
             if (found) setSelectedAxis(found);
           }}
         />
-        <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#3f3f46" tick={false} />
+        <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#292930" tick={false} />
         <Radar
           name={radarTimeframe.toUpperCase()}
           dataKey={radarTimeframe}
-          stroke="#c084fc"
-          fill="#8b5cf6"
-          fillOpacity={0.45}
+          stroke="#8B5CF6"
+          strokeWidth={1.5}
+          fill="#8B5CF6"
+          fillOpacity={0.25}
         />
       </RadarChart>
     </ResponsiveContainer>

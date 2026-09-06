@@ -79,83 +79,116 @@ export const DynamicWidgetsGrid = memo(function DynamicWidgetsGrid({ dashboard, 
   const dashboardWidgets = allWidgets.filter((w: any) => w.show_on_dashboard);
   
   const radiusClasses = {
-    "16px": "rounded-[16px]",
-    "20px": "rounded-[20px]",
-    "24px": "rounded-[24px]",
+    "16px": "rounded-xl",
+    "20px": "rounded-xl",
+    "24px": "rounded-2xl",
   };
   const cardCls = cn(
-    "p-5 bg-[#0a0a0c]/80 backdrop-blur-xl border border-white/[0.08] hover:border-white/20 transition-all shadow-[0_8px_32px_rgba(0,0,0,0.4)] flex flex-col justify-between relative overflow-hidden group",
-    radiusClasses[cardRadius] || "rounded-[20px]"
+    "p-4 transition-colors flex flex-col justify-between relative overflow-hidden group border",
+    radiusClasses[cardRadius] || "rounded-xl"
   );
+  const cardStyle = {
+    background: "var(--surface)",
+    borderColor: "var(--border)",
+    boxShadow: "var(--card-shadow)",
+  };
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
+      <div className="flex items-center justify-between pb-2" style={{ borderBottom: "1px solid var(--border)" }}>
         <div>
-          <h2 className="text-base font-display font-bold text-foreground flex items-center gap-2">
+          <h2 className="text-sm font-semibold flex items-center gap-2" style={{ color: "var(--fg)" }}>
             Interactive Modular Widgets
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/5 text-muted-foreground border border-white/10">
+            <span
+              className="text-[10px] font-mono px-2 py-0.5 rounded border"
+              style={{
+                background: "var(--surface-raised)",
+                borderColor: "var(--border)",
+                color: "var(--fg-faint)",
+              }}
+            >
               {dashboardWidgets.length} ACTIVE
             </span>
           </h2>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs" style={{ color: "var(--fg-muted)" }}>
             Customize which productivity and lifestyle widgets appear here via Studio Control.
           </p>
         </div>
         <button
           onClick={() => { setWidgetToEdit(null); setIsBuilderOpen(true); }}
-          className="px-3 py-1.5 rounded-lg bg-forge-500/20 hover:bg-forge-500/30 text-forge-300 border border-forge-500/40 transition-colors text-xs font-semibold flex items-center gap-1.5"
+          className="px-2.5 py-1.5 rounded-lg border transition-colors text-xs font-medium flex items-center gap-1.5"
+          style={{
+            background: "var(--surface-raised)",
+            borderColor: "var(--border)",
+            color: "var(--accent)",
+          }}
         >
           <Plus className="w-3.5 h-3.5" />
           New Widget
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
         
         {/* 3. Pomodoro Clock */}
         {activeWidgets.includes("pomodoro") && (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
+          <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className={cardCls} style={cardStyle}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-rose-400" />
+              <span className="text-xs font-medium uppercase tracking-wider flex items-center gap-1.5" style={{ color: "var(--fg-faint)" }}>
+                <Clock className="w-3.5 h-3.5" style={{ color: "var(--fg-muted)" }} />
                 Pomodoro Clock
               </span>
-              <span className={cn(
-                "text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase",
-                focusMode === "pomodoro" || focusMode === "deepWork" ? "bg-rose-500/10 text-rose-400 border-rose-500/20" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-              )}>
+              <span
+                className="text-[10px] font-mono px-2 py-0.5 rounded border uppercase"
+                style={{
+                  background: "var(--accent-subtle)",
+                  borderColor: "var(--accent-border)",
+                  color: "var(--accent)",
+                }}
+              >
                 {TIMER_MODES[focusMode]?.label || "Pomodoro"}
               </span>
             </div>
-            <div className="my-3 text-center">
-              <span className="text-4xl font-mono font-black text-white tracking-widest drop-shadow-[0_0_15px_rgba(244,63,94,0.4)]">
+            <div className="my-2.5 text-center">
+              <span className="text-3xl font-mono font-bold tracking-tight" style={{ color: "var(--fg)" }}>
                 {formatTimer(focusRemaining)}
               </span>
             </div>
-            <div className="flex items-center gap-2 pt-2 border-t border-white/[0.06]">
+            <div className="flex items-center gap-2 pt-2.5" style={{ borderTop: "1px solid var(--border)" }}>
               <button
                 onClick={() => {
                   if (focusStatus === "idle" || focusStatus === "completed") startSession();
                   else if (focusStatus === "running") pauseSession();
                   else if (focusStatus === "paused") resumeSession();
                 }}
-                className={cn(
-                  "flex-1 py-1.5 rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-1.5",
+                className="flex-1 py-1.5 rounded-lg font-medium text-xs transition-colors flex items-center justify-center gap-1.5"
+                style={
                   isPomoRunning
-                    ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
-                    : "bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-[0_0_15px_rgba(244,63,94,0.2)]"
-                )}
+                    ? {
+                        background: "var(--surface-raised)",
+                        color: "var(--warning)",
+                        border: "1px solid var(--border)",
+                      }
+                    : {
+                        background: "var(--accent)",
+                        color: "var(--accent-fg)",
+                      }
+                }
               >
                 {isPomoRunning ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                 {isPomoRunning ? "Pause" : "Start"}
               </button>
               <button
                 onClick={() => resetSession()}
-                className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-white transition-colors"
+                className="p-1.5 rounded-lg border transition-colors"
+                style={{
+                  background: "var(--surface-raised)",
+                  borderColor: "var(--border)",
+                  color: "var(--fg-muted)",
+                }}
                 title="Reset Pomodoro"
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-3.5 h-3.5" />
               </button>
             </div>
           </motion.div>
@@ -175,37 +208,34 @@ export const DynamicWidgetsGrid = memo(function DynamicWidgetsGrid({ dashboard, 
           </div>
         )}
         {dashboardWidgets.map((cw: any) => {
-          const colorMap: Record<string, string> = {
-            "blue-400": "bg-blue-500 text-blue-300 border-blue-500/40 shadow-[0_0_8px_#3b82f6]",
-            "cyan-400": "bg-cyan-500 text-cyan-300 border-cyan-500/40 shadow-[0_0_8px_#06b6d4]",
-            "rose-400": "bg-rose-500 text-rose-300 border-rose-500/40 shadow-[0_0_8px_#f43f5e]",
-            "purple-400": "bg-purple-500 text-purple-300 border-purple-500/40 shadow-[0_0_8px_#8b5cf6]",
-            "emerald-400": "bg-emerald-500 text-emerald-300 border-emerald-500/40 shadow-[0_0_8px_#10b981]",
-            "amber-400": "bg-amber-500 text-amber-300 border-amber-500/40 shadow-[0_0_8px_#f59e0b]",
-            "forge-400": "bg-forge-500 text-forge-300 border-forge-500/40 shadow-[0_0_8px_#8b5cf6]"
-          };
-          const baseColor = colorMap[cw.color] || colorMap["blue-400"];
           const Icon = cw.icon === "droplets" ? Droplets : cw.icon === "dumbbell" ? Dumbbell : cw.icon === "book-open" ? BookOpen : cw.icon === "clock" ? Clock : CheckCircle2;
-
           const isCompleted = cw.progress >= cw.goal;
 
           return (
             <motion.div 
               key={`cw-${cw.id}`} 
-              initial={{ opacity: 0, scale: 0.95 }} 
+              initial={{ opacity: 0, scale: 0.98 }} 
               animate={{ opacity: 1, scale: 1 }} 
-              className={cn(cardCls, isCompleted && "shadow-[0_0_20px_rgba(255,255,255,0.05)] border-white/20")}
+              className={cardCls}
+              style={cardStyle}
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                  <Icon className={cn("w-4 h-4", `text-${cw.color}`)} style={{ color: cw.color === 'blue-400' ? '#60a5fa' : cw.color === 'cyan-400' ? '#22d3ee' : cw.color === 'rose-400' ? '#fb7185' : cw.color === 'purple-400' ? '#c084fc' : cw.color === 'emerald-400' ? '#34d399' : cw.color === 'amber-400' ? '#fbbf24' : '#a78bfa' }} />
+                <span className="text-xs font-medium uppercase tracking-wider flex items-center gap-1.5" style={{ color: "var(--fg-faint)" }}>
+                  <Icon className="w-3.5 h-3.5" style={{ color: "var(--fg-muted)" }} />
                   {cw.name}
                 </span>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => { setWidgetToEdit(cw); setIsBuilderOpen(true); }} className="text-white/30 hover:text-white transition-colors" title="Edit Widget">
-                    <Edit2 className="w-3.5 h-3.5" />
+                <div className="flex items-center gap-1.5">
+                  <button onClick={() => { setWidgetToEdit(cw); setIsBuilderOpen(true); }} className="transition-colors p-1" style={{ color: "var(--fg-faint)" }} title="Edit Widget">
+                    <Edit2 className="w-3 h-3" />
                   </button>
-                  <span className="text-[10px] font-mono text-muted-foreground bg-white/5 px-2 py-0.5 rounded-full border border-white/10 uppercase">
+                  <span
+                    className="text-[10px] font-mono px-2 py-0.5 rounded border uppercase"
+                    style={{
+                      background: "var(--surface-raised)",
+                      borderColor: "var(--border)",
+                      color: "var(--fg-faint)",
+                    }}
+                  >
                     Goal: {cw.goal} {cw.unit}
                   </span>
                 </div>
@@ -214,30 +244,31 @@ export const DynamicWidgetsGrid = memo(function DynamicWidgetsGrid({ dashboard, 
                 <div>
                   {isCompleted ? (
                     <>
-                      <span className="text-xl font-display font-black text-white flex items-center gap-1">🎉 Goal Completed!</span>
-                      <span className="text-[11px] font-mono text-muted-foreground block mt-1">
-                        Completed at: {cw.completed_at ? new Date(cw.completed_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : "Just now"}
+                      <span className="text-base font-semibold flex items-center gap-1.5" style={{ color: "var(--fg)" }}>
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                        Goal Completed
+                      </span>
+                      <span className="text-[10px] font-mono block mt-0.5" style={{ color: "var(--fg-faint)" }}>
+                        {cw.completed_at ? new Date(cw.completed_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : "Today"}
                       </span>
                     </>
                   ) : (
                     <>
-                      <span className="text-3xl font-display font-black text-white">{cw.progress}</span>
-                      <span className="text-xs font-mono text-muted-foreground ml-1">/ {cw.goal} {cw.unit}</span>
+                      <span className="text-2xl font-bold font-mono" style={{ color: "var(--fg)" }}>{cw.progress}</span>
+                      <span className="text-xs font-mono ml-1.5" style={{ color: "var(--fg-faint)" }}>/ {cw.goal} {cw.unit}</span>
                     </>
                   )}
                 </div>
                 
                 {isCompleted ? (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[11px] uppercase tracking-wider font-bold shadow-[0_0_10px_rgba(16,185,129,0.2)]">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    Completed Today
+                  <div className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-[10px] uppercase tracking-wider font-medium">
+                    Done
                   </div>
                 ) : (
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1">
                     <button
                       onClick={async () => {
                         const next = Math.max(0, cw.progress - cw.step_size);
-                        // Optimistic Update
                         const previousDashboard = queryClient.getQueryData<DashboardData>(DASHBOARD_QUERY_KEY(userId));
                         if (previousDashboard) {
                           const updatedDashboard = JSON.parse(JSON.stringify(previousDashboard));
@@ -249,32 +280,31 @@ export const DynamicWidgetsGrid = memo(function DynamicWidgetsGrid({ dashboard, 
                         }
                         try {
                           await api.post(`/analytics/widgets/${cw.id}/log/`, { progress: next });
-                          // Query invalidation in background
                           queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY_KEY(userId) });
                           queryClient.invalidateQueries({ queryKey: ["smartReports"] });
                           queryClient.invalidateQueries({ queryKey: ["analytics"] });
                         } catch (err) {
-                          // Rollback
                           if (previousDashboard) queryClient.setQueryData(DASHBOARD_QUERY_KEY(userId), previousDashboard);
                           toast.error("Unable to update progress. Please try again.");
                         }
                       }}
-                      className={cn(
-                        "p-2 rounded-xl border transition-colors flex items-center justify-center",
-                        `bg-${cw.color.replace("-400", "-500")}/10 hover:bg-${cw.color.replace("-400", "-500")}/20 text-${cw.color} border-${cw.color.replace("-400", "-500")}/30`
-                      )}
-                      style={{ color: cw.color === 'blue-400' ? '#60a5fa' : cw.color === 'cyan-400' ? '#22d3ee' : cw.color === 'rose-400' ? '#fb7185' : cw.color === 'purple-400' ? '#c084fc' : cw.color === 'emerald-400' ? '#34d399' : cw.color === 'amber-400' ? '#fbbf24' : '#a78bfa', borderColor: cw.color === 'blue-400' ? 'rgba(96,165,250,0.3)' : cw.color === 'cyan-400' ? 'rgba(34,211,238,0.3)' : cw.color === 'rose-400' ? 'rgba(251,113,133,0.3)' : cw.color === 'purple-400' ? 'rgba(192,132,252,0.3)' : cw.color === 'emerald-400' ? 'rgba(52,211,153,0.3)' : cw.color === 'amber-400' ? 'rgba(251,191,36,0.3)' : 'rgba(167,139,250,0.3)', backgroundColor: cw.color === 'blue-400' ? 'rgba(96,165,250,0.1)' : cw.color === 'cyan-400' ? 'rgba(34,211,238,0.1)' : cw.color === 'rose-400' ? 'rgba(251,113,133,0.1)' : cw.color === 'purple-400' ? 'rgba(192,132,252,0.1)' : cw.color === 'emerald-400' ? 'rgba(52,211,153,0.1)' : cw.color === 'amber-400' ? 'rgba(251,191,36,0.1)' : 'rgba(167,139,250,0.1)' }}
+                      className="p-1.5 rounded-md border transition-colors"
+                      style={{
+                        background: "var(--surface-raised)",
+                        borderColor: "var(--border)",
+                        color: "var(--fg-muted)",
+                      }}
+                      title="Decrease"
                     >
-                      <Minus className="w-3.5 h-3.5" />
+                      <Minus className="w-3 h-3" />
                     </button>
                     <button
                       onClick={async () => {
                         const next = Math.min(cw.goal, cw.progress + cw.step_size);
                         if (next >= cw.goal && cw.progress < cw.goal) {
-                          confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                          confetti({ particleCount: 100, spread: 60, origin: { y: 0.6 } });
                         }
                         
-                        // Optimistic Update
                         const previousDashboard = queryClient.getQueryData<DashboardData>(DASHBOARD_QUERY_KEY(userId));
                         if (previousDashboard) {
                           const updatedDashboard = JSON.parse(JSON.stringify(previousDashboard));
@@ -298,22 +328,23 @@ export const DynamicWidgetsGrid = memo(function DynamicWidgetsGrid({ dashboard, 
                           toast.error("Unable to update progress. Please try again.");
                         }
                       }}
-                      className={cn(
-                        "px-3 py-2 rounded-xl border transition-colors text-xs font-semibold flex items-center gap-1",
-                        `bg-${cw.color.replace("-400", "-500")}/20 hover:bg-${cw.color.replace("-400", "-500")}/30 text-${cw.color} border-${cw.color.replace("-400", "-500")}/40`
-                      )}
-                      style={{ color: cw.color === 'blue-400' ? '#60a5fa' : cw.color === 'cyan-400' ? '#22d3ee' : cw.color === 'rose-400' ? '#fb7185' : cw.color === 'purple-400' ? '#c084fc' : cw.color === 'emerald-400' ? '#34d399' : cw.color === 'amber-400' ? '#fbbf24' : '#a78bfa', borderColor: cw.color === 'blue-400' ? 'rgba(96,165,250,0.4)' : cw.color === 'cyan-400' ? 'rgba(34,211,238,0.4)' : cw.color === 'rose-400' ? 'rgba(251,113,133,0.4)' : cw.color === 'purple-400' ? 'rgba(192,132,252,0.4)' : cw.color === 'emerald-400' ? 'rgba(52,211,153,0.4)' : cw.color === 'amber-400' ? 'rgba(251,191,36,0.4)' : 'rgba(167,139,250,0.4)', backgroundColor: cw.color === 'blue-400' ? 'rgba(96,165,250,0.2)' : cw.color === 'cyan-400' ? 'rgba(34,211,238,0.2)' : cw.color === 'rose-400' ? 'rgba(251,113,133,0.2)' : cw.color === 'purple-400' ? 'rgba(192,132,252,0.2)' : cw.color === 'emerald-400' ? 'rgba(52,211,153,0.2)' : cw.color === 'amber-400' ? 'rgba(251,191,36,0.2)' : 'rgba(167,139,250,0.2)' }}
+                      className="px-2.5 py-1.5 rounded-md border transition-colors text-xs font-medium flex items-center gap-1"
+                      style={{
+                        background: "var(--accent-subtle)",
+                        borderColor: "var(--accent-border)",
+                        color: "var(--accent)",
+                      }}
                     >
-                      <Plus className="w-3.5 h-3.5" />
+                      <Plus className="w-3 h-3" />
                       {cw.step_size}
                     </button>
                   </div>
                 )}
               </div>
-              <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden mt-3">
+              <div className="w-full h-1 rounded-full overflow-hidden mt-2.5" style={{ background: "var(--border)" }}>
                 <motion.div
                   className="h-full rounded-full"
-                  style={{ backgroundColor: cw.color === 'blue-400' ? '#60a5fa' : cw.color === 'cyan-400' ? '#22d3ee' : cw.color === 'rose-400' ? '#fb7185' : cw.color === 'purple-400' ? '#c084fc' : cw.color === 'emerald-400' ? '#34d399' : cw.color === 'amber-400' ? '#fbbf24' : '#a78bfa' }}
+                  style={{ background: "var(--accent)" }}
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.min(100, (cw.progress / cw.goal) * 100)}%` }}
                 />
@@ -324,19 +355,19 @@ export const DynamicWidgetsGrid = memo(function DynamicWidgetsGrid({ dashboard, 
 
         {/* 9. World Clock */}
         {activeWidgets.includes("clock") && (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
+          <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className={cardCls} style={cardStyle}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-forge-400" />
+              <span className="text-xs font-medium uppercase tracking-wider flex items-center gap-1.5" style={{ color: "var(--fg-faint)" }}>
+                <Clock className="w-3.5 h-3.5" style={{ color: "var(--fg-muted)" }} />
                 World Time
               </span>
-              <span className="text-[10px] font-mono text-forge-300 uppercase">LOCAL ZONE</span>
+              <span className="text-[10px] font-mono uppercase" style={{ color: "var(--fg-faint)" }}>LOCAL</span>
             </div>
-            <div className="my-2 text-center">
-              <span className="text-3xl font-mono font-black text-white tracking-wider">
+            <div className="my-2.5 text-center">
+              <span className="text-2xl sm:text-3xl font-mono font-bold tracking-tight" style={{ color: "var(--fg)" }}>
                 {currentTime ? currentTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "12:00:00"}
               </span>
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs mt-1 font-mono" style={{ color: "var(--fg-muted)" }}>
                 {currentTime ? currentTime.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" }) : "Today"}
               </p>
             </div>
@@ -345,33 +376,34 @@ export const DynamicWidgetsGrid = memo(function DynamicWidgetsGrid({ dashboard, 
 
         {/* 8. GitHub Activity */}
         {activeWidgets.includes("github") && (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
+          <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className={cardCls} style={cardStyle}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                <GitCommit className="w-4 h-4 text-forge-400" />
+              <span className="text-xs font-medium uppercase tracking-wider flex items-center gap-1.5" style={{ color: "var(--fg-faint)" }}>
+                <GitCommit className="w-3.5 h-3.5" style={{ color: "var(--fg-muted)" }} />
                 GitHub Sync
               </span>
-              <span className="text-[10px] font-mono text-forge-300 font-bold">STREAK: {streak.current}D</span>
+              <span className="text-[10px] font-mono" style={{ color: "var(--fg-faint)" }}>STREAK: {streak.current}D</span>
             </div>
             <div className="my-2">
-              <p className="text-xs font-semibold text-white">
+              <p className="text-xs font-medium" style={{ color: "var(--fg)" }}>
                 {dashboard.widgets.github_history?.reduce((acc, h) => acc + h.tasks_completed, 0) ?? 0} tasks completed
               </p>
-              <p className="text-[11px] text-muted-foreground">repo: youvsyou/habit-engine</p>
+              <p className="text-[10px] font-mono" style={{ color: "var(--fg-faint)" }}>repo: youvsyou/habit-engine</p>
             </div>
-            <div className="flex gap-1 pt-2">
+            <div className="flex gap-1 pt-2 border-t" style={{ borderColor: "var(--border)" }}>
               {(dashboard.widgets.github_history || Array.from({ length: 14 }, () => ({ level: 0, active: false }))).map((item, i) => (
                 <div
                   key={i}
-                  title={item.active ? `Completed ${item.level} tier` : "Inactive / Before Join"}
-                  className={cn(
-                    "flex-1 h-3 rounded-[2px]",
-                    !item.active ? "bg-white/[0.03] border border-white/5 opacity-40" :
-                    item.level === 4 ? "bg-forge-500 shadow-[0_0_6px_#8b5cf6]" :
-                    item.level === 3 ? "bg-forge-500/70" :
-                    item.level === 2 ? "bg-forge-500/40" :
-                    item.level === 1 ? "bg-forge-500/20" : "bg-white/10"
-                  )}
+                  title={item.active ? `Completed ${item.level} tier` : "Inactive"}
+                  className="flex-1 h-2.5 rounded-[2px]"
+                  style={{
+                    background: !item.active
+                      ? "var(--surface-raised)"
+                      : item.level >= 3
+                      ? "var(--accent)"
+                      : "var(--accent-subtle)",
+                    border: !item.active ? "1px solid var(--border)" : "none",
+                  }}
                 />
               ))}
             </div>
@@ -380,25 +412,27 @@ export const DynamicWidgetsGrid = memo(function DynamicWidgetsGrid({ dashboard, 
 
         {/* 13. Mini Calendar */}
         {activeWidgets.includes("calendar") && (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
+          <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className={cardCls} style={cardStyle}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                <CalendarIcon className="w-4 h-4 text-cyan-400" />
-                July 2026
+              <span className="text-xs font-medium uppercase tracking-wider flex items-center gap-1.5" style={{ color: "var(--fg-faint)" }}>
+                <CalendarIcon className="w-3.5 h-3.5" style={{ color: "var(--fg-muted)" }} />
+                Calendar
               </span>
-              <span className="text-[10px] font-mono text-cyan-300">WEEK 27</span>
+              <span className="text-[10px] font-mono" style={{ color: "var(--fg-faint)" }}>JULY 2026</span>
             </div>
-            <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-mono my-2">
+            <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-mono my-1.5">
               {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-                <span key={i} className="text-muted-foreground font-bold">{d}</span>
+                <span key={i} className="font-medium" style={{ color: "var(--fg-faint)" }}>{d}</span>
               ))}
               {Array.from({ length: 14 }, (_, i) => i + 1).map((d) => (
                 <span
                   key={d}
-                  className={cn(
-                    "p-1 rounded font-semibold",
-                    d === 5 ? "bg-cyan-500 text-[#0a0a0c] font-black shadow-[0_0_8px_#06b6d4]" : "text-white/80 hover:bg-white/5"
-                  )}
+                  className="p-1 rounded font-medium"
+                  style={
+                    d === 5
+                      ? { background: "var(--accent)", color: "var(--accent-fg)", fontWeight: "bold" }
+                      : { color: "var(--fg-muted)" }
+                  }
                 >
                   {d}
                 </span>
@@ -409,18 +443,18 @@ export const DynamicWidgetsGrid = memo(function DynamicWidgetsGrid({ dashboard, 
 
         {/* 15. Daily Wisdom Quote */}
         {activeWidgets.includes("quote") && (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={cardCls}>
+          <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className={cardCls} style={cardStyle}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-                <Award className="w-4 h-4 text-amber-400" />
+              <span className="text-xs font-medium uppercase tracking-wider flex items-center gap-1.5" style={{ color: "var(--fg-faint)" }}>
+                <Award className="w-3.5 h-3.5" style={{ color: "var(--fg-muted)" }} />
                 Daily Wisdom
               </span>
-              <span className="text-[10px] font-mono text-amber-300">STOICISM</span>
+              <span className="text-[10px] font-mono" style={{ color: "var(--fg-faint)" }}>STOICISM</span>
             </div>
-            <p className="text-xs text-amber-100 italic my-2 leading-relaxed">
+            <p className="text-xs italic my-2 leading-relaxed font-normal" style={{ color: "var(--fg-muted)" }}>
               &quot;First say to yourself what you would be; and then do what you have to do.&quot;
             </p>
-            <p className="text-[11px] text-amber-400 font-bold text-right">— Epictetus</p>
+            <p className="text-[11px] font-medium text-right" style={{ color: "var(--fg-faint)" }}>— Epictetus</p>
           </motion.div>
         )}
       </div>

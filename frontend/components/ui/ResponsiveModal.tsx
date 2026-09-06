@@ -49,14 +49,19 @@ export function ResponsiveModal({
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: 10 }}
                   className={cn(
-                    "pointer-events-auto w-full max-w-[420px] max-h-[90vh] overflow-y-auto bg-[#121216] border border-white/10 rounded-[24px] shadow-[0_20px_70px_rgba(0,0,0,0.8)] relative",
+                    "pointer-events-auto w-full max-w-[420px] max-h-[90vh] overflow-y-auto rounded-[24px] shadow-[0_20px_70px_rgba(0,0,0,0.5)] relative border",
                     className
                   )}
+                  style={{
+                    background: "var(--surface)",
+                    borderColor: "var(--border)",
+                    color: "var(--fg)",
+                  }}
                 >
                   {!hideCloseButton && (
                     <Dialog.Close asChild>
                       <button 
-                        className="absolute right-4 top-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-muted-foreground hover:text-white transition-colors z-10"
+                        className="absolute right-4 top-4 w-8 h-8 flex items-center justify-center rounded-full bg-[var(--surface-raised)] hover:bg-[var(--surface-hover)] text-[var(--fg-muted)] hover:text-[var(--fg)] transition-colors z-10 border border-[var(--border-subtle)]"
                         aria-label="Close"
                       >
                         <X className="w-4 h-4" />
@@ -72,13 +77,13 @@ export function ResponsiveModal({
                     )}
                     
                     {title && (
-                      <Dialog.Title className="text-xl sm:text-2xl font-black text-white tracking-tight mb-2">
+                      <Dialog.Title className="text-xl sm:text-2xl font-black text-[var(--fg)] tracking-tight mb-2">
                         {title}
                       </Dialog.Title>
                     )}
                     
                     {description && (
-                      <Dialog.Description className="text-sm text-muted-foreground max-w-sm mb-6 leading-relaxed">
+                      <Dialog.Description className="text-sm text-[var(--fg-muted)] max-w-sm mb-6 leading-relaxed">
                         {description}
                       </Dialog.Description>
                     )}
@@ -97,9 +102,20 @@ export function ResponsiveModal({
   );
 }
 
-export function ResponsiveModalFooter({ children, className }: { children: ReactNode; className?: string }) {
+export function ResponsiveModalFooter({ 
+  children, 
+  className,
+  style,
+}: { 
+  children: ReactNode; 
+  className?: string;
+  style?: React.CSSProperties;
+}) {
   return (
-    <div className={cn("flex flex-col sm:flex-row-reverse items-center gap-3 w-full mt-2", className)}>
+    <div 
+      className={cn("flex flex-col sm:flex-row-reverse items-center gap-3 w-full mt-2", className)}
+      style={style}
+    >
       {children}
     </div>
   );

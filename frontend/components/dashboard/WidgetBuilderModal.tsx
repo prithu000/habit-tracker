@@ -130,18 +130,29 @@ export function WidgetBuilderModal({ isOpen, onClose, widgetToEdit, existingWidg
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="w-[calc(100%-32px)] max-w-[560px] max-h-[90vh] bg-[#0a0a0c] border border-white/10 rounded-[20px] shadow-2xl flex flex-col z-[101] overflow-hidden pointer-events-auto"
+            exit={{ opacity: 0, scale: 1 }}
+            className="w-[calc(100%-32px)] max-w-[560px] max-h-[90vh] border rounded-[20px] shadow-2xl flex flex-col z-[101] overflow-hidden pointer-events-auto"
+            style={{
+              background: "var(--surface)",
+              borderColor: "var(--border)",
+              color: "var(--fg)",
+            }}
           >
             {/* Header */}
-            <div className="flex justify-between items-center px-6 py-5 border-b border-white/5 shrink-0 bg-[#0a0a0c]">
-              <h2 className="text-lg font-display font-bold text-white">
+            <div 
+              className="flex justify-between items-center px-6 py-5 border-b shrink-0"
+              style={{
+                background: "var(--surface-raised)",
+                borderColor: "var(--border)",
+              }}
+            >
+              <h2 className="text-lg font-display font-bold" style={{ color: "var(--fg)" }}>
                 {widgetToEdit ? "Edit Custom Widget" : "Create Custom Widget"}
               </h2>
               <button 
                 onClick={onClose} 
                 disabled={isPending || isDeleting}
-                className="p-2 hover:bg-white/5 rounded-xl text-muted-foreground hover:text-white transition-colors disabled:opacity-50"
+                className="p-2 rounded-xl text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--surface-hover)] transition-colors disabled:opacity-50"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -240,7 +251,13 @@ export function WidgetBuilderModal({ isOpen, onClose, widgetToEdit, existingWidg
             </div>
 
             {/* Sticky Footer */}
-            <div className="flex justify-between items-center px-6 py-4 border-t border-white/5 bg-[#0a0a0c] shrink-0">
+            <div 
+              className="flex justify-between items-center px-6 py-4 border-t shrink-0"
+              style={{
+                background: "var(--surface-raised)",
+                borderColor: "var(--border)",
+              }}
+            >
               {widgetToEdit ? (
                 <button
                   onClick={() => {

@@ -1,85 +1,108 @@
 "use client";
 
+import { memo } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, Flame, Star, Trophy } from "lucide-react";
+import { CheckCircle2, Flame, Star, BarChart2 } from "lucide-react";
 import { DashboardData } from "@/types/api";
 import { AnimatedCounter } from "@/components/shared/AnimatedCounter";
-import { cn } from "@/lib/utils/cn";
-
-import { memo } from "react";
 
 interface StatsBarProps {
   stats: DashboardData["today"]["stats"];
+  widgets?: DashboardData["widgets"];
 }
 
-export const StatsBar = memo(function StatsBar({ stats }: StatsBarProps) {
+export const StatsBar = memo(function StatsBar({ stats, widgets }: StatsBarProps) {
+  const lifeScoreValue = (widgets as any)?.life_score?.overall_score ?? (widgets as any)?.life_score ?? null;
+  const totalXp = widgets?.xp?.total_xp ?? null;
+
   const statCards = [
     {
+      id: "completion",
       label: "Completion",
-      value: `${stats.completion_rate}%`,
-      subtext: `${stats.completed_tasks}/${stats.total_tasks} tasks`,
+      primary: `${Math.round(stats.completion_rate)}%`,
+      secondary: `${stats.completed_tasks}/${stats.total_tasks} tasks`,
       icon: CheckCircle2,
-      color: "text-success",
-      bg: "bg-success/10",
-      border: "border-success/20",
-      highlight: stats.is_perfect_day,
+      iconColor: "var(--success)",
     },
     {
+      id: "streak",
       label: "Current Streak",
-      value: stats.current_streak,
-      subtext: "days",
+      primary: `${stats.current_streak}`,
+      secondary: stats.current_streak > 0 ? "Keep the momentum!" : "Start today",
       icon: Flame,
-      color: "text-warning",
-      bg: "bg-warning/10",
-      border: "border-warning/20",
-      highlight: stats.current_streak > 0,
+      iconColor: "var(--warning)",
+      suffix: "day",
     },
     {
+      id: "lifescore",
+      label: "Life Score",
+      primary: lifeScoreValue !== null ? `${Math.round(lifeScoreValue)}` : "—",
+      secondary: "+8% vs last week",
+      icon: BarChart2,
+      iconColor: "var(--accent)",
+    },
+    {
+      id: "xp",
       label: "XP Earned Today",
-      value: `+${stats.xp_earned_today}`,
-      subtext: "experience",
+      primary: `+${stats.xp_earned_today}`,
+      secondary: totalXp !== null ? `Total: ${totalXp.toLocaleString()}` : "experience",
       icon: Star,
-      color: "text-forge-400",
-      bg: "bg-forge-500/10",
-      border: "border-forge-500/20",
-      highlight: stats.xp_earned_today > 0,
+      iconColor: "var(--warning)",
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
       {statCards.map((stat, i) => (
         <motion.div
-          key={stat.label}
-          initial={{ opacity: 0, y: 10 }}
+          key={stat.id}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: i * 0.1 }}
-          className={cn(
-            "glass-card p-5 flex items-center gap-4 relative overflow-hidden transition-colors duration-200",
-            stat.highlight && `border-${stat.border.split('-')[1]} shadow-[0_0_15px_rgba(0,0,0,0.1)]`
-          )}
+          transition={{ duration: 0.25, delay: i * 0.05 }}
+          className="p-4 rounded-xl relative overflow-hidden"
+          style={{
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            boxShadow: "var(--card-shadow)",
+          }}
         >
-          {stat.highlight && (
-            <div className={cn("absolute inset-0 opacity-10 bg-gradient-to-br from-transparent to-current", stat.color)} />
-          )}
-          
-          <div className={cn("flex h-12 w-12 items-center justify-center rounded-full shrink-0", stat.bg)}>
-            <stat.icon className={cn("h-6 w-6", stat.color)} />
-          </div>
-          
-          <div>
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
-              {stat.label}
-            </p>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl font-bold font-mono">
-                {typeof stat.value === "number" ? (
-                  <AnimatedCounter value={stat.value} />
-                ) : (
-                  stat.value
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <p
+                className="text-[11px] font-medium uppercase tracking-wider mb-2"
+                style={{ color: "var(--fg-faint)" }}
+              >
+                {stat.label}
+              </p>
+              <div className="flex items-baseline gap-1">
+                <span
+                  className="text-2xl font-bold tracking-tight tabular-nums"
+                  style={{ color: "var(--fg)" }}
+                >
+                  {stat.primary}
+                </span>
+                {stat.suffix && (
+                  <span className="text-sm font-medium" style={{ color: "var(--fg-muted)" }}>
+                    {stat.suffix}
+                  </span>
                 )}
-              </span>
-              <span className="text-sm text-muted-foreground">{stat.subtext}</span>
+              </div>
+              <p
+                className="text-xs mt-0.5 truncate"
+                style={{ color: "var(--fg-muted)" }}
+              >
+                {stat.secondary}
+              </p>
+            </div>
+
+            <div
+              className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+              style={{
+                background: "var(--surface-raised)",
+                border: "1px solid var(--border)",
+              }}
+            >
+              <stat.icon className="w-4 h-4" style={{ color: stat.iconColor }} />
             </div>
           </div>
         </motion.div>

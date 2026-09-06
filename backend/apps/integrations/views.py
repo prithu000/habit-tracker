@@ -48,7 +48,7 @@ def widget_bundle(request):
     # ── Query 1: Streak ──
     streak = (
         StreakRecord.objects
-        .filter(user=user, routine__isnull=True)
+        .filter(user=user)
         .only("current_streak", "longest_streak", "last_completed_date", "grace_period_used")
         .first()
     )
@@ -138,32 +138,15 @@ def streak_widget(request):
     if cached is not None:
         return Response(cached)
 
-    # One query with select_related to avoid N+1 on routine access
-    records = list(
+    overall = (
         StreakRecord.objects
         .filter(user=user)
-        .select_related("routine")
         .only(
             "current_streak", "longest_streak",
             "last_completed_date", "grace_period_used",
-            "routine__id", "routine__name", "routine__icon",
         )
+        .first()
     )
-
-    overall = next((r for r in records if r.routine is None), None)
-    per_routine = [
-        {
-            "routine_id": str(r.routine.id),
-            "routine_name": r.routine.name,
-            "routine_icon": r.routine.icon,
-            "current_streak": r.current_streak,
-            "longest_streak": r.longest_streak,
-            "last_completed_date": (
-                r.last_completed_date.isoformat() if r.last_completed_date else None
-            ),
-        }
-        for r in records if r.routine is not None
-    ]
 
     data = {
         "overall": {
@@ -175,7 +158,7 @@ def streak_widget(request):
             ),
             "grace_period_used": overall.grace_period_used if overall else False,
         },
-        "per_routine": per_routine,
+        "per_routine": [],
     }
 
     CacheService.set(user_id, "streak", data, TTL_STREAK)

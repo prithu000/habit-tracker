@@ -32,10 +32,10 @@ import { toast } from "react-hot-toast";
 import { cn } from "@/lib/utils/cn";
 
 const MODES: Record<TimerMode, { label: string; duration: number; icon: any; color: string }> = {
-  pomodoro: { label: "Pomodoro (25m)", duration: 25 * 60, icon: Flame, color: "text-purple-400 border-purple-500/50 bg-purple-500/10" },
-  shortBreak: { label: "Short Break (5m)", duration: 5 * 60, icon: Coffee, color: "text-emerald-400 border-emerald-500/50 bg-emerald-500/10" },
-  longBreak: { label: "Long Break (15m)", duration: 15 * 60, icon: Sparkles, color: "text-blue-400 border-blue-500/50 bg-blue-500/10" },
-  deepWork: { label: "Deep Work (50m)", duration: 50 * 60, icon: Brain, color: "text-rose-400 border-rose-500/50 bg-rose-500/10" },
+  pomodoro: { label: "Pomodoro (25m)", duration: 25 * 60, icon: Flame, color: "text-[#8B5CF6] border-[#8B5CF6] bg-[#18181D]" },
+  shortBreak: { label: "Short Break (5m)", duration: 5 * 60, icon: Coffee, color: "text-[#34D399] border-[#34D399] bg-[#18181D]" },
+  longBreak: { label: "Long Break (15m)", duration: 15 * 60, icon: Sparkles, color: "text-[#60A5FA] border-[#60A5FA] bg-[#18181D]" },
+  deepWork: { label: "Deep Work (50m)", duration: 50 * 60, icon: Brain, color: "text-[#A78BFA] border-[#A78BFA] bg-[#18181D]" },
 };
 
 export default function FocusModePage() {
@@ -140,23 +140,41 @@ function FocusPageContent() {
       }
 
       return (
-        <PageTransition className={cn("space-y-6 md:space-y-8 max-w-5xl mx-auto pb-8 md:pb-16 transition-all", isFullScreen && "fixed inset-0 z-50 bg-zinc-950 p-12 max-w-none flex flex-col justify-center items-center")}>
+        <PageTransition className={cn("space-y-6 md:space-y-8 max-w-5xl mx-auto pb-8 md:pb-16 transition-all", isFullScreen && "fixed inset-0 z-50 p-12 max-w-none flex flex-col justify-center items-center")} style={isFullScreen ? { background: "var(--bg)" } : undefined}>
           {/* Top Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-900/40 p-4 sm:p-6 rounded-3xl border border-zinc-800/80 backdrop-blur-xl shadow-xl w-full">
+          <div 
+            className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border shadow-sm w-full"
+            style={{
+              background: "var(--surface)",
+              borderColor: "var(--border)",
+            }}
+          >
             <div>
-              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-300 text-xs font-semibold uppercase tracking-wider mb-1">
+              <div 
+                className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full border text-xs font-medium uppercase tracking-wider mb-1"
+                style={{
+                  background: "var(--accent-subtle)",
+                  borderColor: "var(--accent-border)",
+                  color: "var(--accent)",
+                }}
+              >
                 <Timer className="w-3.5 h-3.5" />
                 Distraction-Free Sanctuary
               </div>
-              <h1 className="text-2xl font-black text-white">NEURAL FOCUS MODE</h1>
+              <h1 className="text-xl font-bold" style={{ color: "var(--fg)" }}>NEURAL FOCUS MODE</h1>
             </div>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setIsFullScreen(!isFullScreen)}
-                className="p-3 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-all border border-zinc-700/50"
+                className="p-2.5 rounded-xl border transition-colors hover:bg-[var(--surface-hover)]"
+                style={{
+                  background: "var(--surface-raised)",
+                  borderColor: "var(--border)",
+                  color: "var(--fg-muted)",
+                }}
                 title="Toggle Fullscreen"
               >
-                {isFullScreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+                {isFullScreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
               </button>
             </div>
           </div>
@@ -174,13 +192,26 @@ function FocusPageContent() {
                     setMode(m);
                   }}
                   className={cn(
-                    "p-4 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all font-bold text-sm",
+                    "p-3.5 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all font-medium text-xs shadow-sm",
                     isSelected
-                      ? cn("border-2 shadow-lg scale-[1.02]", cfg.color)
-                      : "bg-zinc-900/40 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+                      ? "border font-bold shadow-md"
+                      : "hover:border-[var(--border)]"
                   )}
+                  style={
+                    isSelected
+                      ? {
+                          background: "var(--accent-subtle)",
+                          borderColor: "var(--accent-border)",
+                          color: "var(--accent)",
+                        }
+                      : {
+                          background: "var(--surface)",
+                          borderColor: "var(--border)",
+                          color: "var(--fg-muted)",
+                        }
+                  }
                 >
-                  <Icon className="w-5 h-5" />
+                  <Icon className="w-4 h-4" />
                   <span>{cfg.label}</span>
                 </button>
               );
@@ -188,7 +219,13 @@ function FocusPageContent() {
           </div>
 
           {/* Main Timer Ring */}
-          <div className="relative bg-gradient-to-b from-zinc-900/60 to-zinc-950/80 border border-zinc-800/80 rounded-3xl p-5 sm:p-8 flex flex-col items-center justify-center shadow-2xl w-full">
+          <div 
+            className="relative border rounded-2xl p-6 sm:p-10 flex flex-col items-center justify-center shadow-sm w-full"
+            style={{
+              background: "var(--surface)",
+              borderColor: "var(--border)",
+            }}
+          >
             <div className="relative flex items-center justify-center my-6">
               <svg className="w-72 h-72 sm:w-80 sm:h-80 transform -rotate-90">
                 <circle
@@ -196,16 +233,16 @@ function FocusPageContent() {
                   cy="50%"
                   r="130"
                   stroke="currentColor"
-                  strokeWidth="14"
-                  className="text-zinc-800/80"
+                  className="text-[var(--border)]"
+                  strokeWidth="10"
                   fill="transparent"
                 />
                 <motion.circle
                   cx="50%"
                   cy="50%"
                   r="130"
-                  stroke="url(#focusGradient)"
-                  strokeWidth="14"
+                  stroke="var(--accent)"
+                  strokeWidth="10"
                   strokeDasharray={2 * Math.PI * 130}
                   strokeDashoffset={2 * Math.PI * 130 * (1 - progress / 100)}
                   strokeLinecap="round"
@@ -214,44 +251,53 @@ function FocusPageContent() {
                   animate={{ strokeDashoffset: 2 * Math.PI * 130 * (1 - progress / 100) }}
                   transition={{ duration: 0.5, ease: "linear" }}
                 />
-                <defs>
-                  <linearGradient id="focusGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#c084fc" />
-                    <stop offset="100%" stopColor="#ec4899" />
-                  </linearGradient>
-                </defs>
               </svg>
 
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <span className="text-6xl sm:text-7xl font-black tracking-tighter text-white font-mono drop-shadow-lg">
+                <span className="text-6xl sm:text-7xl font-bold tracking-tighter font-mono" style={{ color: "var(--fg)" }}>
                   {formatTime(timeLeft)}
                 </span>
-                <span className="text-xs font-bold text-purple-400 uppercase tracking-widest mt-2">
+                <span className="text-xs font-mono uppercase tracking-widest mt-2" style={{ color: "var(--accent)" }}>
                   {isActive ? "Telemetry Active" : "Ready to Execute"}
                 </span>
               </div>
             </div>
 
             {/* Controls */}
-            <div className="flex flex-col sm:flex-row items-center gap-4 mt-6 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-center gap-3 mt-4 w-full sm:w-auto">
               <button
                 onClick={toggleTimer}
                 className={cn(
-                  "px-8 py-4 rounded-2xl font-black text-base flex justify-center items-center gap-3 transition-all shadow-lg transform active:scale-95 w-full sm:w-auto",
-                  isActive
-                    ? "bg-amber-500 hover:bg-amber-600 text-zinc-950 shadow-amber-500/20"
-                    : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-500/30"
+                  "px-8 py-3 rounded-xl font-medium text-sm flex justify-center items-center gap-2.5 transition-colors shadow-sm w-full sm:w-auto"
                 )}
+                style={
+                  isActive
+                    ? {
+                        background: "var(--surface-raised)",
+                        borderColor: "var(--border)",
+                        color: "var(--fg)",
+                        border: "1px solid var(--border)",
+                      }
+                    : {
+                        background: "var(--accent)",
+                        color: "var(--accent-fg)",
+                      }
+                }
               >
-                {isActive ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current" />}
+                {isActive ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
                 <span>{isActive ? "PAUSE SESSION" : "START SESSION"}</span>
               </button>
               <button
                 onClick={resetTimer}
-                className="p-4 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-all border border-zinc-700/50 w-full sm:w-auto flex justify-center items-center"
+                className="p-3 rounded-xl border transition-colors w-full sm:w-auto flex justify-center items-center hover:bg-[var(--surface-hover)]"
+                style={{
+                  background: "var(--surface-raised)",
+                  borderColor: "var(--border)",
+                  color: "var(--fg-muted)",
+                }}
                 title="Reset Timer"
               >
-                <RotateCcw className="w-6 h-6" />
+                <RotateCcw className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -259,9 +305,15 @@ function FocusPageContent() {
           {/* Task Selector & Ambient Sounds */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full">
             {/* Task Selector */}
-            <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-3xl p-6 backdrop-blur-md shadow-xl">
-              <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-purple-400" />
+            <div 
+              className="border rounded-3xl p-6 backdrop-blur-md shadow-sm"
+              style={{
+                background: "var(--surface)",
+                borderColor: "var(--border)",
+              }}
+            >
+              <h3 className="text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2" style={{ color: "var(--fg-muted)" }}>
+                <CheckCircle2 className="w-4 h-4" style={{ color: "var(--accent)" }} />
                 Active Target Task
               </h3>
               <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
@@ -270,28 +322,45 @@ function FocusPageContent() {
                     key={i}
                     onClick={() => setSelectedTask(task)}
                     className={cn(
-                      "w-full p-3 rounded-xl border text-left text-sm font-medium transition-all flex items-center justify-between",
-                      selectedTask === task
-                        ? "bg-purple-500/20 border-purple-500/50 text-white font-bold"
-                        : "bg-zinc-950/50 border-zinc-800/80 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+                      "w-full p-3 rounded-xl border text-left text-sm font-medium transition-all flex items-center justify-between"
                     )}
+                    style={
+                      selectedTask === task
+                        ? {
+                            background: "var(--accent-subtle)",
+                            borderColor: "var(--accent-border)",
+                            color: "var(--accent)",
+                            fontWeight: "bold",
+                          }
+                        : {
+                            background: "var(--surface-raised)",
+                            borderColor: "var(--border)",
+                            color: "var(--fg-muted)",
+                          }
+                    }
                   >
                     <span>{task}</span>
-                    {selectedTask === task && <Sparkles className="w-4 h-4 text-purple-400" />}
+                    {selectedTask === task && <Sparkles className="w-4 h-4" style={{ color: "var(--accent)" }} />}
                   </button>
                 ))}
               </div>
             </div>
 
             {/* Ambient Soundscape Generator */}
-            <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-3xl p-6 backdrop-blur-md shadow-xl">
+            <div 
+              className="border rounded-3xl p-6 backdrop-blur-md shadow-sm"
+              style={{
+                background: "var(--surface)",
+                borderColor: "var(--border)",
+              }}
+            >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
-                  <Headphones className="w-4 h-4 text-indigo-400" />
+                <h3 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2" style={{ color: "var(--fg-muted)" }}>
+                  <Headphones className="w-4 h-4" style={{ color: "var(--accent)" }} />
                   Acoustic Soundscapes
                 </h3>
                 {isPlayingSound && (
-                  <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 animate-pulse">
+                  <span className="text-xs font-semibold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 animate-pulse">
                     Audio Active
                   </span>
                 )}
@@ -309,17 +378,27 @@ function FocusPageContent() {
                       key={snd.key}
                       onClick={() => toggleSound(snd.key)}
                       className={cn(
-                        "p-3 rounded-xl border text-left transition-all flex flex-col justify-between",
-                        isPlaying
-                          ? "bg-indigo-500/20 border-indigo-500/50 text-white"
-                          : "bg-zinc-950/50 border-zinc-800/80 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+                        "p-3 rounded-xl border text-left transition-all flex flex-col justify-between"
                       )}
+                      style={
+                        isPlaying
+                          ? {
+                              background: "var(--accent-subtle)",
+                              borderColor: "var(--accent-border)",
+                              color: "var(--accent)",
+                            }
+                          : {
+                              background: "var(--surface-raised)",
+                              borderColor: "var(--border)",
+                              color: "var(--fg-muted)",
+                            }
+                      }
                     >
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-bold">{snd.label}</span>
-                        {isPlaying ? <Volume2 className="w-4 h-4 text-indigo-400" /> : <VolumeX className="w-4 h-4 text-zinc-600" />}
+                        <span className="text-xs font-bold" style={{ color: isPlaying ? "var(--accent)" : "var(--fg)" }}>{snd.label}</span>
+                        {isPlaying ? <Volume2 className="w-4 h-4" style={{ color: "var(--accent)" }} /> : <VolumeX className="w-4 h-4 opacity-50" />}
                       </div>
-                      <span className="text-[10px] text-zinc-500">{snd.desc}</span>
+                      <span className="text-[10px]" style={{ color: "var(--fg-faint)" }}>{snd.desc}</span>
                     </button>
                   );
                 })}

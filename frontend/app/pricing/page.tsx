@@ -6,14 +6,17 @@ import { Topbar } from "@/components/layouts/Topbar";
 import { Footer } from "@/components/layouts/Footer";
 import { MobileSidebarDrawer } from "@/components/layouts/MobileSidebarDrawer";
 import { RightSidebar } from "@/components/layouts/RightSidebar";
-import { Sparkles, ShieldCheck, Zap, HelpCircle, Check, X } from "lucide-react";
+import { Sparkles, ShieldCheck, Zap, HelpCircle, Check, X, ArrowLeft } from "lucide-react";
+import { StudioBackgroundWrapper } from "@/components/layouts/StudioBackgroundWrapper";
 import Link from "next/link";
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-[#0a0a0c] text-foreground flex flex-col selection:bg-forge-500 selection:text-white relative overflow-x-hidden">
-      {/* Ambient background glows */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-to-b from-forge-500/15 via-purple-600/10 to-transparent rounded-full blur-[160px] pointer-events-none" />
+    <div className="min-h-screen flex flex-col relative overflow-x-hidden" style={{ background: "var(--bg)", color: "var(--fg)" }}>
+      {/* Ambient background glow — subtle only on dark themes */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full blur-[160px] pointer-events-none opacity-30" style={{ background: "var(--accent-subtle)" }} />
+
+      <StudioBackgroundWrapper />
 
       {/* Topbar */}
       <Topbar />
@@ -22,17 +25,33 @@ export default function PricingPage() {
       <MobileSidebarDrawer />
       <RightSidebar />
 
-      <main className="flex-1 py-12 md:py-20 px-4 sm:px-6 relative z-10">
+      <main className="flex-1 pt-20 pb-16 md:pb-24 px-4 sm:px-6 relative z-10">
         <div className="max-w-6xl mx-auto">
           
+          {/* Back to Dashboard Navigation Link */}
+          <div className="mb-6 flex items-center justify-between">
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all hover:opacity-85 shadow-sm"
+              style={{
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
+                color: "var(--fg)",
+              }}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Dashboard</span>
+            </Link>
+          </div>
+
           {/* Header Section */}
           <div className="text-center max-w-3xl mx-auto mb-16 md:mb-20">
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-forge-500/10 border border-forge-500/20 text-forge-400 text-xs font-bold uppercase tracking-wider mb-4 shadow-[0_0_20px_rgba(139,92,246,0.2)]">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Investment In Self-Mastery</span>
+              <span>YOU VS YOU: YOUR PERSONAL OPERATING SYSTEM</span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight mb-4 leading-tight">
+            <h1 className="text-3xl sm:text-5xl font-black tracking-tight mb-4 leading-tight" style={{ color: "var(--fg)" }}>
               Your future self doesn&apos;t need <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-indigo-500">motivation.</span><br className="hidden sm:inline" />
               It needs <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-indigo-500">consistency.</span>
             </h1>
@@ -62,7 +81,7 @@ export default function PricingPage() {
 
           {/* Value Stack */}
           <div className="mt-24 md:mt-32 max-w-5xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl font-black text-white text-center tracking-tight mb-3">
+            <h2 className="text-2xl sm:text-3xl font-black text-center tracking-tight mb-3" style={{ color: "var(--fg)" }}>
               Everything you need to stop restarting.
             </h2>
             <p className="text-xs sm:text-sm text-muted-foreground text-center mb-10">
@@ -80,11 +99,11 @@ export default function PricingPage() {
                 { name: "Leagues", desc: "Compete with other builders." },
                 { name: "AI Coaching", desc: "Personalized performance feedback." }
               ].map((feature, i) => (
-                <div key={i} className="bg-[#111116] border border-white/10 rounded-2xl p-5 flex flex-col items-center text-center hover:border-forge-500/30 hover:bg-forge-500/5 transition-colors">
+                <div key={i} className="rounded-2xl p-5 flex flex-col items-center text-center transition-colors" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
                   <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center mb-3">
                     <Check className="w-5 h-5 text-emerald-400 stroke-[3]" />
                   </div>
-                  <h3 className="text-sm font-bold text-white mb-1">{feature.name}</h3>
+                  <h3 className="text-sm font-bold mb-1" style={{ color: "var(--fg)" }}>{feature.name}</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">{feature.desc}</p>
                 </div>
               ))}
@@ -95,7 +114,7 @@ export default function PricingPage() {
           <div className="mt-20 md:mt-28 max-w-4xl mx-auto mb-16">
             <div className="flex items-center justify-center gap-2 mb-3">
               <HelpCircle className="w-5 h-5 text-forge-400" />
-              <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+              <h2 className="text-xl sm:text-2xl font-black tracking-tight" style={{ color: "var(--fg)" }}>
                 Frequently Asked Questions
               </h2>
             </div>
@@ -104,29 +123,29 @@ export default function PricingPage() {
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-[#111116] border border-white/10 rounded-2xl p-5 sm:p-6 space-y-2">
-                <h3 className="text-sm font-bold text-white">Can I use YOU VS YOU without a subscription?</h3>
+              <div className="rounded-2xl p-5 sm:p-6 space-y-2 transition-colors" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                <h3 className="text-sm font-bold" style={{ color: "var(--fg)" }}>Can I use YOU VS YOU without a subscription?</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   Yes — you can add and complete tasks for free to manage your daily workflow. Premium features, analytics, and reports require an active subscription.
                 </p>
               </div>
 
-              <div className="bg-[#111116] border border-white/10 rounded-2xl p-5 sm:p-6 space-y-2">
-                <h3 className="text-sm font-bold text-white">Do I get a free trial?</h3>
+              <div className="rounded-2xl p-5 sm:p-6 space-y-2 transition-colors" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                <h3 className="text-sm font-bold" style={{ color: "var(--fg)" }}>Do I get a free trial?</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   No. YOU VS YOU currently does not offer a free trial. You can start using the free features immediately or upgrade directly to unlock the full system.
                 </p>
               </div>
 
-              <div className="bg-[#111116] border border-white/10 rounded-2xl p-5 sm:p-6 space-y-2">
-                <h3 className="text-sm font-bold text-white">Is payment processing secure?</h3>
+              <div className="rounded-2xl p-5 sm:p-6 space-y-2 transition-colors" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                <h3 className="text-sm font-bold" style={{ color: "var(--fg)" }}>Is payment processing secure?</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   All transactions are encrypted and processed securely by Razorpay. We never store your credit card or bank details on our servers.
                 </p>
               </div>
 
-              <div className="bg-[#111116] border border-white/10 rounded-2xl p-5 sm:p-6 space-y-2">
-                <h3 className="text-sm font-bold text-white">What happens when my subscription expires?</h3>
+              <div className="rounded-2xl p-5 sm:p-6 space-y-2 transition-colors" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                <h3 className="text-sm font-bold" style={{ color: "var(--fg)" }}>What happens when my subscription expires?</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   Your account, tasks, and historical data remain completely safe. Premium features simply become locked until you renew your subscription.
                 </p>

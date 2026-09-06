@@ -117,7 +117,7 @@ class CalendarEngine:
 
         completions = Completion.objects.filter(
             user=user, local_date=target_date
-        ).select_related("task", "task__routine")
+        ).select_related("task")
 
         day_log = DayLog.objects.filter(user=user, log_date=target_date).first()
 
@@ -130,8 +130,7 @@ class CalendarEngine:
             "completions": [
                 {
                     "task_name": c.task.name,
-                    "routine_name": c.task.routine.name,
-                    "routine_icon": c.task.routine.icon,
+                    "category": c.task.category,
                     "completed_at": c.completed_at.isoformat(),
                     "note": c.note,
                     "mood": c.mood,

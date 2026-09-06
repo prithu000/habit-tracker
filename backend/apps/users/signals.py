@@ -26,6 +26,10 @@ def on_user_created(sender, instance, created, **kwargs):
         logger.info(f"   ↳ Skipping - user not newly created")
         return
     
+    if getattr(instance, 'is_seed', False):
+        logger.info(f"   ↳ Skipping seed user: {instance.email}")
+        return
+    
     logger.info(f"   ↳ NEW USER DETECTED: {instance.email}")
 
     # Import here to avoid circular imports
@@ -33,8 +37,8 @@ def on_user_created(sender, instance, created, **kwargs):
     
     # User is created with FREE plan by default via model defaults.
 
-    # Create the overall (non-routine-specific) streak record
-    StreakRecord.objects.get_or_create(user=instance, routine=None)
+    # Create the overall streak record
+    StreakRecord.objects.get_or_create(user=instance)
 
     # Welcome notification
     pass

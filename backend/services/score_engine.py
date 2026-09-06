@@ -8,7 +8,7 @@ from datetime import timedelta
 from django.utils import timezone
 from apps.completions.models import DayLog, Completion
 from apps.streaks.models import StreakRecord
-from apps.routines.models import Task, Routine
+from apps.routines.models import Task
 from apps.analytics.models import DailyOSMetrics, UserOSGoals, LifeScoreSnapshot
 from apps.rewards.models import XPTransaction, UserBadge
 from apps.core.utils import get_user_local_date
@@ -66,7 +66,7 @@ class ScoreEngine:
         today_log = DayLog.objects.filter(user=user, log_date=local_date).first()
         os_goals, _ = UserOSGoals.objects.get_or_create(user=user)
         os_metrics, _ = DailyOSMetrics.objects.get_or_create(user=user, date=local_date)
-        streak_rec = StreakRecord.objects.filter(user=user, routine__isnull=True).first()
+        streak_rec = StreakRecord.objects.filter(user=user).first()
         streak_val = streak_rec.current_streak if streak_rec else 0
         tracked_days = cls.get_tracked_days_count(user)
         is_initializing = (tracked_days == 0)
@@ -304,7 +304,7 @@ class ScoreEngine:
         monthly_rel = float(sum(l.completion_rate for l in month_active)) / float(month_active.count()) if month_active.exists() else weekly_rel
 
         # Streak momentum
-        streak_rec = StreakRecord.objects.filter(user=user, routine__isnull=True).first()
+        streak_rec = StreakRecord.objects.filter(user=user).first()
         streak_val = streak_rec.current_streak if streak_rec else 0
 
         # Missed tasks penalty

@@ -79,7 +79,7 @@ class LifeTreeEngine:
         Returns the complete tree state for rendering.
         """
         from apps.streaks.models import StreakRecord
-        from apps.routines.models import Routine
+        from apps.routines.models import Task
         from apps.completions.models import Completion
         from apps.core.utils import get_user_local_date
 
@@ -87,14 +87,14 @@ class LifeTreeEngine:
 
         # Streak drives the stage
         overall = StreakRecord.objects.filter(
-            user=user, routine__isnull=True
+            user=user
         ).first()
         current_streak = overall.current_streak if overall else 0
         longest_streak = overall.longest_streak if overall else 0
 
-        # Active routines → branches
-        active_routines = Routine.objects.filter(user=user, is_active=True)
-        branch_count = active_routines.count()
+        # Active tasks → branches
+        active_tasks = Task.objects.filter(user=user, is_active=True)
+        branch_count = active_tasks.count()
 
         # Today's completions → leaves added today
         leaves_today = Completion.objects.filter(user=user, local_date=local_date).count()

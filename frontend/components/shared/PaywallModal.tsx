@@ -93,7 +93,7 @@ export function PaywallModal() {
       isOpen={shouldShow}
       onClose={handleContinueFree}
       hideCloseButton={true}
-      className="bg-[#121216] max-w-xl p-0"
+      className="max-w-xl p-0"
     >
       <div className="relative overflow-hidden flex flex-col items-center text-center p-6 sm:p-8 md:p-10">
         {/* Background ambient glow */}

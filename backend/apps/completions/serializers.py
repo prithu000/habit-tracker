@@ -21,13 +21,12 @@ class CompleteTaskSerializer(serializers.Serializer):
 
 class CompletionSerializer(serializers.ModelSerializer):
     task_name = serializers.CharField(source="task.name", read_only=True)
-    routine_id = serializers.UUIDField(source="task.routine_id", read_only=True)
-    routine_name = serializers.CharField(source="task.routine.name", read_only=True)
+    category = serializers.CharField(source="task.category", read_only=True)
 
     class Meta:
         model = Completion
         fields = [
-            "id", "task_id", "task_name", "routine_id", "routine_name",
+            "id", "task_id", "task_name", "category",
             "completed_at", "local_date", "note", "mood", "duration_actual",
         ]
         read_only_fields = ["id", "completed_at", "local_date"]

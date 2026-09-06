@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { Skeleton } from "@/components/shared/Skeleton";
 import { PageTransition } from "@/components/layouts/PageTransition";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/api";
 import {
   Crown,
   Flame,
@@ -41,6 +43,140 @@ const TIERS = [
   { name: "Godlike", xp: 1500000, color: "text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-purple-300 to-pink-300 border-purple-500/60 bg-purple-900/30" },
 ];
 
+function ArenaLeaderboard() {
+  const { data, isLoading } = useQuery({
+    queryKey: ["arenaLeaderboard"],
+    queryFn: async () => {
+      const res = await api.get("/arena/leaderboard?limit=5");
+      return res.data;
+    },
+    staleTime: 60 * 1000, // 1 minute
+  });
+
+  if (isLoading) {
+    return (
+      <div
+        className="w-full rounded-2xl border p-6 mb-8 flex flex-col gap-4"
+        style={{
+          background: "var(--surface)",
+          borderColor: "var(--border)",
+        }}
+      >
+        <div className="flex items-center gap-2 mb-2">
+          <Crown className="w-5 h-5" style={{ color: "var(--accent)" }} />
+          <h2 className="font-bold text-lg" style={{ color: "var(--fg)" }}>GLOBAL TOP 5</h2>
+        </div>
+        {[...Array(5)].map((_, i) => (
+          <Skeleton key={i} className="h-16 w-full rounded-xl" />
+        ))}
+      </div>
+    );
+  }
+
+  const leaderboard = data?.data?.leaderboard || data?.leaderboard || [];
+
+  if (leaderboard.length === 0) {
+    return (
+      <div
+        className="w-full rounded-2xl border p-6 sm:p-8 mb-8 text-center"
+        style={{
+          background: "var(--surface)",
+          borderColor: "var(--border)",
+          boxShadow: "var(--card-shadow)",
+        }}
+      >
+        <Crown className="w-8 h-8 mx-auto mb-2 opacity-40" style={{ color: "var(--accent)" }} />
+        <h3 className="font-semibold text-sm" style={{ color: "var(--fg)" }}>No Leaderboard Operators Yet</h3>
+        <p className="text-xs mt-1" style={{ color: "var(--fg-muted)" }}>Operators are climbing the ranks. Complete routines to claim a spot in the Top 5!</p>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="w-full rounded-2xl border p-6 sm:p-8 mb-8 shadow-sm"
+      style={{
+        background: "var(--surface)",
+        borderColor: "var(--border)",
+        boxShadow: "var(--card-shadow)",
+      }}
+    >
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center border"
+            style={{
+              background: "var(--accent-subtle)",
+              borderColor: "var(--accent-border)",
+              color: "var(--accent)",
+            }}
+          >
+            <Crown className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="font-display font-bold text-xl tracking-wide" style={{ color: "var(--fg)" }}>
+              GLOBAL LEADERBOARD
+            </h2>
+            <p className="text-xs uppercase tracking-wider" style={{ color: "var(--fg-muted)" }}>
+              Top 5 Most Consistent Operators
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        {leaderboard.map((user: any, index: number) => {
+          const isTop3 = index < 3;
+          const rankColors = [
+            "text-amber-400 bg-amber-500/10 border-amber-500/30",
+            "text-slate-300 bg-slate-400/10 border-slate-400/30",
+            "text-orange-400 bg-orange-500/10 border-orange-500/30",
+          ];
+          const badgeClass = isTop3 ? rankColors[index] : "text-zinc-400 bg-zinc-500/10 border-zinc-500/30";
+
+          return (
+            <div
+              key={index}
+              className="flex items-center justify-between p-3 sm:p-4 rounded-xl border transition-colors group"
+              style={{
+                background: "var(--surface-raised)",
+                borderColor: "var(--border)",
+              }}
+            >
+              <div className="flex items-center gap-4">
+                <div
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center font-black text-sm border shadow-sm ${badgeClass}`}
+                >
+                  #{user.rank}
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-bold text-sm sm:text-base" style={{ color: "var(--fg)" }}>
+                    {user.display_name}
+                  </span>
+                  {user.title_name && (
+                    <span 
+                      className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider mt-0.5 group-hover:text-[var(--accent)] transition-colors" 
+                      style={{ color: "var(--fg-muted)" }}
+                      title={user.description}
+                    >
+                      {user.title_name}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-col items-end text-right">
+                <span className="font-mono font-bold text-sm sm:text-base" style={{ color: "var(--fg)" }}>
+                  {user.lifetime_xp.toLocaleString()} <span className="text-xs text-muted-foreground ml-0.5">XP</span>
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function ArenaPage() {
   const user = useAuthStore((state) => state.user);
 
@@ -74,53 +210,94 @@ export default function ArenaPage() {
   const progressPercent = nextTier ? Math.min(100, Math.max(0, (xpIntoTier / xpNeededForNext) * 100)) : 100;
 
   return (
-    <PageTransition className="space-y-8 max-w-5xl mx-auto pb-16">
+    <PageTransition className="space-y-6 md:space-y-8 max-w-5xl mx-auto pb-16">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-forge-900/40 via-zinc-900/60 to-zinc-900/40 p-8 rounded-3xl border border-forge-500/20 backdrop-blur-xl shadow-2xl">
+      <div
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 sm:p-8 rounded-2xl border shadow-sm"
+        style={{
+          background: "var(--surface)",
+          borderColor: "var(--border)",
+          boxShadow: "var(--card-shadow)",
+        }}
+      >
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-forge-500/20 border border-forge-500/30 text-forge-300 text-xs font-semibold uppercase tracking-wider">
-            <Swords className="w-3.5 h-3.5 animate-pulse" />
+          <div
+            className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-medium uppercase tracking-wider border"
+            style={{
+              background: "var(--accent-subtle)",
+              borderColor: "var(--accent-border)",
+              color: "var(--accent)",
+            }}
+          >
+            <Swords className="w-3.5 h-3.5" />
             Lifetime Progression
           </div>
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight text-white">
-            THE <span className="text-transparent bg-clip-text bg-gradient-to-r from-forge-400 to-purple-400">ARENA</span>
+          <h1 className="text-2xl sm:text-3xl font-display font-bold tracking-tight" style={{ color: "var(--fg)" }}>
+            THE ARENA
           </h1>
-          <p className="text-zinc-400 text-sm md:text-base max-w-2xl">
-            Your cumulative lifetime execution tier. Prove your discipline daily and rise through the ranks to Godlike status.
+          <p className="text-xs sm:text-sm max-w-2xl" style={{ color: "var(--fg-muted)" }}>
+            Your cumulative lifetime execution tier. Prove your discipline daily and rise through the ranks.
           </p>
         </div>
 
         {/* Current User Division Badge */}
-        <div className="flex items-center gap-4 bg-zinc-950/80 p-5 rounded-2xl border border-forge-500/30 shadow-inner">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-forge-600 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-forge-500/30">
-            <Crown className="w-8 h-8" />
+        <div
+          className="flex items-center gap-4 p-4 rounded-xl border"
+          style={{
+            background: "var(--surface-raised)",
+            borderColor: "var(--border)",
+          }}
+        >
+          <div
+            className="w-12 h-12 rounded-xl border flex items-center justify-center"
+            style={{
+              background: "var(--surface)",
+              borderColor: "var(--accent-border)",
+              color: "var(--accent)",
+            }}
+          >
+            <Crown className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-xs font-medium text-zinc-500 uppercase tracking-widest">Current Rank</div>
-            <div className="text-xl font-black text-white uppercase tracking-wider">
+            <div className="text-[10px] font-mono uppercase tracking-wider" style={{ color: "var(--fg-faint)" }}>Current Rank</div>
+            <div className="text-base font-bold uppercase tracking-wide" style={{ color: "var(--fg)" }}>
               {currentTier.name}
             </div>
-            <div className="text-xs text-forge-400 font-semibold mt-0.5">
+            <div className="text-xs font-mono mt-0.5" style={{ color: "var(--accent)" }}>
               {currentXp.toLocaleString()} Lifetime XP
             </div>
           </div>
         </div>
       </div>
 
+      {/* Global Leaderboard */}
+      <ArenaLeaderboard />
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Progress to Next Rank */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-3xl p-8 backdrop-blur-md shadow-xl relative overflow-hidden">
-            {/* Background Glow */}
-            <div className="absolute -top-32 -right-32 w-64 h-64 bg-forge-500/10 rounded-full blur-3xl pointer-events-none" />
-            
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-forge-400" />
+        <div className="lg:col-span-2 space-y-4">
+          <div
+            className="border rounded-2xl p-6 shadow-sm relative overflow-hidden"
+            style={{
+              background: "var(--surface)",
+              borderColor: "var(--border)",
+              boxShadow: "var(--card-shadow)",
+            }}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-base font-semibold flex items-center gap-2" style={{ color: "var(--fg)" }}>
+                <TrendingUp className="w-4 h-4" style={{ color: "var(--accent)" }} />
                 Rank Progression
               </h3>
               {nextTier && (
-                <div className="text-xs font-mono bg-white/5 border border-white/10 px-3 py-1.5 rounded-full text-muted-foreground">
+                <div
+                  className="text-xs font-mono px-3 py-1 rounded-lg border"
+                  style={{
+                    background: "var(--surface-raised)",
+                    borderColor: "var(--border)",
+                    color: "var(--fg-muted)",
+                  }}
+                >
                   {xpIntoTier.toLocaleString()} / {xpNeededForNext.toLocaleString()} XP
                 </div>
               )}
@@ -128,18 +305,18 @@ export default function ArenaPage() {
 
             <div className="flex items-center justify-between mb-4">
               <div className="flex flex-col">
-                <span className="text-xs text-zinc-500 font-bold uppercase tracking-widest mb-1">Current Tier</span>
-                <span className={cn("text-2xl font-black uppercase", currentTier.color.split(' ')[0])}>
+                <span className="text-[10px] font-mono uppercase tracking-wider mb-1" style={{ color: "var(--fg-faint)" }}>Current Tier</span>
+                <span className={cn("text-xl font-bold uppercase", currentTier.color.split(' ')[0])}>
                   {currentTier.name}
                 </span>
               </div>
               
               {nextTier && (
                 <>
-                  <ChevronRight className="w-8 h-8 text-zinc-700 mx-4" />
+                  <ChevronRight className="w-6 h-6 mx-4" style={{ color: "var(--fg-faint)" }} />
                   <div className="flex flex-col items-end">
-                    <span className="text-xs text-zinc-500 font-bold uppercase tracking-widest mb-1">Next Tier</span>
-                    <span className={cn("text-2xl font-black uppercase", nextTier.color.split(' ')[0])}>
+                    <span className="text-[10px] font-mono uppercase tracking-wider mb-1" style={{ color: "var(--fg-faint)" }}>Next Tier</span>
+                    <span className={cn("text-xl font-bold uppercase", nextTier.color.split(' ')[0])}>
                       {nextTier.name}
                     </span>
                   </div>
@@ -147,53 +324,97 @@ export default function ArenaPage() {
               )}
             </div>
 
-            <div className="relative w-full bg-zinc-950 h-6 rounded-full overflow-hidden border border-white/10 mt-6 shadow-inner">
+            <div
+              className="relative w-full h-3.5 rounded-full overflow-hidden border mt-4"
+              style={{
+                background: "var(--surface-raised)",
+                borderColor: "var(--border)",
+              }}
+            >
               <motion.div
-                className="absolute top-0 left-0 h-full bg-gradient-to-r from-forge-600 to-purple-400 rounded-full shadow-[0_0_15px_rgba(139,92,246,0.5)]"
+                className="absolute top-0 left-0 h-full rounded-full"
+                style={{ background: "var(--accent)" }}
                 initial={{ width: 0 }}
                 animate={{ width: `${progressPercent}%` }}
-                transition={{ duration: 1, ease: "easeOut" }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
               />
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none mix-blend-overlay">
-                 <span className="text-[10px] font-black text-white/80 tracking-widest">
-                   {nextTier ? `${Math.floor(progressPercent)}% TO NEXT RANK` : "MAXIMUM RANK ACHIEVED"}
-                 </span>
-              </div>
             </div>
             
             {nextTier && (
-              <p className="text-sm text-zinc-400 mt-4 text-center">
-                Earn <strong className="text-white">{(nextTier.xp - currentXp).toLocaleString()} more XP</strong> to unlock the next rank.
+              <p className="text-xs mt-3 text-center" style={{ color: "var(--fg-muted)" }}>
+                Earn <strong style={{ color: "var(--fg)" }}>{(nextTier.xp - currentXp).toLocaleString()} more XP</strong> to unlock the next rank.
               </p>
             )}
           </div>
           
           <div className="grid grid-cols-2 gap-4">
-             <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-3xl p-6 backdrop-blur-md shadow-lg flex flex-col items-center justify-center text-center">
-               <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-3">
-                 <Flame className="w-6 h-6 text-amber-500" />
+             <div
+               className="border rounded-2xl p-5 shadow-sm flex flex-col items-center justify-center text-center"
+               style={{
+                 background: "var(--surface)",
+                 borderColor: "var(--border)",
+                 boxShadow: "var(--card-shadow)",
+               }}
+             >
+               <div
+                 className="w-10 h-10 rounded-xl border flex items-center justify-center mb-2"
+                 style={{
+                   background: "var(--surface-raised)",
+                   borderColor: "var(--border)",
+                   color: "var(--accent)",
+                 }}
+               >
+                 <Flame className="w-5 h-5" />
                </div>
-               <div className="text-3xl font-black text-white font-mono">{user.current_streak}</div>
-               <div className="text-xs text-zinc-500 uppercase tracking-widest mt-1 font-bold">Day Streak</div>
+               <div className="text-2xl font-bold font-mono" style={{ color: "var(--fg)" }}>{user.current_streak}</div>
+               <div className="text-[10px] uppercase tracking-wider mt-1 font-mono" style={{ color: "var(--fg-faint)" }}>Day Streak</div>
              </div>
              
-             <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-3xl p-6 backdrop-blur-md shadow-lg flex flex-col items-center justify-center text-center">
-               <div className="w-12 h-12 rounded-full bg-forge-500/10 border border-forge-500/20 flex items-center justify-center mb-3">
-                 <Award className="w-6 h-6 text-forge-400" />
+             <div
+               className="border rounded-2xl p-5 shadow-sm flex flex-col items-center justify-center text-center"
+               style={{
+                 background: "var(--surface)",
+                 borderColor: "var(--border)",
+                 boxShadow: "var(--card-shadow)",
+               }}
+             >
+               <div
+                 className="w-10 h-10 rounded-xl border flex items-center justify-center mb-2"
+                 style={{
+                   background: "var(--surface-raised)",
+                   borderColor: "var(--border)",
+                   color: "var(--accent)",
+                 }}
+               >
+                 <Award className="w-5 h-5" />
                </div>
-               <div className="text-3xl font-black text-white font-mono">{currentXp.toLocaleString()}</div>
-               <div className="text-xs text-zinc-500 uppercase tracking-widest mt-1 font-bold">Lifetime XP</div>
+               <div className="text-2xl font-bold font-mono" style={{ color: "var(--fg)" }}>{currentXp.toLocaleString()}</div>
+               <div className="text-[10px] uppercase tracking-wider mt-1 font-mono" style={{ color: "var(--fg-faint)" }}>Lifetime XP</div>
              </div>
           </div>
         </div>
 
         {/* Right Column: All Tiers List */}
-        <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-3xl p-6 backdrop-blur-md shadow-xl h-[600px] overflow-y-auto custom-scrollbar">
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-6 sticky top-0 bg-zinc-900/90 py-2 backdrop-blur-md z-10 flex items-center gap-2 border-b border-zinc-800">
-            <Target className="w-4 h-4 text-forge-400" />
+        <div
+          className="border rounded-2xl p-5 shadow-sm h-[540px] overflow-y-auto custom-scrollbar"
+          style={{
+            background: "var(--surface)",
+            borderColor: "var(--border)",
+            boxShadow: "var(--card-shadow)",
+          }}
+        >
+          <h3
+            className="text-xs font-semibold uppercase tracking-wider mb-4 sticky top-0 py-2 backdrop-blur-md z-10 flex items-center gap-2 border-b"
+            style={{
+              background: "var(--surface)",
+              borderColor: "var(--border)",
+              color: "var(--fg)",
+            }}
+          >
+            <Target className="w-3.5 h-3.5" style={{ color: "var(--accent)" }} />
             Tier System
           </h3>
-          <div className="space-y-2 relative pb-8">
+          <div className="space-y-1.5 relative pb-6">
             {TIERS.map((tier, idx) => {
               const isUnlocked = currentXp >= tier.xp;
               const isCurrent = currentTierIndex === idx;
@@ -201,30 +422,53 @@ export default function ArenaPage() {
               return (
                 <div 
                   key={tier.name}
-                  className={cn(
-                    "p-3 rounded-xl border transition-all flex items-center justify-between",
-                    isCurrent ? "bg-forge-500/20 border-forge-500/50 shadow-[0_0_15px_rgba(139,92,246,0.2)]" :
-                    isUnlocked ? "bg-white/5 border-white/10" : "bg-zinc-950/50 border-zinc-900 opacity-50"
-                  )}
+                  className="p-2.5 rounded-xl border transition-colors flex items-center justify-between"
+                  style={
+                    isCurrent
+                      ? {
+                          background: "var(--accent-subtle)",
+                          borderColor: "var(--accent)",
+                        }
+                      : isUnlocked
+                      ? {
+                          background: "var(--surface-raised)",
+                          borderColor: "var(--border)",
+                        }
+                      : {
+                          background: "var(--surface)",
+                          borderColor: "var(--border)",
+                          opacity: 0.45,
+                        }
+                  }
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2.5">
                     <div className={cn(
-                      "w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0",
+                      "w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0",
                       tier.color
                     )}>
                       {idx + 1}
                     </div>
                     <div>
-                      <div className={cn("text-sm font-black uppercase tracking-wider", isUnlocked ? "text-white" : "text-zinc-600")}>
+                      <div
+                        className="text-xs font-semibold uppercase tracking-wide"
+                        style={{ color: isUnlocked ? "var(--fg)" : "var(--fg-faint)" }}
+                      >
                         {tier.name}
                       </div>
-                      <div className="text-[10px] text-zinc-500 font-mono">
+                      <div className="text-[10px] font-mono" style={{ color: "var(--fg-faint)" }}>
                         {tier.xp.toLocaleString()} XP
                       </div>
                     </div>
                   </div>
                   {isCurrent && (
-                    <span className="text-[9px] font-black uppercase tracking-widest text-forge-300 bg-forge-950 px-2 py-1 rounded-full">
+                    <span
+                      className="text-[9px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-md border"
+                      style={{
+                        background: "var(--surface-raised)",
+                        borderColor: "var(--accent-border)",
+                        color: "var(--accent)",
+                      }}
+                    >
                       Current
                     </span>
                   )}

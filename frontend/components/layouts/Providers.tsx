@@ -6,6 +6,7 @@ import { useRef, ReactNode } from "react";
 import { Toaster } from "react-hot-toast";
 import { AuthGuard } from "./AuthGuard";
 import { PaywallModal } from "@/components/shared/PaywallModal";
+import { ThemeApplier } from "./ThemeApplier";
 
 export function Providers({ children }: { children: ReactNode }) {
   // Use useRef to ensure QueryClient is created only once and never recreated
@@ -28,6 +29,7 @@ export function Providers({ children }: { children: ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClientRef.current}>
+      <ThemeApplier />
       <AuthGuard>
         {children}
       </AuthGuard>

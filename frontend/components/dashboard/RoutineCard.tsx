@@ -95,18 +95,25 @@ export const RoutineCard = memo(function RoutineCard({ routine }: RoutineCardPro
     <motion.div
       whileHover={animationsEnabled ? { y: -2, transition: { duration: 0.2 } } : undefined}
       className={cn(
-        "bg-[#0a0a0c]/80 backdrop-blur-2xl border transition-colors duration-200 overflow-hidden mb-5 shadow-[0_10px_35px_rgba(0,0,0,0.5)] group relative",
+        "border transition-colors duration-200 overflow-hidden mb-5 group relative",
         radiusClasses[cardRadius] || "rounded-[20px]",
         routine.is_complete
-          ? "border-emerald-500/40 bg-gradient-to-r from-emerald-500/10 via-[#0a0a0c]/80 to-[#0a0a0c]/80 shadow-[0_0_30px_rgba(16,185,129,0.1)]"
-          : "border-white/[0.08] hover:border-forge-500/40"
+          ? "border-emerald-500/40 shadow-[0_0_30px_rgba(16,185,129,0.1)]"
+          : "hover:border-[var(--accent)]/40"
       )}
+      style={{
+        background: routine.is_complete 
+          ? "linear-gradient(90deg, rgba(16,185,129,0.08) 0%, var(--surface) 100%)" 
+          : "var(--surface)",
+        borderColor: routine.is_complete ? "rgba(16,185,129,0.4)" : "var(--border)",
+        boxShadow: "var(--card-shadow)",
+      }}
     >
       {/* Top Subtle Gradient Border Line */}
       <div
         className="absolute top-0 left-0 right-0 h-[2px] opacity-40 group-hover:opacity-100 transition-opacity"
         style={{
-          background: `linear-gradient(90deg, transparent, ${routine.color || "#8b5cf6"}, transparent)`,
+          background: `linear-gradient(90deg, transparent, ${routine.color || "var(--accent)"}, transparent)`,
         }}
       />
 
@@ -117,7 +124,7 @@ export const RoutineCard = memo(function RoutineCard({ routine }: RoutineCardPro
       >
         <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0 pr-2">
           <div
-            className="flex h-12 w-12 items-center justify-center rounded-2xl text-2xl shadow-[0_0_20px_rgba(0,0,0,0.4)] border transition-transform group-hover:scale-105 duration-300"
+            className="flex h-12 w-12 items-center justify-center rounded-2xl text-2xl shadow-[0_0_20px_rgba(0,0,0,0.1)] border transition-transform group-hover:scale-105 duration-300"
             style={{
               backgroundColor: `${routine.color}18`,
               color: routine.color,
@@ -128,22 +135,22 @@ export const RoutineCard = memo(function RoutineCard({ routine }: RoutineCardPro
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="font-display font-bold text-base sm:text-lg text-white tracking-wide truncate max-w-full">
+              <h3 className="font-display font-bold text-base sm:text-lg tracking-wide truncate max-w-full" style={{ color: "var(--fg)" }}>
                 {routine.name}
               </h3>
               {routine.is_complete && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 uppercase tracking-widest">
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 uppercase tracking-widest">
                   <CheckCircle2 className="w-3 h-3" />
                   Done
                 </span>
               )}
             </div>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-[10px] font-mono font-bold text-forge-400 uppercase tracking-widest bg-forge-500/10 px-2 py-0.5 rounded-md border border-forge-500/20">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 rounded-md border" style={{ color: "var(--accent)", background: "var(--accent-subtle)", borderColor: "var(--accent-border)" }}>
                 {routine.time_of_day}
               </span>
-              <span className="w-1 h-1 rounded-full bg-white/20" />
-              <span className="text-xs text-muted-foreground font-medium">
+              <span className="w-1 h-1 rounded-full bg-[var(--border)]" />
+              <span className="text-xs font-medium" style={{ color: "var(--fg-muted)" }}>
                 {routine.completed_count}/{routine.task_count} tasks
               </span>
             </div>
@@ -153,13 +160,13 @@ export const RoutineCard = memo(function RoutineCard({ routine }: RoutineCardPro
         <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           <div className="hidden sm:flex flex-col items-end gap-1.5 w-36">
             <div className="flex items-center justify-between w-full text-xs font-mono">
-              <span className="text-muted-foreground">Progress</span>
-              <span className="font-bold text-white">{routine.completion_rate}%</span>
+              <span style={{ color: "var(--fg-muted)" }}>Progress</span>
+              <span className="font-bold" style={{ color: "var(--fg)" }}>{routine.completion_rate}%</span>
             </div>
-            <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden p-[1px] border border-white/[0.05]">
+            <div className="h-2 w-full bg-[var(--surface-raised)] rounded-full overflow-hidden p-[1px] border border-[var(--border-subtle)]">
               <motion.div
-                className="h-full rounded-full shadow-[0_0_10px_rgba(139,92,246,0.6)]"
-                style={{ backgroundColor: routine.color || "#8b5cf6" }}
+                className="h-full rounded-full shadow-[0_0_10px_rgba(139,92,246,0.4)]"
+                style={{ backgroundColor: routine.color || "var(--accent)" }}
                 initial={{ width: 0 }}
                 animate={{ width: `${routine.completion_rate}%` }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
@@ -168,14 +175,24 @@ export const RoutineCard = memo(function RoutineCard({ routine }: RoutineCardPro
           </div>
           
           <button
-            className="px-2 sm:px-3 py-1.5 rounded-lg bg-forge-500/20 text-forge-400 hover:bg-forge-500/30 transition-colors text-xs font-bold shrink-0"
+            className="px-2 sm:px-3 py-1.5 rounded-lg transition-colors text-xs font-bold shrink-0 border"
+            style={{
+              color: "var(--accent)",
+              background: "var(--accent-subtle)",
+              borderColor: "var(--accent-border)",
+            }}
             onClick={handleAddTaskClick}
           >
             + Add Task
           </button>
 
           <button
-            className="w-8 h-8 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] text-muted-foreground hover:text-white transition-all flex items-center justify-center shrink-0"
+            className="w-8 h-8 rounded-xl border transition-all flex items-center justify-center shrink-0"
+            style={{
+              background: "var(--surface-raised)",
+              borderColor: "var(--border)",
+              color: "var(--fg-muted)",
+            }}
             title={isExpanded ? "Collapse Routine" : "Expand Routine"}
           >
             {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -185,7 +202,12 @@ export const RoutineCard = memo(function RoutineCard({ routine }: RoutineCardPro
             <DropdownMenu.Root>
               <DropdownMenu.Trigger asChild>
                 <button
-                  className="w-8 h-8 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] text-muted-foreground hover:text-white transition-all flex items-center justify-center outline-none focus:ring-2 focus:ring-forge-500/50"
+                  className="w-8 h-8 rounded-xl border transition-all flex items-center justify-center outline-none focus:ring-2"
+                  style={{
+                    background: "var(--surface-raised)",
+                    borderColor: "var(--border)",
+                    color: "var(--fg-muted)",
+                  }}
                   aria-label="Routine options"
                 >
                   <MoreVertical className="w-4 h-4" />
@@ -194,7 +216,12 @@ export const RoutineCard = memo(function RoutineCard({ routine }: RoutineCardPro
 
               <DropdownMenu.Portal>
                 <DropdownMenu.Content
-                  className="z-50 min-w-[200px] overflow-hidden rounded-xl border border-white/10 bg-[#121214]/95 p-1 text-white shadow-2xl backdrop-blur-xl animate-in fade-in-80 zoom-in-95"
+                  className="z-50 min-w-[200px] overflow-hidden rounded-xl border p-1 shadow-2xl backdrop-blur-xl animate-in fade-in-80 zoom-in-95"
+                  style={{
+                    background: "var(--surface)",
+                    borderColor: "var(--border)",
+                    color: "var(--fg)",
+                  }}
                   sideOffset={8}
                   align="end"
                 >
@@ -248,12 +275,12 @@ export const RoutineCard = memo(function RoutineCard({ routine }: RoutineCardPro
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="border-t border-white/[0.06]"
+            className="border-t border-[var(--border)]"
           >
-            <div className="p-4 bg-black/40 space-y-2">
+            <div className="p-4 bg-[var(--surface-raised)]/40 space-y-2">
               {isAddingTask && (
                 <div 
-                  className="p-4 bg-white/[0.02] border border-white/[0.1] rounded-xl mb-4 space-y-4"
+                  className="p-4 bg-[var(--surface)] border border-[var(--border)] rounded-xl mb-4 space-y-4 shadow-sm"
                   onClick={(e) => e.stopPropagation()} // Prevent card collapse
                 >
                   <div className="flex gap-2">
@@ -264,7 +291,7 @@ export const RoutineCard = memo(function RoutineCard({ routine }: RoutineCardPro
                       value={newTaskName}
                       onChange={(e) => setNewTaskName(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      className="flex-1 bg-white/[0.05] border border-white/[0.1] rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-forge-500/50 transition-colors"
+                      className="flex-1 bg-[var(--surface-raised)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--fg)] placeholder:text-[var(--fg-faint)] focus:outline-none focus:border-[var(--accent)] transition-colors"
                     />
                     <input
                       type="text"
@@ -272,16 +299,16 @@ export const RoutineCard = memo(function RoutineCard({ routine }: RoutineCardPro
                       value={newTaskDuration}
                       onChange={(e) => setNewTaskDuration(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      className="w-40 bg-white/[0.05] border border-white/[0.1] rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-forge-500/50 transition-colors"
+                      className="w-40 bg-[var(--surface-raised)] border border-[var(--border)] rounded-lg px-3 py-2 text-sm text-[var(--fg)] placeholder:text-[var(--fg-faint)] focus:outline-none focus:border-[var(--accent)] transition-colors"
                     />
                   </div>
                   <div className="flex flex-wrap items-center gap-4">
                     <div className="flex flex-col gap-1">
-                      <label className="text-[10px] text-white/50 uppercase font-bold tracking-wider">Priority</label>
+                      <label className="text-[10px] text-[var(--fg-muted)] uppercase font-bold tracking-wider">Priority</label>
                       <select 
                         value={newTaskPriority}
                         onChange={(e) => setNewTaskPriority(e.target.value)}
-                        className="bg-white/[0.05] border border-white/[0.1] rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-forge-500/50"
+                        className="bg-[var(--surface-raised)] border border-[var(--border)] rounded-lg px-2 py-1 text-xs text-[var(--fg)] focus:outline-none focus:border-[var(--accent)]"
                       >
                         <option value="Low">Low</option>
                         <option value="Medium">Medium</option>
@@ -289,11 +316,11 @@ export const RoutineCard = memo(function RoutineCard({ routine }: RoutineCardPro
                       </select>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <label className="text-[10px] text-white/50 uppercase font-bold tracking-wider">Repeat</label>
+                      <label className="text-[10px] text-[var(--fg-muted)] uppercase font-bold tracking-wider">Repeat</label>
                       <select 
                         value={newTaskRepeat}
                         onChange={(e) => setNewTaskRepeat(e.target.value)}
-                        className="bg-white/[0.05] border border-white/[0.1] rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-forge-500/50"
+                        className="bg-[var(--surface-raised)] border border-[var(--border)] rounded-lg px-2 py-1 text-xs text-[var(--fg)] focus:outline-none focus:border-[var(--accent)]"
                       >
                         <option value="None">None</option>
                         <option value="Daily">Daily</option>
@@ -305,14 +332,14 @@ export const RoutineCard = memo(function RoutineCard({ routine }: RoutineCardPro
                     <div className="flex items-center gap-2 mt-4 sm:mt-0">
                       <button 
                         onClick={() => setIsAddingTask(false)}
-                        className="px-4 py-1.5 rounded-lg border border-white/[0.1] text-xs font-bold text-white/70 hover:bg-white/[0.05] transition-colors"
+                        className="px-4 py-1.5 rounded-lg border border-[var(--border)] text-xs font-bold text-[var(--fg-muted)] hover:bg-[var(--surface-hover)] transition-colors"
                       >
                         Cancel
                       </button>
                       <button 
                         onClick={handleAddTask}
                         disabled={!newTaskName.trim() || isCreatingTask}
-                        className="px-4 py-1.5 rounded-lg bg-forge-500 text-white text-xs font-bold hover:bg-forge-600 disabled:opacity-50 transition-colors"
+                        className="px-4 py-1.5 rounded-lg bg-[var(--accent)] text-[var(--accent-fg)] text-xs font-bold hover:opacity-90 disabled:opacity-50 transition-colors shadow-sm"
                       >
                         Add Task
                       </button>

@@ -83,8 +83,16 @@ Thank you for investing in yourself. Keep showing up.
     <div className="space-y-8 animate-in fade-in duration-300">
       
       {/* Current Plan Card */}
-      <div className="relative rounded-3xl bg-gradient-to-br from-[#14141a] via-[#161324] to-[#121216] border border-forge-500/30 p-6 sm:p-8 shadow-[0_10px_40px_rgba(139,92,246,0.15)] overflow-hidden">
-        <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-forge-500/10 rounded-full blur-[90px] pointer-events-none" />
+      <div 
+        className="relative rounded-3xl border p-6 sm:p-8 overflow-hidden"
+        style={{
+          background: "var(--surface)",
+          borderColor: "var(--border)",
+          boxShadow: "var(--card-shadow)",
+          color: "var(--fg)",
+        }}
+      >
+        <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-[var(--accent)]/10 rounded-full blur-[90px] pointer-events-none" />
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
           <div className="space-y-2">
@@ -92,10 +100,10 @@ Thank you for investing in yourself. Keep showing up.
               <span className={cn(
                 "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border",
                 subStatus === "active"
-                  ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-400"
+                  ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-500"
                   : subStatus === "expired" || subStatus === "cancelled"
-                  ? "bg-red-500/15 border-red-500/30 text-red-400"
-                  : "bg-amber-500/15 border-amber-500/30 text-amber-300"
+                  ? "bg-red-500/15 border-red-500/30 text-red-500"
+                  : "bg-amber-500/15 border-amber-500/30 text-amber-500"
               )}>
                 {subStatus === "active" && "PRO ACTIVE"}
                 {subStatus === "expired" && "EXPIRED"}
@@ -104,17 +112,17 @@ Thank you for investing in yourself. Keep showing up.
               </span>
             </div>
 
-            <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            <h3 className="text-2xl sm:text-3xl font-black tracking-tight" style={{ color: "var(--fg)" }}>
               {getPlanTitle()}
             </h3>
 
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <div className="flex items-center gap-4 text-xs" style={{ color: "var(--fg-muted)" }}>
               {user?.renewal_date && subStatus === "active" ? (
                 <div className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-forge-400" />
+                  <Calendar className="w-3.5 h-3.5" style={{ color: "var(--accent)" }} />
                   <span>
                     Renews on:{" "}
-                    <strong className="text-white">
+                    <strong style={{ color: "var(--fg)" }}>
                       {new Date(user.renewal_date).toLocaleDateString()}
                     </strong>
                   </span>
@@ -126,7 +134,11 @@ Thank you for investing in yourself. Keep showing up.
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
             <button
               onClick={() => router.push("/pricing")}
-              className="px-5 py-3.5 rounded-2xl bg-gradient-to-r from-forge-500 to-purple-600 hover:from-forge-600 hover:to-purple-700 text-white font-bold text-xs sm:text-sm shadow-[0_0_20px_rgba(139,92,246,0.3)] transition-all flex items-center justify-center gap-2 group"
+              className="px-5 py-3.5 rounded-2xl font-bold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 group"
+              style={{
+                background: "var(--accent)",
+                color: "var(--accent-fg)",
+              }}
             >
               <Sparkles className="w-4 h-4" />
               <span>{subStatus === "active" ? "Change / Upgrade Plan" : "Upgrade to Pro"}</span>
@@ -136,17 +148,17 @@ Thank you for investing in yourself. Keep showing up.
         </div>
 
         {/* Feature Checkmarks inline */}
-        <div className="mt-6 pt-6 border-t border-white/[0.08] grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-white/90">
+        <div className="mt-6 pt-6 border-t grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs" style={{ borderColor: "var(--border)", color: "var(--fg)" }}>
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
             <span>Printable A4 PDF Reports</span>
           </div>
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
             <span>Unlimited Habit Heatmaps</span>
           </div>
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
             <span>Deep Focus & Discipline Engine</span>
           </div>
         </div>
@@ -156,24 +168,31 @@ Thank you for investing in yourself. Keep showing up.
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-forge-400" />
-            <h3 className="text-lg font-bold text-white tracking-tight">Billing & Payment History</h3>
+            <FileText className="w-5 h-5" style={{ color: "var(--accent)" }} />
+            <h3 className="text-lg font-bold tracking-tight" style={{ color: "var(--fg)" }}>Billing & Payment History</h3>
           </div>
-          <span className="text-xs text-muted-foreground font-mono">
+          <span className="text-xs font-mono" style={{ color: "var(--fg-muted)" }}>
             {history.length} {history.length === 1 ? "invoice" : "invoices"}
           </span>
         </div>
 
-        <div className="bg-[#111116] border border-white/10 rounded-3xl overflow-hidden shadow-xl">
+        <div 
+          className="border rounded-3xl overflow-hidden shadow-xl"
+          style={{
+            background: "var(--surface)",
+            borderColor: "var(--border)",
+            color: "var(--fg)",
+          }}
+        >
           {historyLoading ? (
-            <div className="p-12 flex flex-col items-center justify-center text-muted-foreground gap-3">
-              <Loader2 className="w-6 h-6 animate-spin text-forge-400" />
+            <div className="p-12 flex flex-col items-center justify-center gap-3" style={{ color: "var(--fg-muted)" }}>
+              <Loader2 className="w-6 h-6 animate-spin" style={{ color: "var(--accent)" }} />
               <span className="text-xs">Loading transaction history...</span>
             </div>
           ) : history.length === 0 ? (
-            <div className="p-12 text-center text-muted-foreground space-y-2">
-              <CreditCard className="w-8 h-8 mx-auto text-white/20 mb-2" />
-              <p className="text-sm font-medium text-white/80">No payments recorded yet</p>
+            <div className="p-12 text-center space-y-2" style={{ color: "var(--fg-muted)" }}>
+              <CreditCard className="w-8 h-8 mx-auto opacity-30 mb-2" />
+              <p className="text-sm font-medium" style={{ color: "var(--fg)" }}>No payments recorded yet</p>
               <p className="text-xs max-w-sm mx-auto">
                 Once you subscribe to a paid plan, all your verified invoices will be stored safely here for tax and record purposes.
               </p>
@@ -182,32 +201,32 @@ Thank you for investing in yourself. Keep showing up.
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse min-w-[650px]">
                 <thead>
-                  <tr className="border-b border-white/10 bg-white/[0.02]">
-                    <th className="py-3.5 px-6 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Invoice</th>
-                    <th className="py-3.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Plan</th>
-                    <th className="py-3.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Amount</th>
-                    <th className="py-3.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Date</th>
-                    <th className="py-3.5 px-4 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Status</th>
-                    <th className="py-3.5 px-6 text-right text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Action</th>
+                  <tr className="border-b" style={{ background: "var(--surface-raised)", borderColor: "var(--border)" }}>
+                    <th className="py-3.5 px-6 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--fg-muted)" }}>Invoice</th>
+                    <th className="py-3.5 px-4 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--fg-muted)" }}>Plan</th>
+                    <th className="py-3.5 px-4 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--fg-muted)" }}>Amount</th>
+                    <th className="py-3.5 px-4 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--fg-muted)" }}>Date</th>
+                    <th className="py-3.5 px-4 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--fg-muted)" }}>Status</th>
+                    <th className="py-3.5 px-6 text-right text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--fg-muted)" }}>Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/[0.06] text-xs">
+                <tbody className="divide-y text-xs" style={{ borderColor: "var(--border)" }}>
                   {history.map((item) => (
-                    <tr key={item.id} className="hover:bg-white/[0.02] transition-colors">
-                      <td className="py-4 px-6 font-mono font-medium text-white">{item.invoice_number}</td>
-                      <td className="py-4 px-4 text-white font-medium">
+                    <tr key={item.id} className="hover:bg-[var(--surface-hover)] transition-colors">
+                      <td className="py-4 px-6 font-mono font-medium" style={{ color: "var(--fg)" }}>{item.invoice_number}</td>
+                      <td className="py-4 px-4 font-medium" style={{ color: "var(--fg)" }}>
                         {item.metadata?.plan_title || item.plan_type.toUpperCase()}
                       </td>
-                      <td className="py-4 px-4 font-bold text-white">₹{item.amount}</td>
-                      <td className="py-4 px-4 text-muted-foreground">
+                      <td className="py-4 px-4 font-bold" style={{ color: "var(--fg)" }}>₹{item.amount}</td>
+                      <td className="py-4 px-4" style={{ color: "var(--fg-muted)" }}>
                         {new Date(item.paid_at).toLocaleDateString()}
                       </td>
                       <td className="py-4 px-4">
                         <span className={cn(
                           "px-2 py-0.5 rounded text-[10px] font-bold uppercase",
                           item.status === "success"
-                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
-                            : "bg-red-500/10 text-red-400 border border-red-500/30"
+                            ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/30"
+                            : "bg-red-500/10 text-red-500 border border-red-500/30"
                         )}>
                           {item.status}
                         </span>
@@ -215,7 +234,12 @@ Thank you for investing in yourself. Keep showing up.
                       <td className="py-4 px-6 text-right">
                         <button
                           onClick={() => handleDownloadInvoice(item)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-white font-medium transition-all text-xs"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border font-medium transition-all text-xs hover:bg-[var(--surface-hover)]"
+                          style={{
+                            background: "var(--surface-raised)",
+                            borderColor: "var(--border)",
+                            color: "var(--fg)",
+                          }}
                           title="Download Invoice"
                         >
                           <Download className="w-3.5 h-3.5" />

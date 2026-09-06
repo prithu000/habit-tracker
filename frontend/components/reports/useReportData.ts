@@ -107,7 +107,13 @@ export function useReportData({
 
   const consistencyRate = Math.min(
     100,
-    Math.round(dashboard?.today?.stats?.completion_rate ?? dashboard?.widgets?.day_progress?.completion_rate ?? data?.summary?.avg_completion_rate ?? data?.executive_summary?.completion_percentage ?? 0)
+    Math.round(
+      timeframe === "daily"
+        ? (dashboard?.today?.stats?.completion_rate ?? data?.executive_summary?.completion_percentage ?? 0)
+        : timeframe === "weekly"
+        ? (data?.smart_statistics?.week_score ?? weeklyAnalytics?.summary?.avg_completion_rate ?? data?.executive_summary?.completion_percentage ?? 0)
+        : (data?.smart_statistics?.month_score ?? monthlyAnalytics?.summary?.avg_completion_rate ?? data?.executive_summary?.completion_percentage ?? 0)
+    )
   );
 
   const colorHexMap: Record<string, string> = {
@@ -130,7 +136,7 @@ export function useReportData({
     dynamicHabits = dynamicAnalytics.map((wa: any) => ({
       name: wa.name,
       val: wa.consistency_pct || 0,
-      color: colorHexMap[wa.color] || "#3b82f6"
+      color: colorHexMap[wa.color] || wa.color || "#3b82f6"
     }));
   }
   // If dynamicAnalytics is empty (no widgets selected in Report Settings),
@@ -205,6 +211,7 @@ export function useReportData({
     rightMetricVal,
     rightMetricLabel,
     habitsList,
+    dynamicHabits,
     recent14Days,
     weeklyChartData,
     monthlyBarData,

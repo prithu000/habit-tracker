@@ -117,7 +117,7 @@ def refresh_leaderboard_cache():
         for i, entry in enumerate(monthly_xp):
             streak = (
                 StreakRecord.objects
-                .filter(user_id=entry["user_id"], routine__isnull=True)
+                .filter(user_id=entry["user_id"])
                 .only("current_streak")
                 .first()
             )

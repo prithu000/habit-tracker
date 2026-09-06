@@ -16,9 +16,9 @@ class WeeklyInsight(BaseModel):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="weekly_insights")
     week_start = models.DateField()
-    best_routine = models.ForeignKey(
-        "routines.Routine", on_delete=models.SET_NULL,
-        null=True, blank=True
+    best_category = models.CharField(
+        max_length=20, blank=True, default="",
+        help_text="Category slug with the highest completion rate this week.",
     )
     completion_trend = models.CharField(max_length=20, choices=Trend.choices, default=Trend.STABLE)
     highlight_text = models.TextField()

@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+export type AppTheme = "light" | "dark" | "cream" | "green";
+
 export type WallpaperType =
   | "none"
   | "nature"
@@ -116,6 +118,7 @@ export const ALL_WIDGETS: { id: WidgetId; label: string; category: "productivity
 ];
 
 interface CustomizationState {
+  theme: AppTheme;
   wallpaper: WallpaperType;
   customWallpaperUrl: string;
   blurLevel: "none" | "sm" | "md" | "lg" | "xl";
@@ -130,6 +133,7 @@ interface CustomizationState {
   isRightSidebarOpen: boolean;
 
   // Actions
+  setTheme: (theme: AppTheme) => void;
   setWallpaper: (type: WallpaperType, customUrl?: string) => void;
   setBlurLevel: (level: "none" | "sm" | "md" | "lg" | "xl") => void;
   setOverlayOpacity: (opacity: number) => void;
@@ -155,19 +159,21 @@ const DEFAULT_ENABLED_WIDGETS: WidgetId[] = [
 export const useCustomizationStore = create<CustomizationState>()(
   persist(
     (set) => ({
-      wallpaper: "cyberpunk",
+      theme: "light" as AppTheme,
+      wallpaper: "none",
       customWallpaperUrl: "",
-      blurLevel: "md",
-      overlayOpacity: 0.78,
+      blurLevel: "none",
+      overlayOpacity: 0.0,
       accentColor: "#8b5cf6",
-      sidebarStyle: "floating",
+      sidebarStyle: "matte",
       dashboardLayout: "grid",
-      cardRadius: "20px",
+      cardRadius: "16px",
       animationsEnabled: true,
       density: "comfortable",
       enabledWidgets: DEFAULT_ENABLED_WIDGETS,
       isRightSidebarOpen: false,
 
+      setTheme: (theme) => set({ theme }),
       setWallpaper: (type, customUrl = "") => set({ wallpaper: type, customWallpaperUrl: customUrl }),
       setBlurLevel: (level) => set({ blurLevel: level }),
       setOverlayOpacity: (opacity) => set({ overlayOpacity: opacity }),
@@ -188,14 +194,15 @@ export const useCustomizationStore = create<CustomizationState>()(
       setRightSidebarOpen: (open) => set({ isRightSidebarOpen: open }),
       resetToDefaults: () =>
         set({
-          wallpaper: "cyberpunk",
+          theme: "light",
+          wallpaper: "none",
           customWallpaperUrl: "",
-          blurLevel: "md",
-          overlayOpacity: 0.78,
+          blurLevel: "none",
+          overlayOpacity: 0.0,
           accentColor: "#8b5cf6",
-          sidebarStyle: "floating",
+          sidebarStyle: "matte",
           dashboardLayout: "grid",
-          cardRadius: "20px",
+          cardRadius: "16px",
           animationsEnabled: true,
           density: "comfortable",
           enabledWidgets: DEFAULT_ENABLED_WIDGETS,

@@ -3,12 +3,12 @@
 import dynamic from "next/dynamic";
 import { useDashboard } from "@/lib/queries/useDashboard";
 import { StatsBar } from "@/components/dashboard/StatsBar";
-import { RoutineCard } from "@/components/dashboard/RoutineCard";
+import { CategorySection } from "@/components/dashboard/CategorySection";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Skeleton } from "@/components/shared/Skeleton";
 import { ProUpgradeBanner } from "@/components/dashboard/ProUpgradeBanner";
 import { DashboardHero } from "@/components/dashboard/DashboardHero";
-import { CheckCircle2, AlertCircle, Plus, Sparkles, Sliders } from "lucide-react";
+import { CheckCircle2, AlertCircle, Plus, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { PageTransition } from "@/components/layouts/PageTransition";
 import { useCustomizationStore } from "@/lib/stores/customizationStore";
@@ -19,21 +19,20 @@ import { useSubscription } from "@/lib/hooks/useSubscription";
 
 const DashboardAnalytics = dynamic(
   () => import("@/components/dashboard/DashboardAnalytics").then((m) => m.DashboardAnalytics),
-  { ssr: false, loading: () => <Skeleton className="h-[400px] w-full rounded-3xl bg-zinc-900/60" /> }
+  { ssr: false, loading: () => <Skeleton className="h-[400px] w-full rounded-2xl" /> }
 );
 
 const DynamicWidgetsGrid = dynamic(
   () => import("@/components/dashboard/DynamicWidgetsGrid").then((m) => m.DynamicWidgetsGrid),
-  { ssr: false, loading: () => <Skeleton className="h-64 w-full rounded-3xl bg-zinc-900/60" /> }
+  { ssr: false, loading: () => <Skeleton className="h-64 w-full rounded-2xl" /> }
 );
 
 export default function DashboardPage() {
   const { data: dashboard, isLoading, isError, error } = useDashboard();
-  const { enabledWidgets, dashboardLayout, density, toggleRightSidebar } = useCustomizationStore();
+  const { enabledWidgets, dashboardLayout, density } = useCustomizationStore();
   const { user } = useAuthStore();
   const { isFreeMode } = useSubscription();
 
-  // Prefetch routes for instant navigation
   useRoutePrefetch();
 
   if (isLoading) {
@@ -43,12 +42,12 @@ export default function DashboardPage() {
           <Skeleton className="h-10 w-64" />
           <Skeleton className="h-5 w-96" />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-28 w-full rounded-2xl" />)}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-28 w-full rounded-2xl" />)}
         </div>
         <div className="space-y-6">
-          <Skeleton className="h-64 w-full rounded-3xl" />
-          <Skeleton className="h-80 w-full rounded-3xl" />
+          <Skeleton className="h-64 w-full rounded-2xl" />
+          <Skeleton className="h-80 w-full rounded-2xl" />
         </div>
       </div>
     );
@@ -56,99 +55,134 @@ export default function DashboardPage() {
 
   if (isError || !dashboard) {
     return (
-      <EmptyState 
+      <EmptyState
         icon={AlertCircle}
-        title="Failed to load telemetry"
-        description={(error as any)?.response?.data?.error?.message || "There was a problem connecting to the DeepMind neural engine. Please verify server status."}
-        action={<button onClick={() => window.location.reload()} className="btn-forge">Retry Sync</button>}
+        title="Failed to load dashboard"
+        description={(error as any)?.response?.data?.error?.message || "Could not connect to the server."}
+        action={<button onClick={() => window.location.reload()} className="btn-forge">Retry</button>}
       />
     );
   }
 
-  const gapCls = density === "compact" ? "space-y-5 md:space-y-5" : "space-y-6 md:space-y-8";
+  const gapCls = density === "compact" ? "space-y-5" : "space-y-6 md:space-y-8";
+  const categories = dashboard.today.categories || [];
 
   return (
     <PageTransition>
       <div className={cn("pb-12", gapCls)}>
-        {/* Top Section: Dashboard Hero */}
-        <div className="pb-2 border-b border-white/[0.08]">
-          <DashboardHero />
-        </div>
-        
-        {/* Quick Actions & Stats */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4">
-          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-            <Link
-              href="/routines"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-forge-500 to-purple-600 hover:from-forge-400 hover:to-purple-500 text-white font-semibold text-xs transition-all shadow-[0_0_20px_rgba(139,92,246,0.4)] hover:scale-105 active:scale-95 min-h-[44px]"
-            >
-              <Plus className="w-4 h-4 stroke-[3]" />
-              <span>Quick Add Routine</span>
-            </Link>
-            <button
-              onClick={toggleRightSidebar}
-              className="px-3 py-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] text-muted-foreground hover:text-white transition-all flex items-center gap-1.5 text-xs font-semibold min-h-[44px]"
-              title="Customize Studio Layout"
-              aria-label="Customize Studio Layout"
-            >
-              <Sliders className="w-4 h-4 text-forge-400" />
-              <span>Layout</span>
-            </button>
-          </div>
-        </div>
-        
-        {/* Stats Bar */}
-        <StatsBar stats={dashboard.today.stats} />
 
-        {/* 2. Today's Routines Section */}
-        <section id="routines-section" className="scroll-mt-20 space-y-4">
-          <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
+        {/* Hero */}
+        <DashboardHero />
+
+        {/* Quick Actions */}
+        <div className="flex flex-wrap items-center gap-2 -mt-2">
+          <Link
+            href="/tasks"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all min-h-[36px]"
+            style={{ background: "var(--accent)", color: "var(--accent-fg)" }}
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Add Task</span>
+          </Link>
+        </div>
+
+        {/* Stats Bar */}
+        <StatsBar stats={dashboard.today.stats} widgets={dashboard.widgets} />
+
+        {/* Today's Tasks by Category */}
+        <section id="routines-section" className="scroll-mt-20 space-y-3">
+          <div
+            className="flex items-center justify-between pb-3"
+            style={{ borderBottom: "1px solid var(--border)" }}
+          >
             <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-forge-500 animate-pulse shadow-[0_0_8px_#8b5cf6]" />
-              <h2 className="text-base font-display font-bold tracking-tight text-white">
-                Today&apos;s Execution Protocol
+              <div
+                className="w-2 h-2 rounded-full"
+                style={{ background: "var(--accent)" }}
+              />
+              <h2 className="text-sm font-semibold tracking-tight" style={{ color: "var(--fg)" }}>
+                Today&apos;s Tasks
               </h2>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/5 text-muted-foreground border border-white/10">
-                {dashboard.today.routines.length} ROUTINES
+              <span
+                className="text-[10px] font-mono px-2 py-0.5 rounded-full"
+                style={{
+                  background: "var(--surface-raised)",
+                  color: "var(--fg-faint)",
+                  border: "1px solid var(--border)",
+                }}
+              >
+                {categories.length} CATEGORIES
               </span>
             </div>
-            <Link href="/routines" className="text-xs font-semibold text-forge-400 hover:text-forge-300 transition-colors flex items-center gap-1 group">
-              <span>Manage Protocol</span>
+            <Link
+              href="/tasks"
+              className="text-xs font-medium transition-colors flex items-center gap-1 group"
+              style={{ color: "var(--accent)" }}
+            >
+              <span>Manage</span>
               <span className="group-hover:translate-x-0.5 transition-transform">→</span>
             </Link>
           </div>
 
-          {dashboard.today.routines.length === 0 ? (
-            <div className="p-10 rounded-[24px] bg-[#0a0a0c]/60 backdrop-blur-xl border border-white/[0.08] text-center space-y-3 shadow-xl">
-              <div className="w-12 h-12 rounded-2xl bg-forge-500/10 border border-forge-500/20 flex items-center justify-center text-forge-400 mx-auto">
-                <Sparkles className="w-6 h-6" />
+          {categories.length === 0 ? (
+            <div
+              className="p-10 rounded-2xl text-center space-y-3"
+              style={{
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
+              }}
+            >
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto"
+                style={{
+                  background: "var(--surface-raised)",
+                  border: "1px solid var(--border)",
+                }}
+              >
+                <Sparkles className="w-5 h-5" style={{ color: "var(--accent)" }} />
               </div>
-              <h3 className="text-base font-display font-bold text-white">Nothing here... yet.</h3>
-              <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
+              <h3 className="text-sm font-semibold" style={{ color: "var(--fg)" }}>
+                No tasks scheduled for today.
+              </h3>
+              <p className="text-xs max-w-md mx-auto leading-relaxed" style={{ color: "var(--fg-muted)" }}>
                 Every remarkable transformation begins with a single completed task.
               </p>
               <div className="pt-2">
-                <Link href="/routines" className="btn-forge text-xs inline-flex items-center gap-1.5">
+                <Link
+                  href="/tasks"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 transition-colors"
+                  style={{ background: "var(--accent)", color: "var(--accent-fg)" }}
+                >
                   <Plus className="w-4 h-4" />
-                  <span>Create First Routine</span>
+                  <span>Create First Task</span>
                 </Link>
               </div>
             </div>
           ) : (
             <div className={cn(
-              "grid gap-4",
-              dashboardLayout === "wide" ? "grid-cols-1" : dashboardLayout === "compact" ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"
+              "grid gap-3",
+              dashboardLayout === "compact" ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"
             )}>
-              {dashboard.today.routines.map((routine) => (
-                <RoutineCard key={routine.id} routine={routine} />
+              {categories.map((cat) => (
+                <CategorySection key={cat.category} category={cat} />
               ))}
-              
+
               {dashboard.today.stats.is_perfect_day && dashboard.today.stats.total_tasks > 0 && (
-                <div className="p-6 text-center text-emerald-300 border border-emerald-500/30 bg-gradient-to-r from-emerald-500/10 via-[#0a0a0c]/80 to-emerald-500/10 rounded-[24px] shadow-[0_0_40px_rgba(16,185,129,0.15)] flex items-center justify-center gap-3">
-                  <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0" />
+                <div
+                  className="p-5 text-center rounded-2xl flex items-center justify-center gap-3"
+                  style={{
+                    border: "1px solid var(--accent-border)",
+                    background: "var(--accent-subtle)",
+                  }}
+                >
+                  <CheckCircle2 className="w-5 h-5 shrink-0" style={{ color: "var(--success)" }} />
                   <div className="text-left">
-                    <p className="font-display font-black text-base">Perfect Protocol Execution Achieved!</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">You&apos;ve completed 100% of your scheduled tasks today. Rest and recover.</p>
+                    <p className="font-semibold text-sm" style={{ color: "var(--fg)" }}>
+                      Perfect Day Achieved!
+                    </p>
+                    <p className="text-xs mt-0.5" style={{ color: "var(--fg-muted)" }}>
+                      You&apos;ve completed 100% of your scheduled tasks today.
+                    </p>
                   </div>
                 </div>
               )}
@@ -156,16 +190,14 @@ export default function DashboardPage() {
           )}
         </section>
 
-        {/* 3. Interactive Modular Widgets Grid */}
-        <section id="widgets-grid-section" className="scroll-mt-20 pt-0 md:pt-4">
+        {/* Widgets Grid */}
+        <section id="widgets-grid-section" className="scroll-mt-20">
           <DynamicWidgetsGrid dashboard={dashboard} isFreeMode={isFreeMode} />
         </section>
 
-
-
-        {/* 4. Performance & Analytics Studio or Upgrade Banner */}
-        {dashboard.today.routines.length > 0 && (
-          <section id="analytics-studio-section" className="scroll-mt-20 pt-0 md:pt-4">
+        {/* Analytics */}
+        {categories.length > 0 && (
+          <section id="analytics-studio-section" className="scroll-mt-20">
             {!isFreeMode ? (
               <DashboardAnalytics dashboard={dashboard} />
             ) : (

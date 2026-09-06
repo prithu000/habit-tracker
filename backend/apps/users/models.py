@@ -73,6 +73,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     # Gamification
     current_level = models.PositiveIntegerField(default=1)
     total_xp = models.PositiveIntegerField(default=0)
+    is_seed = models.BooleanField(default=False)
+    show_on_leaderboard = models.BooleanField(default=True)
 
     # Subscription & Trial Telemetry
     trial_start = models.DateTimeField(null=True, blank=True)

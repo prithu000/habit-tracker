@@ -31,12 +31,20 @@ export const ExecutivePaperReport: React.FC<ExecutivePaperReportProps> = (props)
     rightMetricVal,
     rightMetricLabel,
     habitsList,
+    dynamicHabits,
     recent14Days,
     weeklyChartData,
     monthlyBarData,
     last30Days,
     activeQuote,
   } = useReportData(props);
+
+  const hasDynamicPositive = dynamicHabits && dynamicHabits.some((h: any) => h.val > 0);
+  const safePieData = hasDynamicPositive
+    ? dynamicHabits.filter((h: any) => h.val > 0)
+    : habitsList.some((h: any) => h.val > 0)
+    ? habitsList.filter((h: any) => h.val > 0)
+    : [{ name: "No Activity Yet", val: 100, color: "#e4e4e7" }];
 
   return (
     <div
@@ -312,7 +320,7 @@ export const ExecutivePaperReport: React.FC<ExecutivePaperReportProps> = (props)
                     <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                       <PieChart>
                         <Pie
-                          data={habitsList.reduce((acc, h) => acc + h.val, 0) > 0 ? habitsList : [{ name: "No Activity Yet", val: 100, color: "#e4e4e7" }]}
+                          data={safePieData}
                           dataKey="val"
                           nameKey="name"
                           cx="50%"
@@ -321,7 +329,7 @@ export const ExecutivePaperReport: React.FC<ExecutivePaperReportProps> = (props)
                           innerRadius={40}
                           isAnimationActive={true}
                         >
-                          {(habitsList.reduce((acc, h) => acc + h.val, 0) > 0 ? habitsList : [{ name: "No Activity Yet", val: 100, color: "#e4e4e7" }]).map((entry, idx) => (
+                          {safePieData.map((entry, idx) => (
                             <Cell key={idx} fill={entry.color} />
                           ))}
                         </Pie>
@@ -437,7 +445,7 @@ export const ExecutivePaperReport: React.FC<ExecutivePaperReportProps> = (props)
                     <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                       <PieChart>
                         <Pie
-                          data={habitsList.reduce((acc, h) => acc + h.val, 0) > 0 ? habitsList : [{ name: "No Activity Yet", val: 100, color: "#e4e4e7" }]}
+                          data={safePieData}
                           dataKey="val"
                           nameKey="name"
                           cx="50%"
@@ -446,7 +454,7 @@ export const ExecutivePaperReport: React.FC<ExecutivePaperReportProps> = (props)
                           innerRadius={40}
                           isAnimationActive={true}
                         >
-                          {(habitsList.reduce((acc, h) => acc + h.val, 0) > 0 ? habitsList : [{ name: "No Activity Yet", val: 100, color: "#e4e4e7" }]).map((entry, idx) => (
+                          {safePieData.map((entry, idx) => (
                             <Cell key={idx} fill={entry.color} />
                           ))}
                         </Pie>

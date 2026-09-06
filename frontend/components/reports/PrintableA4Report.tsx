@@ -30,6 +30,7 @@ export const PrintableA4Report: React.FC<PrintableA4ReportProps> = (props) => {
     rightMetricVal,
     rightMetricLabel,
     habitsList,
+    dynamicHabits,
     recent14Days,
     weeklyChartData,
     monthlyBarData,
@@ -38,10 +39,12 @@ export const PrintableA4Report: React.FC<PrintableA4ReportProps> = (props) => {
   } = useReportData(props);
 
   // Guarantee PieChart never renders an empty/invisible 0-degree angle when all values are 0
-  const totalHabitVal = habitsList.reduce((acc, curr) => acc + curr.val, 0);
-  const safeHabitsList = totalHabitVal > 0 ? habitsList : [
-    { name: "No Activity Yet", val: 100, color: "#e4e4e7" }
-  ];
+  const hasDynamicPositive = dynamicHabits && dynamicHabits.some((h: any) => h.val > 0);
+  const safeHabitsList = hasDynamicPositive
+    ? dynamicHabits.filter((h: any) => h.val > 0)
+    : habitsList.some((h: any) => h.val > 0)
+    ? habitsList.filter((h: any) => h.val > 0)
+    : [{ name: "No Activity Yet", val: 100, color: "#e4e4e7" }];
 
   return (
     <div

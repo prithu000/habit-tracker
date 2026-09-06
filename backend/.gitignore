@@ -29,4 +29,5 @@ htmlcov/
 .coverage
 *.log
 debug_create.py
+test_render.py
 scratch/

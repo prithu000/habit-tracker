@@ -57,14 +57,18 @@ export function useCompleteTask() {
           
           let taskFound = false;
 
-          for (const routine of newDashboard.today.routines) {
-            const task = routine.tasks.find(t => t.id === variables.taskId);
+          const groups = newDashboard.today.categories?.length
+            ? newDashboard.today.categories
+            : (newDashboard.today.routines || []);
+
+          for (const group of groups) {
+            const task = group.tasks.find(t => t.id === variables.taskId);
             if (task && !task.is_completed) {
               task.is_completed = true;
               task.completed_at = new Date().toISOString();
-              routine.completed_count += 1;
-              routine.completion_rate = Math.round((routine.completed_count / routine.task_count) * 100 * 10) / 10;
-              routine.is_complete = routine.completed_count === routine.task_count;
+              group.completed_count += 1;
+              group.completion_rate = Math.round((group.completed_count / group.task_count) * 100 * 10) / 10;
+              group.is_complete = group.completed_count === group.task_count;
               taskFound = true;
               break;
             }
@@ -161,15 +165,19 @@ export function useUndoCompletion() {
           
           let taskFound = false;
           // Optimistically un-complete the task
-          for (const routine of newDashboard.today.routines) {
-            const task = routine.tasks.find(t => t.completion_id === completionId);
+          const groups = newDashboard.today.categories?.length
+            ? newDashboard.today.categories
+            : (newDashboard.today.routines || []);
+
+          for (const group of groups) {
+            const task = group.tasks.find(t => t.completion_id === completionId);
             if (task && task.is_completed) {
               task.is_completed = false;
               task.completed_at = null;
               task.completion_id = null;
-              routine.completed_count = Math.max(0, routine.completed_count - 1);
-              routine.completion_rate = Math.round((routine.completed_count / routine.task_count) * 100 * 10) / 10;
-              routine.is_complete = false;
+              group.completed_count = Math.max(0, group.completed_count - 1);
+              group.completion_rate = Math.round((group.completed_count / group.task_count) * 100 * 10) / 10;
+              group.is_complete = false;
               taskFound = true;
               break;
             }

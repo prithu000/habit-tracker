@@ -8,7 +8,7 @@ from apps.analytics.models import LifeScoreSnapshot, UserOSGoals, DailyOSMetrics
 from apps.completions.models import DayLog, Completion
 from apps.streaks.models import StreakRecord
 from apps.rewards.models import XPTransaction, UserBadge, HardcoreAchievement, UserHardcoreAchievement
-from apps.routines.models import Routine, Task
+from apps.routines.models import Task
 from services.xp_service import XPService
 from services.score_engine import ScoreEngine
 from services.widget_service import WidgetService
@@ -77,7 +77,7 @@ class ReportEngine:
         from apps.analytics.models import ReportSettings
         settings, _ = ReportSettings.objects.get_or_create(user=user)
         raw_selected_ids = settings.selected_habit_breakdown or []
-        selected_ids = [str(sid) for sid in raw_selected_ids][:4]
+        selected_ids = [str(sid) for sid in raw_selected_ids if str(sid) in ReportEngine.CATEGORY_META][:4]
 
         # ── Basic Aggregations ──
         total_scheduled = sum(log.tasks_scheduled for log in logs)
@@ -86,7 +86,7 @@ class ReportEngine:
         avg_rate = round(sum(float(log.completion_rate) for log in logs) / max(1, period_days), 1) if logs else 0.0
         exec_efficiency = round((total_completed / max(1, total_scheduled)) * 100, 1)
 
-        streak_rec = StreakRecord.objects.filter(user=user, routine__isnull=True).first()
+        streak_rec = StreakRecord.objects.filter(user=user).first()
         current_streak = streak_rec.current_streak if streak_rec else 0
         longest_streak = streak_rec.longest_streak if streak_rec else 0
 
@@ -98,18 +98,16 @@ class ReportEngine:
         discipline_index = disc_data["score"]
         total_xp = sum(log.xp_earned for log in logs)
 
-        # ── Habit Breakdown: Routine-based aggregation (same source as Dashboard) ──
-        # selected_habit_breakdown now stores Routine UUIDs chosen via Report Settings.
-        # Completion % is computed from Completion model — identical to Dashboard logic.
-        dynamic_widget_analytics = ReportEngine._get_routine_habit_breakdown(
-            user, selected_ids, start_date, local_date, period_days
+        # ── Habit Breakdown: Category-based aggregation ──
+        dynamic_widget_analytics = ReportEngine._get_category_habit_breakdown(
+            user, start_date, local_date, period_days, selected_ids=selected_ids
         )
 
-        # Scalar helpers used by radar / health indices — still keyword-searched from habit names
-        water_consistency_pct = next((wa["consistency_pct"] for wa in dynamic_widget_analytics if "water" in wa["name"].lower()), 0)
-        focus_total = next((wa.get("total_progress", 0) for wa in dynamic_widget_analytics if "focus" in wa["name"].lower() or "pomodoro" in wa["name"].lower()), 0)
-        study_total = next((wa.get("total_progress", 0) for wa in dynamic_widget_analytics if "study" in wa["name"].lower() or "read" in wa["name"].lower()), 0)
-        workout_total = next((wa.get("total_progress", 0) for wa in dynamic_widget_analytics if "workout" in wa["name"].lower() or "exercise" in wa["name"].lower() or "gym" in wa["name"].lower()), 0)
+        # Scalar helpers used by radar / health indices
+        water_consistency_pct = next((wa["consistency_pct"] for wa in dynamic_widget_analytics if "fitness" in wa.get("name", "").lower()), 0)
+        focus_total = next((wa.get("total_progress", 0) for wa in dynamic_widget_analytics if "discipline" in wa.get("name", "").lower()), 0)
+        study_total = next((wa.get("total_progress", 0) for wa in dynamic_widget_analytics if "learning" in wa.get("name", "").lower()), 0)
+        workout_total = next((wa.get("total_progress", 0) for wa in dynamic_widget_analytics if "fitness" in wa.get("name", "").lower()), 0)
 
         # ── Discipline Grade & Executive Summary ──
         has_no_activity = len(logs) == 0
@@ -284,11 +282,11 @@ class ReportEngine:
         ]
 
         # ── 24. Habit Completion Funnel ──
-        routines_count = Routine.objects.filter(user=user, is_active=True).count()
-        tasks_count = Task.objects.filter(routine__user=user, is_active=True).count()
+        categories_count = Task.objects.filter(user=user, is_active=True).values("category").distinct().count()
+        tasks_count = Task.objects.filter(user=user, is_active=True).count()
         completion_funnel = [
-            {"stage": "Routines Created", "count": max(1, routines_count), "percentage": 100},
-            {"stage": "Tasks Added", "count": max(1, tasks_count), "percentage": min(100, int((tasks_count / max(1, routines_count * 3)) * 100))},
+            {"stage": "Active Categories", "count": max(1, categories_count), "percentage": 100},
+            {"stage": "Tasks Added", "count": max(1, tasks_count), "percentage": min(100, int((tasks_count / max(1, categories_count * 3)) * 100))},
             {"stage": "Execution Started", "count": total_scheduled, "percentage": min(100, int((total_scheduled / max(1, tasks_count * len(logs))) * 100))},
             {"stage": "Tasks Completed", "count": total_completed, "percentage": min(100, int(avg_rate))},
         ]
@@ -436,106 +434,95 @@ class ReportEngine:
 
         # ── Helper Methods ──
 
+    CATEGORY_META = {
+        "fitness":       {"label": "Fitness",       "icon": "🏋️", "color": "#3b82f6"},
+        "learning":      {"label": "Learning",      "icon": "📚", "color": "#8b5cf6"},
+        "work":          {"label": "Work",          "icon": "💼", "color": "#06b6d4"},
+        "mental_health": {"label": "Mental Health", "icon": "🧠", "color": "#ec4899"},
+        "health":        {"label": "Health",         "icon": "❤️", "color": "#10b981"},
+        "sleep":         {"label": "Sleep",          "icon": "🌙", "color": "#6366f1"},
+        "finance":       {"label": "Finance",        "icon": "💰", "color": "#f59e0b"},
+        "personal":      {"label": "Personal",       "icon": "⭐", "color": "#f97316"},
+        "discipline":    {"label": "Discipline",     "icon": "🎯", "color": "#a855f7"},
+    }
+
     @staticmethod
-    def _get_routine_habit_breakdown(user, selected_routine_ids: list, start_date: date, end_date: date, period_days: int) -> list:
+    def _get_category_habit_breakdown(user, start_date: date, end_date: date, period_days: int, selected_ids: list = None) -> list:
         """
-        Compute per-Routine completion percentages for the Habit Breakdown section.
-
-        Uses the Completion model as the single source of truth — the exact same
-        data source the Dashboard uses for per-routine progress bars.
-
-        For the DAILY timeframe:
-          pct = completed_tasks / total_active_tasks * 100
-
-        For WEEKLY / MONTHLY / YEARLY:
-          pct = total_completions_in_period / (active_task_count * days_routine_ran) * 100
-
-        Args:
-            selected_routine_ids: Ordered list of Routine UUID strings from ReportSettings.
-            start_date, end_date: Inclusive date range for the report period.
-            period_days: Calendar length of the period (1 / 7 / 30 / 365).
-
-        Returns:
-            List of dicts compatible with the existing dynamic_widget_analytics shape so
-            the frontend useReportData.ts hook requires no changes.
+        Compute per-category completion percentages for the Habit Breakdown section.
+        Uses Completion model as the single source of truth.
+        Respects user ReportSettings category selection and priority ordering.
+        Returns a list of dicts compatible with the dynamic_widget_analytics shape.
         """
-        if not selected_routine_ids:
-            return []
-
-        # Single query: fetch selected routines with prefetched active task counts
-        routines = list(
-            Routine.objects.filter(
-                id__in=selected_routine_ids, user=user, is_active=True
-            ).prefetch_related("tasks")
-        )
-        if not routines:
-            return []
-
-        # Build ordered result preserving the user's chosen priority
-        routine_by_id = {str(r.id): r for r in routines}
-
-        # One aggregate query: count completions per routine in the date range
         from django.db.models import Count as _Count
+
+        # Active tasks per category
+        task_counts = dict(
+            Task.objects.filter(user=user, is_active=True)
+            .values("category")
+            .annotate(n=_Count("id"))
+            .values_list("category", "n")
+        )
+
+        # Completions per category in the period
         completion_counts = dict(
             Completion.objects.filter(
                 user=user,
-                task__routine__in=routines,
+                task__user=user,
+                task__is_active=True,
                 local_date__range=[start_date, end_date],
             )
-            .values("task__routine_id")
+            .values("task__category")
             .annotate(n=_Count("id"))
-            .values_list("task__routine_id", "n")
+            .values_list("task__category", "n")
         )
 
-        # Colour palette cycling for routines that have no explicit colour set
-        _PALETTE = ["#8b5cf6", "#06b6d4", "#10b981", "#f59e0b", "#ec4899"]
+        # Effective elapsed days in period
+        effective_days = max(1, (end_date - start_date).days + 1)
+        if period_days == 1:
+            effective_days = 1
+
+        # Determine the ordered categories to display
+        if selected_ids and len(selected_ids) > 0:
+            categories_to_process = [c for c in selected_ids if c in ReportEngine.CATEGORY_META][:4]
+        else:
+            # If user has not configured custom breakdown, show top active categories
+            active_cats = sorted(
+                task_counts.keys(),
+                key=lambda cat: (-task_counts[cat], cat)
+            )
+            categories_to_process = active_cats[:4]
 
         result = []
-        for idx, r_id in enumerate(selected_routine_ids):
-            routine = routine_by_id.get(r_id)
-            if routine is None:
-                continue  # Routine was deleted or doesn't belong to user
+        for category in categories_to_process:
+            active_count = task_counts.get(category, 0)
+            completed = completion_counts.get(category, 0)
 
-            active_task_count = sum(1 for t in routine.tasks.all() if t.is_active)
-            if active_task_count == 0:
-                # No tasks — skip gracefully rather than dividing by zero
-                result.append({
-                    "name": routine.name,
-                    "icon": routine.icon,
-                    "color": routine.color or _PALETTE[idx % len(_PALETTE)],
-                    "consistency_pct": 0,
-                    "total_progress": 0,
-                    "goal": 0,
-                    "unit": "tasks",
-                    "daily_avg": 0.0,
-                })
-                continue
-
-            completed = completion_counts.get(routine.id, 0)
-
-            if period_days == 1:
-                # Daily: straightforward ratio
-                pct = round(completed / active_task_count * 100, 1)
-                total_possible = active_task_count
+            if active_count > 0:
+                total_possible = active_count * effective_days
+                pct = round((completed / total_possible) * 100, 1)
+                pct = min(100.0, max(0.0, pct))
             else:
-                # Multi-day: total possible = active_task_count × period_days
-                # (conservative: assumes routine runs every day; correct for daily-scheduled routines)
-                total_possible = active_task_count * period_days
-                pct = round(completed / total_possible * 100, 1) if total_possible > 0 else 0.0
+                total_possible = 0
+                pct = 0.0
 
-            pct = min(100.0, pct)  # Cap at 100%
+            meta = ReportEngine.CATEGORY_META.get(category, {
+                "label": category.replace("_", " ").title(),
+                "icon": "📌",
+                "color": "#3b82f6",
+            })
 
             result.append({
-                "name": routine.name,
-                "icon": routine.icon,
-                "color": routine.color or _PALETTE[idx % len(_PALETTE)],
+                "id": category,
+                "name": meta["label"],
+                "icon": meta["icon"],
+                "color": meta["color"],
                 "consistency_pct": pct,
                 "total_progress": completed,
                 "goal": total_possible,
                 "unit": "tasks",
-                "daily_avg": round(completed / max(1, period_days), 1),
+                "daily_avg": round(completed / max(1, effective_days), 1),
             })
-
         return result
 
     @staticmethod
@@ -698,28 +685,21 @@ class ReportEngine:
 
     @staticmethod
     def _get_habit_distribution(user):
-        routines = Routine.objects.filter(user=user, is_active=True)
-        counts = {"Workout": 0, "Study": 0, "Health": 0, "Reading": 0, "Meditation": 0, "Other": 0}
-        for r in routines:
-            name_lower = r.name.lower()
-            if any(k in name_lower for k in ["workout", "gym", "push", "lift", "run", "fitness"]):
-                counts["Workout"] += 1
-            elif any(k in name_lower for k in ["study", "learn", "code", "work", "focus"]):
-                counts["Study"] += 1
-            elif any(k in name_lower for k in ["water", "health", "sleep", "diet"]):
-                counts["Health"] += 1
-            elif any(k in name_lower for k in ["read", "book"]):
-                counts["Reading"] += 1
-            elif any(k in name_lower for k in ["meditat", "mind", "zen", "breath"]):
-                counts["Meditation"] += 1
-            else:
-                counts["Other"] += 1
+        tasks = Task.objects.filter(user=user, is_active=True)
+        counts = {}
+        for t in tasks:
+            label = t.get_category_display() if hasattr(t, "get_category_display") else str(t.category).replace("_", " ").title()
+            counts[label] = counts.get(label, 0) + 1
         
         total = sum(counts.values()) or 1
-        colors = {"Workout": "#8b5cf6", "Study": "#06b6d4", "Health": "#10b981", "Reading": "#f59e0b", "Meditation": "#ec4899", "Other": "#64748b"}
+        colors = {
+            "Fitness": "#8b5cf6", "Learning": "#06b6d4", "Work": "#3b82f6",
+            "Mental Health": "#ec4899", "Health": "#10b981", "Sleep": "#6366f1",
+            "Finance": "#f59e0b", "Personal": "#64748b", "Discipline": "#d97706"
+        }
         return [
-            {"name": k, "value": round((v / total) * 100, 1), "count": v, "color": colors[k]}
-            for k, v in counts.items() if v > 0 or k in ["Workout", "Study", "Health"]
+            {"name": k, "value": round((v / total) * 100, 1), "count": v, "color": colors.get(k, "#64748b")}
+            for k, v in counts.items()
         ]
 
     @staticmethod
@@ -802,20 +782,19 @@ class ReportEngine:
 
     @staticmethod
     def _get_performance_matrix(user, local_date: date):
-        routines = list(Routine.objects.filter(user=user, is_active=True).prefetch_related("tasks")[:10])
+        tasks = list(Task.objects.filter(user=user, is_active=True)[:10])
         comp_counts = dict(
-            Completion.objects.filter(task__routine__user=user, task__routine__is_active=True)
-            .values("task__routine_id")
+            Completion.objects.filter(task__user=user, task__is_active=True)
+            .values("task_id")
             .annotate(c=Count("id"))
-            .values_list("task__routine_id", "c")
+            .values_list("task_id", "c")
         )
         matrix = []
-        for i, r in enumerate(routines):
-            tasks_count = len(r.tasks.all()) or 1
-            completed_logs = comp_counts.get(r.id, 0)
-            rate = min(100, int((completed_logs / max(1, tasks_count * 10)) * 100))
+        for i, t in enumerate(tasks):
+            completed_logs = comp_counts.get(t.id, 0)
+            rate = min(100, int((completed_logs / 10) * 100))
             matrix.append({
-                "name": r.name,
+                "name": t.name,
                 "difficulty": min(10, max(1, (i % 5) + 3)),
                 "completion_rate": rate if rate > 0 else 0,
                 "xp_earned": completed_logs * 25

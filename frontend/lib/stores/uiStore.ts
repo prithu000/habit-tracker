@@ -4,6 +4,7 @@ interface UiState {
   // Desktop sidebar collapse
   isSidebarCollapsed: boolean;
   toggleSidebar: () => void;
+  toggleSidebarCollapsed: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
 
   // Mobile drawer
@@ -16,6 +17,7 @@ interface UiState {
 export const useUiStore = create<UiState>((set) => ({
   isSidebarCollapsed: false,
   toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
+  toggleSidebarCollapsed: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
   setSidebarCollapsed: (collapsed) => set({ isSidebarCollapsed: collapsed }),
 
   isMobileDrawerOpen: false,

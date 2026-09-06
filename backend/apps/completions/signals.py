@@ -32,7 +32,6 @@ def on_completion_saved(sender, instance, created, **kwargs):
         milestone = StreakService.record_completion(
             user=user,
             local_date=local_date,
-            routine=instance.task.routine,
         )
 
         # 2. Check for perfect day and award bonus
@@ -46,8 +45,7 @@ def on_completion_saved(sender, instance, created, **kwargs):
         from django.utils import timezone as dtz
 
         scheduled_tasks = Task.objects.filter(
-            routine__user=user,
-            routine__is_active=True,
+            user=user,
             is_active=True,
         ).count()
         completed_today = C.objects.filter(user=user, local_date=local_date).count()
