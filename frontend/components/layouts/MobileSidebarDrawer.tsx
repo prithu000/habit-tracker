@@ -17,13 +17,19 @@ import {
   Lock,
   X,
   PanelRight,
+  Palette,
+  Sun,
+  Moon,
+  Leaf,
+  Check,
 } from "lucide-react";
 import { memo, useEffect, useRef } from "react";
 import { useUiStore } from "@/lib/stores/uiStore";
 import { useAuthStore } from "@/lib/stores/authStore";
-import { useCustomizationStore } from "@/lib/stores/customizationStore";
+import { useCustomizationStore, AppTheme } from "@/lib/stores/customizationStore";
 import { usePaywallStore } from "@/lib/stores/paywallStore";
 import { cn } from "@/lib/utils/cn";
+import { toast } from "react-hot-toast";
 
 const navItems = [
   { href: "/dashboard",  label: "Dashboard",   icon: LayoutDashboard },
@@ -37,15 +43,17 @@ const navItems = [
   { href: "/help",       label: "Help & Bugs",  icon: HelpCircle },
 ];
 
-// Special menu items for small screens where Studio is hidden
-const mobileOnlyActions = [
-  { id: "studio", label: "Studio Customization", icon: PanelRight },
+const THEME_OPTIONS: { id: AppTheme; label: string; icon: any; color: string }[] = [
+  { id: "green", label: "Green", icon: Leaf, color: "#3DB84E" },
+  { id: "dark", label: "Dark", icon: Moon, color: "#8A8D92" },
+  { id: "cream", label: "Cream", icon: Sparkles, color: "#B48348" },
+  { id: "light", label: "Light", icon: Sun, color: "#EAB308" },
 ];
 
 export const MobileSidebarDrawer = memo(function MobileSidebarDrawer() {
   const { isMobileDrawerOpen, closeMobileDrawer } = useUiStore();
   const { user } = useAuthStore();
-  const { isRightSidebarOpen, toggleRightSidebar } = useCustomizationStore();
+  const { theme, setTheme, isRightSidebarOpen, toggleRightSidebar } = useCustomizationStore();
   const isFreeMode = user?.subscription_status === "expired" || user?.is_premium_active === false;
   const pathname = usePathname();
   const router = useRouter();
@@ -202,27 +210,6 @@ export const MobileSidebarDrawer = memo(function MobileSidebarDrawer() {
 
             {/* Navigation */}
             <nav className="flex-1 px-3 py-3 flex flex-col gap-1 overflow-y-auto custom-scrollbar">
-              {/* Quick Actions */}
-              <div className="min-[380px]:hidden mb-2 space-y-1">
-                <button
-                  onClick={() => {
-                    toggleRightSidebar();
-                    closeMobileDrawer();
-                  }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors select-none"
-                  style={{
-                    background: isRightSidebarOpen ? "var(--accent-subtle)" : undefined,
-                    color: isRightSidebarOpen ? "var(--accent)" : "var(--fg-muted)",
-                    border: isRightSidebarOpen ? "1px solid var(--accent-border)" : "1px solid transparent",
-                  }}
-                >
-                  <PanelRight className="w-4 h-4 shrink-0" style={{ color: "var(--accent)" }} />
-                  <span>Studio Customization</span>
-                </button>
-
-                <div className="h-px my-2" style={{ background: "var(--border)" }} />
-              </div>
-
               {navItems.map((item) => {
                 const isActive = pathname.startsWith(item.href);
                 const Icon = item.icon;
@@ -271,6 +258,81 @@ export const MobileSidebarDrawer = memo(function MobileSidebarDrawer() {
                 );
               })}
             </nav>
+
+            {/* ── Change UI Theme Section ── */}
+            <div
+              className="px-3 py-2.5 border-t shrink-0 space-y-2"
+              style={{ borderColor: "var(--border)", background: "var(--surface-raised)" }}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1.5" style={{ color: "var(--fg-muted)" }}>
+                  <Palette className="w-3.5 h-3.5" style={{ color: "var(--accent)" }} />
+                  Change UI Theme
+                </span>
+                <span
+                  className="text-[9px] font-mono capitalize px-1.5 py-0.5 rounded border font-semibold"
+                  style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--accent)" }}
+                >
+                  {theme}
+                </span>
+              </div>
+
+              {/* 4 Theme Selection Buttons */}
+              <div className="grid grid-cols-4 gap-1.5">
+                {THEME_OPTIONS.map((t) => {
+                  const isCurrent = theme === t.id;
+                  const Icon = t.icon;
+                  return (
+                    <button
+                      key={t.id}
+                      onClick={() => {
+                        setTheme(t.id);
+                        toast.success(`${t.label} UI activated!`, { duration: 1800 });
+                      }}
+                      className={cn(
+                        "flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all border text-center relative",
+                        isCurrent
+                          ? "shadow-sm ring-1"
+                          : "hover:opacity-80"
+                      )}
+                      style={{
+                        background: isCurrent ? "var(--accent-subtle)" : "var(--surface)",
+                        borderColor: isCurrent ? "var(--accent)" : "var(--border)",
+                        color: isCurrent ? "var(--accent)" : "var(--fg-muted)",
+                      }}
+                    >
+                      <Icon className="w-3.5 h-3.5 mb-1 shrink-0" style={{ color: t.color }} />
+                      <span className="text-[10px] font-semibold tracking-tight leading-none truncate max-w-full">
+                        {t.label}
+                      </span>
+                      {isCurrent && (
+                        <div className="w-1 h-1 rounded-full mt-1 shrink-0" style={{ background: "var(--accent)" }} />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Studio Customization Trigger */}
+              <button
+                onClick={() => {
+                  toggleRightSidebar();
+                  closeMobileDrawer();
+                }}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors"
+                style={{
+                  background: "var(--surface)",
+                  border: "1px solid var(--border)",
+                  color: "var(--fg-muted)",
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <PanelRight className="w-3.5 h-3.5" style={{ color: "var(--accent)" }} />
+                  <span>Wallpapers & Studio</span>
+                </div>
+                <span className="text-[9px] uppercase font-mono" style={{ color: "var(--fg-faint)" }}>Open →</span>
+              </button>
+            </div>
 
             {/* Bottom — Settings */}
             <div 
