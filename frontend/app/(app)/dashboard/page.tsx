@@ -6,7 +6,6 @@ import { StatsBar } from "@/components/dashboard/StatsBar";
 import { CategorySection } from "@/components/dashboard/CategorySection";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Skeleton } from "@/components/shared/Skeleton";
-import { ProUpgradeBanner } from "@/components/dashboard/ProUpgradeBanner";
 import { DashboardHero } from "@/components/dashboard/DashboardHero";
 import { CheckCircle2, AlertCircle, Plus, Sparkles } from "lucide-react";
 import Link from "next/link";
@@ -16,11 +15,6 @@ import { useAuthStore } from "@/lib/stores/authStore";
 import { useRoutePrefetch } from "@/lib/hooks/useRoutePrefetch";
 import { cn } from "@/lib/utils/cn";
 import { useSubscription } from "@/lib/hooks/useSubscription";
-
-const DashboardAnalytics = dynamic(
-  () => import("@/components/dashboard/DashboardAnalytics").then((m) => m.DashboardAnalytics),
-  { ssr: false, loading: () => <Skeleton className="h-[400px] w-full rounded-2xl" /> }
-);
 
 const DynamicWidgetsGrid = dynamic(
   () => import("@/components/dashboard/DynamicWidgetsGrid").then((m) => m.DynamicWidgetsGrid),
@@ -194,17 +188,6 @@ export default function DashboardPage() {
         <section id="widgets-grid-section" className="scroll-mt-20">
           <DynamicWidgetsGrid dashboard={dashboard} isFreeMode={isFreeMode} />
         </section>
-
-        {/* Analytics */}
-        {categories.length > 0 && (
-          <section id="analytics-studio-section" className="scroll-mt-20">
-            {!isFreeMode ? (
-              <DashboardAnalytics dashboard={dashboard} />
-            ) : (
-              <ProUpgradeBanner />
-            )}
-          </section>
-        )}
       </div>
     </PageTransition>
   );

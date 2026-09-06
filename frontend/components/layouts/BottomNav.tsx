@@ -78,17 +78,16 @@ export const BottomNav = memo(function BottomNav() {
               aria-label={item.label}
               aria-current={isActive ? "page" : undefined}
             >
-              {/* Active indicator pill directly centered above icon */}
+              {/* Active indicator pill perfectly centered and flush with top border */}
               <AnimatePresence>
                 {isActive && !isLocked && (
                   <motion.div
-                    layoutId="bottom-nav-active"
-                    className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-6 h-[2px] rounded-full"
+                    className="absolute -top-1.5 left-0 right-0 mx-auto w-7 h-[3px] rounded-full shadow-sm pointer-events-none"
                     style={{ background: "var(--accent)" }}
-                    initial={{ opacity: 0, scaleX: 0.5 }}
-                    animate={{ opacity: 1, scaleX: 1 }}
-                    exit={{ opacity: 0, scaleX: 0.5 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 28 }}
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    transition={{ type: "spring", stiffness: 450, damping: 30 }}
                   />
                 )}
               </AnimatePresence>

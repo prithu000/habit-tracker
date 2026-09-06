@@ -1,14 +1,31 @@
-Evening Reflection
+YOU VS YOU — NIGHTLY TELEMETRY CHECK-IN (10:00 PM)
 
-Good evening, {{ user_name }}.
+Good evening, {{ user_name }},
 
+Here is your consistency check-in for today:
 
-Completed: {{ completed_tasks }} | Missed: {{ missed_tasks }}
+TODAY'S CONSISTENCY: {{ completion_percent }}%
+COMPLETED: {{ completed_count }} / {{ total_tasks }} Tasks
+{% if current_streak > 0 %}CURRENT STREAK: {{ current_streak }} Days{% endif %}
 
+{% if remaining_tasks %}
+REMAINING HABITS FOR TODAY ({{ remaining_count }}):
+{% for task_name in remaining_tasks %}
+• {{ task_name }}
+{% endfor %}
 
-Prepare for Tomorrow: {{ app_url }}/tomorrow
+You can still check off habits before midnight, or reset your focus for tomorrow morning.
+{% else %}
+PERFECT DAY ACHIEVED! (100%)
+You executed every planned routine today without compromise. Rest well and maintain this winning trajectory tomorrow.
+{% endif %}
 
+REFLECTION:
+"{{ reflection_quote }}"
+— YOU VS YOU PROTOCOL
 
+Open Your Dashboard: {{ app_url }}/dashboard
 
-Settings: {{ settings_url }}
+---
+Notification Preferences: {{ settings_url }}
 Unsubscribe: {{ unsubscribe_url }}

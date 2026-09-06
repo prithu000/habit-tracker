@@ -128,24 +128,26 @@ export function ReportSettingsModal({ isOpen, onClose, onSaved }: ReportSettings
           initial={{ opacity: 0, scale: 0.95, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          className="w-full max-w-xl bg-[#0c0c0e] border border-white/10 rounded-[28px] shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
+          className="w-full max-w-xl border rounded-[28px] shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
+          style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--fg)" }}
         >
           {/* Subtle Brass Accent */}
           <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-amber-500/70 to-transparent" />
 
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-white/[0.08]">
+          <div className="flex items-center justify-between p-6 border-b" style={{ borderColor: "var(--border)" }}>
             <div>
-              <h2 className="text-lg font-display font-bold text-white flex items-center gap-2">
+              <h2 className="text-lg font-display font-bold flex items-center gap-2" style={{ color: "var(--fg)" }}>
                 Report Settings
               </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-xs mt-0.5" style={{ color: "var(--fg-muted)" }}>
                 Customize which categories appear in your Executive Report Habit Breakdown (up to 4).
               </p>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-muted-foreground hover:text-white hover:bg-white/5 transition-colors"
+              className="p-2 rounded-xl transition-colors"
+              style={{ color: "var(--fg-muted)" }}
             >
               <X className="w-5 h-5" />
             </button>
@@ -166,18 +168,24 @@ export function ReportSettingsModal({ isOpen, onClose, onSaved }: ReportSettings
                   </h3>
 
                   {/* Overall Consistency — locked first */}
-                  <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 mb-2 opacity-70">
+                  <div
+                    className="flex items-center gap-3 p-3 rounded-xl border mb-2 opacity-80"
+                    style={{ background: "var(--surface-raised)", borderColor: "var(--border)" }}
+                  >
                     <div className="w-6 flex justify-center shrink-0">
                       <CheckCircle2 className="w-5 h-5 text-amber-500" />
                     </div>
                     <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                      <div className="text-sm font-semibold text-white flex items-center gap-2">
+                      <div className="text-sm font-semibold flex items-center gap-2" style={{ color: "var(--fg)" }}>
                         Overall Consistency
-                        <span className="text-[10px] bg-zinc-800 px-2 py-0.5 rounded-full text-zinc-400 uppercase tracking-widest font-bold">
+                        <span
+                          className="text-[10px] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold"
+                          style={{ background: "var(--border)", color: "var(--fg-muted)" }}
+                        >
                           Locked First
                         </span>
                       </div>
-                      <span className="text-xs text-zinc-500 uppercase">all categories</span>
+                      <span className="text-xs uppercase" style={{ color: "var(--fg-muted)" }}>all categories</span>
                     </div>
                   </div>
 
@@ -194,9 +202,10 @@ export function ReportSettingsModal({ isOpen, onClose, onSaved }: ReportSettings
                         <Reorder.Item
                           key={cat.id}
                           value={cat.id}
-                          className="flex items-center gap-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 cursor-grab active:cursor-grabbing hover:bg-amber-500/20 transition-colors"
+                          className="flex items-center gap-3 p-3 rounded-xl border cursor-grab active:cursor-grabbing transition-colors"
+                          style={{ background: "var(--accent-subtle)", borderColor: "var(--accent-border)" }}
                         >
-                          <div className="cursor-grab active:cursor-grabbing text-zinc-500 hover:text-zinc-300 shrink-0">
+                          <div className="cursor-grab active:cursor-grabbing shrink-0" style={{ color: "var(--fg-muted)" }}>
                             <GripVertical className="w-5 h-5" />
                           </div>
                           <button
@@ -205,10 +214,13 @@ export function ReportSettingsModal({ isOpen, onClose, onSaved }: ReportSettings
                             className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-left"
                           >
                             <div className="flex items-center gap-3">
-                              <CheckCircle2 className="w-5 h-5 text-amber-400 shrink-0" />
-                              <Icon className="w-4 h-4 text-zinc-300 shrink-0" />
-                              <span className="text-sm font-semibold text-white/90">{cat.name}</span>
-                              <span className="hidden sm:inline-flex px-2 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                              <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                              <Icon className="w-4 h-4 shrink-0" style={{ color: "var(--fg-muted)" }} />
+                              <span className="text-sm font-semibold" style={{ color: "var(--fg)" }}>{cat.name}</span>
+                              <span
+                                className="hidden sm:inline-flex px-2 py-0.5 rounded text-[9px] font-bold tracking-wider uppercase border"
+                                style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--accent)" }}
+                              >
                                 Priority #{index + 1}
                               </span>
                             </div>
@@ -219,7 +231,7 @@ export function ReportSettingsModal({ isOpen, onClose, onSaved }: ReportSettings
                   </Reorder.Group>
 
                   {selectedCategories.length === 0 && (
-                    <p className="text-xs text-zinc-600 text-center py-4">
+                    <p className="text-xs text-center py-4" style={{ color: "var(--fg-muted)" }}>
                       Select categories below to highlight them in your report.
                     </p>
                   )}
@@ -228,7 +240,7 @@ export function ReportSettingsModal({ isOpen, onClose, onSaved }: ReportSettings
                 {/* Available Categories */}
                 {unselectedCategories.length > 0 && (
                   <div>
-                    <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">
+                    <h3 className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: "var(--fg-muted)" }}>
                       Available Categories
                     </h3>
                     <div className="space-y-2">
@@ -242,9 +254,10 @@ export function ReportSettingsModal({ isOpen, onClose, onSaved }: ReportSettings
                             className={cn(
                               "flex items-center gap-3 p-3 rounded-xl border transition-colors",
                               isLimitReached
-                                ? "opacity-50 bg-white/5 border-transparent cursor-not-allowed"
-                                : "cursor-pointer hover:bg-white/10 bg-white/5 border-transparent"
+                                ? "opacity-50 cursor-not-allowed"
+                                : "cursor-pointer hover:opacity-80"
                             )}
+                            style={{ background: "var(--surface-raised)", borderColor: "var(--border)" }}
                             onClick={() => !isLimitReached && toggleSelection(cat.id)}
                             onKeyDown={(e) => {
                               if ((e.key === "Enter" || e.key === " ") && !isLimitReached) {
@@ -253,9 +266,9 @@ export function ReportSettingsModal({ isOpen, onClose, onSaved }: ReportSettings
                               }
                             }}
                           >
-                            <Circle className="w-5 h-5 text-zinc-600 shrink-0" />
-                            <Icon className="w-4 h-4 text-zinc-400 shrink-0" />
-                            <span className="text-sm font-semibold text-white/80">{cat.name}</span>
+                            <Circle className="w-5 h-5 shrink-0" style={{ color: "var(--fg-faint)" }} />
+                            <Icon className="w-4 h-4 shrink-0" style={{ color: "var(--fg-muted)" }} />
+                            <span className="text-sm font-semibold" style={{ color: "var(--fg)" }}>{cat.name}</span>
                           </div>
                         );
                       })}
@@ -267,17 +280,19 @@ export function ReportSettingsModal({ isOpen, onClose, onSaved }: ReportSettings
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-end gap-3 p-6 border-t border-white/[0.08]">
+          <div className="flex items-center justify-end gap-3 p-6 border-t" style={{ borderColor: "var(--border)" }}>
             <button
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:text-white transition-colors"
+              className="px-4 py-2 text-xs font-semibold transition-colors"
+              style={{ color: "var(--fg-muted)" }}
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={isSaving || isLoading}
-              className="btn-forge text-xs flex items-center gap-2"
+              className="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-opacity"
+              style={{ background: "var(--accent)", color: "var(--accent-fg)" }}
             >
               {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               <span>Save Settings</span>

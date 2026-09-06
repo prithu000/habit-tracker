@@ -32,18 +32,18 @@ const ExecutivePaperReport = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="w-full max-w-3xl space-y-8 bg-white/[0.02] border border-white/[0.05] p-12 rounded-[32px]">
-        <div className="space-y-4 text-center flex flex-col items-center">
-          <Skeleton className="h-4 w-32 rounded-full bg-zinc-800" />
-          <Skeleton className="h-10 w-64 rounded-xl bg-zinc-800" />
+      <div className="w-full max-w-[680px] space-y-6 p-6 sm:p-8 rounded-[24px] border" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+        <div className="space-y-3 text-center flex flex-col items-center">
+          <Skeleton className="h-3.5 w-28 rounded-full" />
+          <Skeleton className="h-8 w-56 rounded-xl" />
         </div>
-        <div className="grid grid-cols-2 gap-8 py-6 border-y border-zinc-800">
-          <Skeleton className="h-24 w-full rounded-2xl bg-zinc-800" />
-          <Skeleton className="h-24 w-full rounded-2xl bg-zinc-800" />
+        <div className="grid grid-cols-2 gap-4 py-4 border-y" style={{ borderColor: "var(--border)" }}>
+          <Skeleton className="h-20 w-full rounded-2xl" />
+          <Skeleton className="h-20 w-full rounded-2xl" />
         </div>
-        <div className="space-y-4">
-          <Skeleton className="h-6 w-48 rounded-lg bg-zinc-800" />
-          <Skeleton className="h-32 w-full rounded-2xl bg-zinc-800" />
+        <div className="space-y-3">
+          <Skeleton className="h-5 w-40 rounded-lg" />
+          <Skeleton className="h-24 w-full rounded-2xl" />
         </div>
       </div>
     ),
@@ -250,14 +250,18 @@ function ReportsPageContent() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-1.5 rounded-lg font-medium text-xs transition-colors",
+                  "flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-xs transition-all",
                   isActive
-                    ? "bg-[var(--accent)] text-white shadow-sm"
+                    ? "shadow-sm"
                     : "hover:opacity-80"
                 )}
-                style={!isActive ? { color: "var(--fg-muted)" } : {}}
+                style={
+                  isActive
+                    ? { background: "var(--accent)", color: "var(--accent-fg)" }
+                    : { color: "var(--fg-muted)" }
+                }
               >
-                <IconComp className={cn("w-3.5 h-3.5", isActive ? "text-white" : "text-[#71717A]")} />
+                <IconComp className="w-3.5 h-3.5" style={{ color: isActive ? "var(--accent-fg)" : "var(--fg-muted)" }} />
                 <span>{tab.label}</span>
               </button>
             );
@@ -265,21 +269,21 @@ function ReportsPageContent() {
         </div>
       </div>
 
-      {/* ── ACTIVE REPORT DISPLAY (Large A4 White Paper Card) ── */}
-      <div className="min-h-[600px] flex items-center justify-center pt-2">
+      {/* ── ACTIVE REPORT DISPLAY (Executive Card) ── */}
+      <div className="min-h-[450px] flex items-center justify-center pt-1">
         {isLoading ? (
-          <div className="w-full max-w-3xl space-y-8 p-12 rounded-[32px]" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-            <div className="space-y-4 text-center flex flex-col items-center">
-              <Skeleton className="h-4 w-32 rounded-full" />
-              <Skeleton className="h-10 w-64 rounded-xl" />
+          <div className="w-full max-w-[680px] space-y-6 p-6 sm:p-8 rounded-[24px] border" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+            <div className="space-y-3 text-center flex flex-col items-center">
+              <Skeleton className="h-3.5 w-28 rounded-full" />
+              <Skeleton className="h-8 w-56 rounded-xl" />
             </div>
-            <div className="grid grid-cols-2 gap-8 py-6 border-y border-zinc-800">
-              <Skeleton className="h-24 w-full rounded-2xl bg-zinc-800" />
-              <Skeleton className="h-24 w-full rounded-2xl bg-zinc-800" />
+            <div className="grid grid-cols-2 gap-4 py-4 border-y" style={{ borderColor: "var(--border)" }}>
+              <Skeleton className="h-20 w-full rounded-2xl" />
+              <Skeleton className="h-20 w-full rounded-2xl" />
             </div>
-            <div className="space-y-4">
-              <Skeleton className="h-6 w-48 rounded-lg bg-zinc-800" />
-              <Skeleton className="h-32 w-full rounded-2xl bg-zinc-800" />
+            <div className="space-y-3">
+              <Skeleton className="h-5 w-40 rounded-lg" />
+              <Skeleton className="h-24 w-full rounded-2xl" />
             </div>
           </div>
         ) : (

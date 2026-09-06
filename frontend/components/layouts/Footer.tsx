@@ -18,12 +18,6 @@ export function Footer() {
           {/* Brand */}
           <div className="md:col-span-2 space-y-3">
             <div className="flex items-center gap-2.5">
-              <div
-                className="w-8 h-8 rounded-xl flex items-center justify-center font-black text-white text-xs"
-                style={{ background: "var(--accent)" }}
-              >
-                YvY
-              </div>
               <span className="font-bold text-base tracking-tight" style={{ color: "var(--fg)" }}>
                 YOU VS YOU
               </span>

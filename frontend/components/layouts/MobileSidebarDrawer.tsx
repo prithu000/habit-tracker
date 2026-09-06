@@ -33,7 +33,7 @@ const navItems = [
   { href: "/analytics",  label: "Analytics",    icon: BarChart3, locked: true },
   { href: "/leagues",    label: "Arena (Leagues)", icon: Trophy, locked: true },
   { href: "/reports",    label: "Reports",      icon: FileText, locked: true },
-  { href: "/about",      label: "About YvY",    icon: Sparkles },
+  { href: "/about",      label: "About YOU VS YOU", icon: Sparkles },
   { href: "/help",       label: "Help & Bugs",  icon: HelpCircle },
 ];
 

@@ -71,6 +71,21 @@ def _build_dashboard(user, local_date) -> dict:
         .order_by("category", "sort_order")
     )
 
+    if not tasks:
+        try:
+            from apps.routines.services.starter_tasks import seed_starter_tasks_for_user
+            seed_starter_tasks_for_user(user)
+            tasks = list(
+                Task.objects.filter(user=user, is_active=True)
+                .only(
+                    "id", "name", "description", "duration_minutes",
+                    "sort_order", "category", "frequency",
+                )
+                .order_by("category", "sort_order")
+            )
+        except Exception:
+            pass
+
     # ── Query 2: All of today's completions in one shot ──
     completions = list(
         Completion.objects.filter(user=user, local_date=local_date)

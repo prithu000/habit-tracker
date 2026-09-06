@@ -52,61 +52,119 @@ export const StatsBar = memo(function StatsBar({ stats, widgets }: StatsBarProps
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-      {statCards.map((stat, i) => (
-        <motion.div
-          key={stat.id}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25, delay: i * 0.05 }}
-          className="p-4 rounded-xl relative overflow-hidden"
-          style={{
-            background: "var(--surface)",
-            border: "1px solid var(--border)",
-            boxShadow: "var(--card-shadow)",
-          }}
+    <>
+      {/* ── MOBILE: Sleek Unified 4-in-1 Executive Glance Card (Compact & Premium) ── */}
+      <div
+        className="sm:hidden mb-4 rounded-2xl border overflow-hidden transition-all"
+        style={{
+          background: "var(--surface)",
+          borderColor: "var(--border)",
+          boxShadow: "var(--card-shadow)",
+        }}
+      >
+        <div
+          className="grid grid-cols-2 divide-x divide-y"
+          style={{ borderColor: "var(--border-subtle)" }}
         >
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0 flex-1">
-              <p
-                className="text-[11px] font-medium uppercase tracking-wider mb-2"
-                style={{ color: "var(--fg-faint)" }}
-              >
-                {stat.label}
-              </p>
-              <div className="flex items-baseline gap-1">
-                <span
-                  className="text-2xl font-bold tracking-tight tabular-nums"
-                  style={{ color: "var(--fg)" }}
-                >
-                  {stat.primary}
-                </span>
-                {stat.suffix && (
-                  <span className="text-sm font-medium" style={{ color: "var(--fg-muted)" }}>
-                    {stat.suffix}
+          {statCards.map((stat) => (
+            <div key={stat.id} className="p-2.5 flex flex-col justify-between gap-1">
+              <div className="flex items-center justify-between gap-1.5">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <div
+                    className="w-5 h-5 rounded-md flex items-center justify-center shrink-0"
+                    style={{ background: "var(--surface-raised)" }}
+                  >
+                    <stat.icon className="w-3 h-3" style={{ color: stat.iconColor }} />
+                  </div>
+                  <span
+                    className="text-[10px] font-mono font-bold uppercase tracking-wider truncate"
+                    style={{ color: "var(--fg-faint)" }}
+                  >
+                    {stat.label === "Current Streak" ? "Streak" : stat.label === "XP Earned Today" ? "XP Today" : stat.label}
                   </span>
-                )}
+                </div>
+                <div className="flex items-baseline shrink-0">
+                  <span
+                    className="text-base font-extrabold tracking-tight tabular-nums"
+                    style={{ color: "var(--fg)" }}
+                  >
+                    {stat.primary}
+                  </span>
+                  {stat.suffix && (
+                    <span className="text-[10px] font-medium ml-0.5" style={{ color: "var(--fg-muted)" }}>
+                      {stat.suffix.charAt(0)}
+                    </span>
+                  )}
+                </div>
               </div>
               <p
-                className="text-xs mt-0.5 truncate"
+                className="text-[10px] truncate pl-0.5"
                 style={{ color: "var(--fg-muted)" }}
               >
                 {stat.secondary}
               </p>
             </div>
+          ))}
+        </div>
+      </div>
 
-            <div
-              className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-              style={{
-                background: "var(--surface-raised)",
-                border: "1px solid var(--border)",
-              }}
-            >
-              <stat.icon className="w-4 h-4" style={{ color: stat.iconColor }} />
+      {/* ── DESKTOP: Clean 4-Card Responsive Grid ── */}
+      <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        {statCards.map((stat, i) => (
+          <motion.div
+            key={stat.id}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, delay: i * 0.05 }}
+            className="p-4 rounded-xl relative overflow-hidden transition-all hover:scale-[1.01]"
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border)",
+              boxShadow: "var(--card-shadow)",
+            }}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <p
+                  className="text-[11px] font-medium uppercase tracking-wider mb-2"
+                  style={{ color: "var(--fg-faint)" }}
+                >
+                  {stat.label}
+                </p>
+                <div className="flex items-baseline gap-1">
+                  <span
+                    className="text-2xl font-bold tracking-tight tabular-nums"
+                    style={{ color: "var(--fg)" }}
+                  >
+                    {stat.primary}
+                  </span>
+                  {stat.suffix && (
+                    <span className="text-sm font-medium" style={{ color: "var(--fg-muted)" }}>
+                      {stat.suffix}
+                    </span>
+                  )}
+                </div>
+                <p
+                  className="text-xs mt-0.5 truncate"
+                  style={{ color: "var(--fg-muted)" }}
+                >
+                  {stat.secondary}
+                </p>
+              </div>
+
+              <div
+                className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                style={{
+                  background: "var(--surface-raised)",
+                  border: "1px solid var(--border)",
+                }}
+              >
+                <stat.icon className="w-4 h-4" style={{ color: stat.iconColor }} />
+              </div>
             </div>
-          </div>
-        </motion.div>
-      ))}
-    </div>
+          </motion.div>
+        ))}
+      </div>
+    </>
   );
 });

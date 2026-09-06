@@ -6,13 +6,13 @@ import { PageTransition } from "@/components/layouts/PageTransition";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { SubscriptionTab } from "./SubscriptionTab";
+import Link from "next/link";
 import {
   User,
   Lock,
   Save,
   Palette,
   LayoutGrid,
-  Download,
   Shield,
   Sparkles,
   Check,
@@ -103,25 +103,6 @@ export default function SettingsPage() {
     });
   };
 
-  const handleExportData = () => {
-    const data = {
-      user: {
-        email: user?.email,
-        display_name: user?.display_name,
-        identity_statement: user?.identity_statement,
-      },
-      customization: useCustomizationStore.getState(),
-      exportDate: new Date().toISOString(),
-      engine: "YOU VS YOU Personal OS V2.4",
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `you-vs-you-telemetry-export-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    toast.success("Telemetry data exported to JSON");
-  };
 
   const navTabs = [
     { id: "profile", label: "Profile & Identity", icon: User },
@@ -885,8 +866,8 @@ export default function SettingsPage() {
                     <Shield className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-base font-display font-bold" style={{ color: "var(--fg)" }}>Data Export & Privacy</h2>
-                    <p className="text-xs" style={{ color: "var(--fg-muted)" }}>Export your telemetry or manage account privacy.</p>
+                    <h2 className="text-base font-display font-bold" style={{ color: "var(--fg)" }}>Data Security &amp; Privacy</h2>
+                    <p className="text-xs" style={{ color: "var(--fg-muted)" }}>Manage your account privacy and telemetry protections.</p>
                   </div>
                 </div>
 
@@ -897,24 +878,30 @@ export default function SettingsPage() {
                     borderColor: "var(--border)",
                   }}
                 >
-                  <div>
-                    <h3 className="text-xs font-bold" style={{ color: "var(--fg)" }}>Export Exhaustive Telemetry JSON</h3>
-                    <p className="text-[11px] mt-0.5" style={{ color: "var(--fg-muted)" }}>
-                      Download all your customization settings, habits, and biological progress data as a portable JSON file.
+                  <div className="space-y-1">
+                    <h3 className="text-xs font-bold" style={{ color: "var(--fg)" }}>Telemetry &amp; Identity Security</h3>
+                    <p className="text-[11px] leading-relaxed max-w-xl" style={{ color: "var(--fg-muted)" }}>
+                      All personal habit logs, streak telemetry, and account affirmations are encrypted and strictly isolated to your account. To request an account wipe or data deletion, reach out to{" "}
+                      <a
+                        href="mailto:rahul.business940@gmail.com"
+                        className="font-medium hover:underline"
+                        style={{ color: "var(--accent)" }}
+                      >
+                        rahul.business940@gmail.com
+                      </a>.
                     </p>
                   </div>
-                  <button
-                    onClick={handleExportData}
-                    className="px-4 py-2 rounded-xl border text-xs font-semibold transition-all flex items-center gap-2 shrink-0 shadow-sm hover:opacity-90"
+                  <Link
+                    href="/privacy"
+                    className="px-4 py-2 rounded-xl border text-xs font-semibold transition-all flex items-center gap-2 shrink-0 shadow-sm hover:opacity-90 whitespace-nowrap"
                     style={{
                       background: "var(--accent)",
                       color: "var(--accent-fg)",
                       borderColor: "var(--accent)",
                     }}
                   >
-                    <Download className="w-4 h-4" />
-                    <span>Export JSON</span>
-                  </button>
+                    <span>View Privacy Policy</span>
+                  </Link>
                 </div>
               </div>
             )}

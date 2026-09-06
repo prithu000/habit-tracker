@@ -81,34 +81,94 @@ def schedule_morning_motivation():
         )
 
 
+def send_evening_reflection_to_user(user, date_str: str = None):
+    """
+    Sends personalized 10 PM daily consistency check-in email to a user.
+    Summarizes completed vs remaining habits, consistency rate, and motivational guidance.
+    """
+    from apps.core.timezone_utils import get_user_local_date
+    from apps.routines.models import Task
+    from apps.completions.models import Completion
+    from apps.streaks.models import StreakRecord
+
+    local_date = get_user_local_date(user)
+    if not date_str:
+        date_str = local_date.strftime("%Y-%m-%d")
+
+    # 1. Fetch user active tasks
+    tasks = list(Task.objects.filter(user=user, is_active=True).order_by("category", "sort_order"))
+    total_tasks = len(tasks)
+
+    # 2. Fetch today's completions
+    completed_ids = set(
+        str(tid) for tid in Completion.objects.filter(user=user, local_date=local_date)
+        .values_list("task_id", flat=True)
+    )
+
+    completed_names = [t.name for t in tasks if str(t.id) in completed_ids]
+    remaining_names = [t.name for t in tasks if str(t.id) not in completed_ids]
+
+    completed_count = len(completed_names)
+    remaining_count = len(remaining_names)
+    completion_percent = round((completed_count / total_tasks) * 100) if total_tasks > 0 else 0
+
+    # 3. Current streak
+    streak_record = StreakRecord.objects.filter(user=user).first()
+    current_streak = streak_record.current_streak if streak_record else 0
+
+    # 4. Motivational reflection quote tailored to outcome
+    first_name = (user.display_name or "").split(" ")[0] or user.email.split("@")[0]
+    if completion_percent == 100:
+        quote = "Excellence is not an act, but a habit. You proved today that your discipline outworks your excuses."
+        subject = f"{first_name}, 100% consistency achieved today 🔥"
+    elif completion_percent >= 50:
+        quote = "Consistency is built rep by rep. Every habit completed today compounded in your favor."
+        subject = f"{first_name}, today's consistency check-in ({completion_percent}%)"
+    else:
+        quote = "Progress is never linear. What matters most is that you reset and step back into the arena tomorrow."
+        subject = f"{first_name}, ready to reset and outwork tomorrow?"
+
+    frontend_url = getattr(settings, "FRONTEND_URL", "https://youvsyou.site")
+    key = f"night_{user.id}_{date_str}"
+    context = {
+        "user_name": first_name,
+        "total_tasks": total_tasks,
+        "completed_count": completed_count,
+        "remaining_count": remaining_count,
+        "remaining_tasks": remaining_names,
+        "completion_percent": completion_percent,
+        "current_streak": current_streak,
+        "reflection_quote": quote,
+        "app_url": frontend_url,
+        "settings_url": f"{frontend_url}/settings",
+        "unsubscribe_url": f"{frontend_url}/settings?tab=data",
+    }
+
+    return EmailService.send_email_async(
+        recipient=user.email,
+        subject=subject,
+        template_name="daily_night",
+        context=context,
+        idempotency_key=key,
+        segment="daily_night",
+    )
+
+
 @shared_task(name="apps.emails.scheduler.schedule_evening_reflection")
 def schedule_evening_reflection():
-    """Runs hourly. Finds users at 10 PM local time."""
+    """Runs hourly. Finds users at 10 PM (22:00) local time and sends their nightly check-in."""
     tzs = get_timezones_for_hour(22)
-    if not tzs: return
+    if not tzs:
+        return
 
     users = User.objects.filter(timezone__in=tzs, is_active=True)
-    date_str = timezone.now().strftime('%Y-%m-%d')
+    date_str = timezone.now().strftime("%Y-%m-%d")
 
     for user in users:
-        key = f"night_{user.id}_{date_str}"
-        context = {
-            "user_name": user.display_name or "User",
-            "completed_tasks": 5,
-            "missed_tasks": 0,
-            "completion_percent": 100,
-            "xp_earned": 100,
-            "app_url": "https://youvsyou.site",
-            "settings_url": "https://youvsyou.site/settings",
-            "unsubscribe_url": "https://youvsyou.site/unsubscribe"
-        }
-        EmailService.send_email_async(
-            recipient=user.email,
-            subject="Night Review",
-            template_name="daily_night",
-            context=context,
-            idempotency_key=key
-        )
+        try:
+            send_evening_reflection_to_user(user, date_str=date_str)
+        except Exception as e:
+            logger.error(f"Failed to send nightly reflection to {user.email}: {e}")
 
 
 @shared_task(name="apps.emails.scheduler.schedule_inactive_reminders")

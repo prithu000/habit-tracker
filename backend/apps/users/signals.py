@@ -40,8 +40,12 @@ def on_user_created(sender, instance, created, **kwargs):
     # Create the overall streak record
     StreakRecord.objects.get_or_create(user=instance)
 
-    # Welcome notification
-    pass
+    # Pre-populate starter routine habits across categories
+    try:
+        from apps.routines.services.starter_tasks import seed_starter_tasks_for_user
+        seed_starter_tasks_for_user(instance)
+    except Exception as e:
+        logger.warning(f"Could not seed starter tasks for {instance.email}: {e}")
     
     # Send premium welcome email
     from apps.emails.services import EmailService

@@ -1,6 +1,86 @@
 {% extends "html/base.html" %}
+
 {% block content %}
-<p>Good evening, {{ user_name }}.</p>
-<p>Completed: {{ completed_tasks }} | Missed: {{ missed_tasks }}</p>
-<p><a href="{{ app_url }}/tomorrow" class="btn">Prepare for Tomorrow</a></p>
+<div style="text-align: left;">
+    <p style="font-size: 13px; font-weight: 700; letter-spacing: 0.1em; color: #a78bfa; text-transform: uppercase; margin-bottom: 8px;">
+        Nightly Telemetry &bull; 10:00 PM
+    </p>
+    <h1 style="color: #ffffff; font-size: 24px; font-weight: 800; line-height: 1.25; margin-top: 0; margin-bottom: 12px;">
+        Good evening, {{ user_name }}.
+    </h1>
+    <p style="color: #9ca3af; font-size: 14px; line-height: 1.6; margin-bottom: 24px;">
+        Here is your official consistency check-in for today. Track your discipline, reflect on your execution, and outwork your past self.
+    </p>
+
+    <!-- Consistency Score Card -->
+    <div style="background: #1f2029; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; padding: 20px; margin-bottom: 24px;">
+        <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+            <tr>
+                <td style="vertical-align: middle;">
+                    <div style="font-size: 11px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.08em;">
+                        Today's Consistency
+                    </div>
+                    <div style="font-size: 32px; font-weight: 900; color: {% if completion_percent >= 80 %}#34d399{% elif completion_percent >= 50 %}#fbbf24{% else %}#f87171{% endif %}; line-height: 1.1; margin-top: 4px;">
+                        {{ completion_percent }}%
+                    </div>
+                </td>
+                <td style="text-align: right; vertical-align: middle;">
+                    <div style="display: inline-block; background: rgba(167, 139, 250, 0.12); border: 1px solid rgba(167, 139, 250, 0.25); border-radius: 100px; padding: 6px 14px; color: #c4b5fd; font-size: 12px; font-weight: 700;">
+                        {{ completed_count }} / {{ total_tasks }} Tasks Done
+                    </div>
+                    {% if current_streak > 0 %}
+                    <div style="font-size: 11px; color: #f59e0b; font-weight: 600; margin-top: 6px;">
+                        🔥 {{ current_streak }} Day Streak Active
+                    </div>
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Remaining Tasks Section -->
+    {% if remaining_tasks %}
+    <div style="margin-bottom: 24px;">
+        <h3 style="color: #e5e7eb; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">
+            Remaining Habits For Today ({{ remaining_count }})
+        </h3>
+        <div style="background: #14151b; border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 14px 18px;">
+            <ul style="margin: 0; padding-left: 18px; color: #d1d5db; font-size: 13px; line-height: 1.8;">
+                {% for task_name in remaining_tasks %}
+                <li><strong>{{ task_name }}</strong></li>
+                {% endfor %}
+            </ul>
+        </div>
+        <p style="color: #9ca3af; font-size: 12px; line-height: 1.5; margin-top: 10px;">
+            Tip: You can still check off habits before midnight, or reset your energy to attack them first thing tomorrow morning.
+        </p>
+    </div>
+    {% else %}
+    <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+        <div style="font-size: 14px; font-weight: 700; color: #34d399; margin-bottom: 4px;">
+            ✓ 100% Perfect Day Completed
+        </div>
+        <p style="color: #d1fae5; font-size: 13px; line-height: 1.5; margin: 0;">
+            Exceptional discipline today. You executed every planned routine without compromise. Rest well and maintain this winning trajectory tomorrow.
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- Motivational Reflection (Customer Retention & Growth) -->
+    <div style="border-left: 3px solid #8b5cf6; padding-left: 14px; margin-bottom: 28px;">
+        <p style="color: #e5e7eb; font-size: 13px; font-style: italic; line-height: 1.6; margin: 0;">
+            &ldquo;{{ reflection_quote }}&rdquo;
+        </p>
+        <p style="color: #8b5cf6; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 6px; margin-bottom: 0;">
+            &mdash; YOU VS YOU PROTOCOL
+        </p>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="btn-wrapper" style="text-align: center; margin: 28px 0 10px 0;">
+        <a href="{{ app_url }}/dashboard" class="btn" style="display: inline-block; background: #7c3aed; color: #ffffff !important; font-weight: 700; font-size: 14px; text-decoration: none; padding: 12px 28px; border-radius: 12px;">
+            Open Your Dashboard &rarr;
+        </a>
+    </div>
+</div>
 {% endblock %}
