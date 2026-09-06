@@ -195,6 +195,7 @@ class OnboardingCompleteView(generics.GenericAPIView):
             )
 
         serializer = self.get_serializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
         user = serializer.save()
 
         # Seed starter tasks if user does not have active habits yet

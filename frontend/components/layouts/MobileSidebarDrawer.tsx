@@ -217,14 +217,16 @@ export const MobileSidebarDrawer = memo(function MobileSidebarDrawer() {
                 return (
                   <Link
                     key={item.href}
-                    href={isLocked ? "/pricing" : item.href}
+                    href={isLocked ? "#" : item.href}
                     prefetch={!isLocked}
                     onMouseEnter={() => !isLocked && router.prefetch(item.href)}
                     onClick={(e) => {
-                      closeMobileDrawer();
                       if (isLocked) {
                         e.preventDefault();
-                        router.push("/pricing");
+                        usePaywallStore.getState().openPaywall();
+                        closeMobileDrawer();
+                      } else {
+                        closeMobileDrawer();
                       }
                     }}
                   >

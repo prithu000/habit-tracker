@@ -96,14 +96,13 @@ export const Sidebar = memo(function Sidebar() {
             return (
               <Link
                 key={item.href}
-                href={isLocked ? "/pricing" : item.href}
+                href={isLocked ? "#" : item.href}
                 prefetch={!isLocked}
                 onMouseEnter={() => !isLocked && router.prefetch(item.href)}
                 onClick={(e) => {
                   if (isLocked) {
                     e.preventDefault();
                     usePaywallStore.getState().openPaywall();
-                    router.push("/pricing");
                   }
                 }}
               >

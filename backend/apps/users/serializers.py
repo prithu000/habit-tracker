@@ -304,13 +304,14 @@ class OnboardingSerializer(serializers.ModelSerializer):
     """
     Completes user onboarding.
     Required: identity_statement.
-    Optional: timezone, time_preference.
+    Optional: timezone, time_preference, display_name.
     """
     identity_statement = serializers.CharField(required=True)
+    display_name = serializers.CharField(required=False, allow_blank=True, max_length=100)
 
     class Meta:
         model = User
-        fields = ["identity_statement", "time_preference", "timezone"]
+        fields = ["identity_statement", "time_preference", "timezone", "display_name"]
 
     def validate_identity_statement(self, value):
         validate_identity_statement(value)
@@ -329,9 +330,11 @@ class OnboardingSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         for attr, value in validated_data.items():
-            setattr(instance, attr, value)
+            if value:
+                setattr(instance, attr, value)
         instance.onboarding_completed = True
-        instance.save(update_fields=list(validated_data.keys()) + ["onboarding_completed", "updated_at"])
+        fields = list(validated_data.keys()) + ["onboarding_completed", "updated_at"]
+        instance.save(update_fields=list(set(fields)))
         return instance
 
 

@@ -60,7 +60,7 @@ export const BottomNav = memo(function BottomNav() {
           return (
             <Link
               key={item.href}
-              href={isLocked ? "/pricing" : item.href}
+              href={isLocked ? "#" : item.href}
               prefetch={!isLocked}
               onMouseEnter={() => !isLocked && router.prefetch(item.href)}
               onTouchStart={() => !isLocked && router.prefetch(item.href)}
