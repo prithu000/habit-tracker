@@ -7,9 +7,24 @@ export type MobilePlatform = "android" | "ios" | "other";
 
 /**
  * Checks if the current environment is running inside Instagram's in-app browser.
+ * Supports URL param preview (e.g. ?test_inapp=instagram or ?test_inapp=ios / android).
  */
 export function isInstagramBrowser(customUserAgent?: string): boolean {
   if (typeof window === "undefined" && !customUserAgent) return false;
+
+  // Local/QA preview via URL parameter
+  if (typeof window !== "undefined") {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const testParam = params.get("test_inapp");
+      if (testParam && ["instagram", "true", "1", "ios", "android"].includes(testParam.toLowerCase())) {
+        return true;
+      }
+    } catch {
+      // Ignored
+    }
+  }
+
   const ua =
     customUserAgent ||
     (typeof navigator !== "undefined" ? navigator.userAgent || navigator.vendor || "" : "");
@@ -32,6 +47,19 @@ export function isInAppBrowser(customUserAgent?: string): boolean {
  */
 export function getMobilePlatform(customUserAgent?: string): MobilePlatform {
   if (typeof window === "undefined" && !customUserAgent) return "other";
+
+  // Check URL parameter override for previewing specific OS
+  if (typeof window !== "undefined") {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const testParam = params.get("test_inapp")?.toLowerCase();
+      if (testParam === "ios") return "ios";
+      if (testParam === "android") return "android";
+    } catch {
+      // Ignored
+    }
+  }
+
   const ua =
     customUserAgent ||
     (typeof navigator !== "undefined" ? navigator.userAgent || navigator.vendor || "" : "");
@@ -53,14 +81,31 @@ export function getMobilePlatform(customUserAgent?: string): MobilePlatform {
 }
 
 /**
+ * Strips development/testing parameters (like test_inapp) from the URL
+ * so that when the external browser opens, it runs in normal mode.
+ */
+export function getCleanTargetUrl(rawUrl?: string): string {
+  if (typeof window === "undefined" && !rawUrl) return "";
+  const url = rawUrl || (typeof window !== "undefined" ? window.location.href : "");
+  try {
+    const parsed = new URL(url);
+    parsed.searchParams.delete("test_inapp");
+    return parsed.toString();
+  } catch {
+    return url.replace(/([?&])test_inapp=[^&]+(&|$)/i, "$1").replace(/\?$/, "").replace(/\?#/, "#");
+  }
+}
+
+/**
  * Constructs a generic Android Intent URL to launch the user's default web browser.
  * NOTE: Intentionally avoids `package=com.android.chrome` so that the user's
  * configured default browser (Samsung Internet, Firefox, Chrome, Brave, Opera, etc.) is used.
  */
 export function buildAndroidIntentUrl(url: string): string {
-  const scheme = url.startsWith("http://") ? "http" : "https";
+  const cleanDestination = getCleanTargetUrl(url);
+  const scheme = cleanDestination.startsWith("http://") ? "http" : "https";
   // Strip protocol and encode '#' characters in the query/hash to avoid parsing collision with '#Intent;'
-  const cleanUrl = url.replace(/^https?:\/\//i, "").replace(/#/g, "%23");
+  const cleanUrl = cleanDestination.replace(/^https?:\/\//i, "").replace(/#/g, "%23");
   return `intent://${cleanUrl}#Intent;scheme=${scheme};action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;end;`;
 }
 
@@ -78,7 +123,7 @@ export function openInExternalBrowser(targetUrl?: string): {
     return { platform: "other", success: false };
   }
 
-  const url = targetUrl || window.location.href;
+  const url = getCleanTargetUrl(targetUrl || window.location.href);
   const platform = getMobilePlatform();
 
   if (platform === "android") {

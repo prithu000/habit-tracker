@@ -8,7 +8,7 @@ import { AuthResponse, ApiResponse } from "@/types/api";
 import { toast } from "react-hot-toast";
 import { AlertTriangle } from "lucide-react";
 import { isInstagramBrowser } from "@/lib/inAppBrowser";
-import { InstagramBrowserNotice } from "@/components/shared/InstagramBrowserNotice";
+import { InstagramGoogleSignIn } from "@/components/shared/InstagramBrowserNotice";
 
 declare global {
   interface Window {
@@ -158,7 +158,7 @@ export function GoogleSignInButton({ label = "Continue with Google" }: { label?:
   }, []);
 
   if (isInstagram) {
-    return <InstagramBrowserNotice variant="card" />;
+    return <InstagramGoogleSignIn label={label} />;
   }
 
   return (

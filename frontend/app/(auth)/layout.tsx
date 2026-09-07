@@ -2,7 +2,6 @@
 
 import { ReactNode } from "react";
 import Link from "next/link";
-import { InstagramBrowserNotice } from "@/components/shared/InstagramBrowserNotice";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
@@ -77,7 +76,6 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             boxShadow: "var(--card-shadow-hover)",
           }}
         >
-          <InstagramBrowserNotice variant="banner" className="mb-6" />
           {children}
         </div>
 
