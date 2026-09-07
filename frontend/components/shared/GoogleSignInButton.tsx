@@ -7,6 +7,8 @@ import api from "@/lib/api";
 import { AuthResponse, ApiResponse } from "@/types/api";
 import { toast } from "react-hot-toast";
 import { AlertTriangle } from "lucide-react";
+import { isInstagramBrowser } from "@/lib/inAppBrowser";
+import { InstagramBrowserNotice } from "@/components/shared/InstagramBrowserNotice";
 
 declare global {
   interface Window {
@@ -22,6 +24,7 @@ export function GoogleSignInButton({ label = "Continue with Google" }: { label?:
   const setAuth = useAuthStore((state) => state.setAuth);
   const [isLoading, setIsLoading] = useState(false);
   const [originError, setOriginError] = useState<string | null>(null);
+  const [isInstagram, setIsInstagram] = useState(false);
   
   const isInitializedRef = useRef(false);
   const isRenderedRef = useRef(false);
@@ -80,6 +83,16 @@ export function GoogleSignInButton({ label = "Continue with Google" }: { label?:
   };
 
   useEffect(() => {
+    // Detect Instagram in-app browser
+    const inInstagram = isInstagramBrowser();
+    setIsInstagram(inInstagram);
+
+    // If opened inside Instagram, do NOT initialize Google GIS
+    // (Google blocks OAuth inside embedded WebViews with 403: disallowed_useragent)
+    if (inInstagram) {
+      return;
+    }
+
     const isDev = process.env.NODE_ENV === "development";
     const currentOrigin = typeof window !== "undefined" ? window.location.origin : "";
     const AUTHORIZED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"];
@@ -143,6 +156,10 @@ export function GoogleSignInButton({ label = "Continue with Google" }: { label?:
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (isInstagram) {
+    return <InstagramBrowserNotice variant="card" />;
+  }
 
   return (
     <div className="w-full flex flex-col items-center justify-center gap-3">
